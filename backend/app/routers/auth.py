@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import cast
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -163,6 +163,22 @@ def login(
 def admin_check(_: User = Depends(require_admin)) -> None:
     """Sonda para proxies (nginx auth_request): 204 si el token es de un admin; 401/403 si no.
     Sin cuerpo y sin tocar la BD más allá de validar al usuario."""
+
+
+@router.get("/rubricas-check", status_code=status.HTTP_204_NO_CONTENT)
+def rubricas_check(
+    response: Response,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Sonda de docs.zymointranet.com (nginx auth_request): 204 si es admin ('admin') o tiene el permiso
+    mod_rubricas ('lector': ve todo, pero la API de la plataforma le niega subir rúbricas y crear agentes)."""
+    if user.role == "admin":
+        response.headers["X-Docs-Rol"] = "admin"
+    elif "mod_rubricas" in _permissions_for_user(db, user):
+        response.headers["X-Docs-Rol"] = "lector"
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sin acceso a la plataforma de rúbricas.")
 
 
 @router.get("/me", response_model=MeResponse)

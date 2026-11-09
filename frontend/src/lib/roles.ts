@@ -164,6 +164,19 @@ export const INTERNAL_MODULE_GROUPS: ModulePermissionGroup[] = [
     ],
   },
   {
+    title: "Plataforma de rúbricas",
+    subtitle: "docs.zymointranet.com — acceso de solo lectura",
+    modules: [
+      {
+        id: "mod_rubricas",
+        category: "modulo",
+        icon: "📐",
+        name: "Plataforma de rúbricas — Lector",
+        description: "Entrar a docs.zymointranet.com: ver rúbricas, análisis y hallazgos. No puede subir rúbricas nuevas, publicar versiones ni crear agentes (eso sigue siendo solo de admin)",
+      },
+    ],
+  },
+  {
     title: "Evaluación de Desempeño",
     subtitle: "Independiente de T&C — aparece dentro de Operativo para el líder, y dentro de T&C para quien ya tiene acceso completo",
     modules: [
