@@ -2,7 +2,7 @@
 
 **Última actualización:** 2026-05-14 (paginación listado OC)
 **Branch activo:** `master`
-**Repositorio:** `Andresrs1014/zymo-intranet`
+**Repositorio:** `Grupo-zymo/zymo-intranet`
 
 ---
 
