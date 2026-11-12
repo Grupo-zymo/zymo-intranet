@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom"
 import {
   LogOut,
   LayoutDashboard,
+  LifeBuoy,
   Monitor,
   ShieldCheck,
   Database,
@@ -13,7 +14,6 @@ import {
   LineChart,
   ListTodo,
   Users,
-  Ticket,
   Headset,
   Smile,
   NotebookPen,
@@ -38,7 +38,6 @@ import {
   canSubmitDevTasks,
   canManageDevTasks,
   canSeeTyC,
-  canSeeTickets,
   nivelTicketsCentral,
   canSeeSAC,
   canSeeReportesDesarrollo,
@@ -88,7 +87,6 @@ export function Sidebar() {
   // mudar fuera de la intranet (dominio y proyecto propios, en definición).
   // La ruta /libertadora y el permiso siguen intactos, solo no se enlaza acá.
   const showLibertadora    = false
-  const showTickets        = user ? canSeeTickets(user.role, perms) : false
   const showSac            = user ? canSeeSAC(user.role, perms) : false
   const showCentral        = user ? nivelTicketsCentral(user.role, perms) !== null : false
   const showTyC            = user ? canSeeTyC(user.role, perms) : false
@@ -160,6 +158,12 @@ export function Sidebar() {
                 label="Dashboard"
                 icon={<LayoutDashboard className="w-4 h-4" />}
                 active={isActive(["/dashboard"])}
+              />
+              <NavItem
+                to="/mesa-ayuda"
+                label="Mesa de ayuda"
+                icon={<LifeBuoy className="w-4 h-4" />}
+                active={isActive(["/mesa-ayuda"])}
               />
             </SidebarMenu>
           </SidebarGroupContent>
@@ -338,29 +342,19 @@ export function Sidebar() {
           </>
         )}
 
-        {(showTickets || showSac) && (
+        {showSac && (
           <>
             <SidebarSeparator />
             <SidebarGroup>
               <SidebarGroupLabel>Planeación</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {showTickets && (
-                    <NavItem
-                      to="/zymoally/tickets"
-                      label="Zymo Ally · Tickets"
-                      icon={<Ticket className="w-4 h-4" />}
-                      active={isActive(["/zymoally/tickets"])}
-                    />
-                  )}
-                  {showSac && (
-                    <NavItem
-                      to="/zymoally/sac"
-                      label="Zymo Ally · SAC"
-                      icon={<Smile className="w-4 h-4" />}
-                      active={isActive(["/zymoally/sac"])}
-                    />
-                  )}
+                  <NavItem
+                    to="/zymoally/sac"
+                    label="Zymo Ally · SAC"
+                    icon={<Smile className="w-4 h-4" />}
+                    active={isActive(["/zymoally/sac"])}
+                  />
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

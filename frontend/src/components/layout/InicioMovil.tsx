@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom"
-import { CheckSquare, Headset, Home, MoreHorizontal, ShoppingCart, Smile, Ticket, type LucideIcon } from "lucide-react"
+import { CheckSquare, Headset, Home, MoreHorizontal, ShoppingCart, Smile, type LucideIcon } from "lucide-react"
 import { useSolicitudes } from "@/hooks/useOC"
-import { useTickets } from "@/hooks/useTickets"
 import { useTareas } from "@/components/layout/TareasVistaPrevia"
 import { useSidebar } from "@/components/ui/sidebar"
 import { MovilBarraInferior, type MovilNavItem } from "@/components/movil/Movil"
-import { canApproveOC, canManageDevTasks, canSeeOC, canSeeSAC, canSeeTickets, canSubmitDevTasks, nivelTicketsCentral } from "@/lib/permissions"
+import { canApproveOC, canManageDevTasks, canSeeOC, canSeeSAC, canSubmitDevTasks, nivelTicketsCentral } from "@/lib/permissions"
 import { formatFechaRelativa } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
@@ -19,16 +18,14 @@ function useAccesos() {
     compras: !!user && canSeeOC(user.role, user.area, perms),
     aprueba: !!user && canApproveOC(user.role, perms),
     tareas: !!user && (user.role === "admin" || canSubmitDevTasks(tools) || canManageDevTasks(tools)),
-    tickets: !!user && canSeeTickets(user.role, perms),
     sac: !!user && canSeeSAC(user.role, perms),
     central: !!user && nivelTicketsCentral(user.role, perms) !== null,
   }
 }
 
-const MODULOS: { clave: "compras" | "tareas" | "tickets" | "sac" | "central"; titulo: string; detalle: string; a: string; icono: LucideIcon; tinte: string }[] = [
+const MODULOS: { clave: "compras" | "tareas" | "sac" | "central"; titulo: string; detalle: string; a: string; icono: LucideIcon; tinte: string }[] = [
   { clave: "compras", titulo: "Compras", detalle: "Solicitudes y OC", a: "/oc/solicitudes", icono: ShoppingCart, tinte: "bg-[#FDECEE] text-[#C3182A]" },
   { clave: "tareas", titulo: "Tareas", detalle: "Mi trabajo y tablero", a: "/tareas-v2", icono: CheckSquare, tinte: "bg-[#DBEAFE] text-[#1D4ED8]" },
-  { clave: "tickets", titulo: "Tickets", detalle: "PQR de clientes", a: "/zymoally/tickets", icono: Ticket, tinte: "bg-[#FEF3C7] text-[#B45309]" },
   { clave: "central", titulo: "Central", detalle: "Casos de clientes", a: "/servicio-cliente/central", icono: Headset, tinte: "bg-[#FDECEE] text-[#C3182A]" },
   { clave: "sac", titulo: "SAC", detalle: "Fidelización y visitas", a: "/zymoally/sac", icono: Smile, tinte: "bg-[#DCFCE7] text-[#15803D]" },
 ]
@@ -42,13 +39,10 @@ export function InicioMovil() {
   const a = useAccesos()
   const porAprobar = useSolicitudes({ estado: "pendiente_aprobacion" }, 1, { enabled: a.aprueba })
   const tareas = useTareas("mias", `responsableId=${a.user?.id ?? 0}`, { enabled: a.tareas && !!a.user })
-  const tickets = useTickets({ asignadoAMi: true }, { enabled: a.tickets })
-  const ticketsAbiertos = (tickets.data ?? []).filter((t) => !t.closedAt)
 
   const pendientes = [
     a.aprueba && { clave: "aprobar", n: porAprobar.data?.total, etiqueta: "Por aprobar", a: "/oc/aprobacion", clase: "bg-[#FDECEE] text-[#C3182A]" },
     a.tareas && { clave: "tareas", n: tareas.data?.length, etiqueta: "Mis tareas", a: "/tareas-v2", clase: "bg-[#DBEAFE] text-[#1D4ED8]" },
-    a.tickets && { clave: "tickets", n: tickets.data ? ticketsAbiertos.length : undefined, etiqueta: "Tickets", a: "/zymoally/tickets", clase: "bg-[#FEF3C7] text-[#B45309]" },
   ].filter(Boolean) as { clave: string; n?: number; etiqueta: string; a: string; clase: string }[]
 
   const recientes = [
@@ -59,10 +53,6 @@ export function InicioMovil() {
     ...(tareas.data ?? []).map((t) => ({
       clave: `t-${t.id}`, fecha: t.createdAt, a: "/tareas-v2", punto: "bg-[#1D4ED8]",
       titulo: t.titulo, detalle: `Tareas · ${t.subidoPorNombre}`,
-    })),
-    ...ticketsAbiertos.map((t) => ({
-      clave: `k-${t.id}`, fecha: t.createdAt, a: "/zymoally/tickets", punto: "bg-[#B45309]",
-      titulo: `${t.code} · ${t.client ?? t.type}`, detalle: `Tickets · ${t.status}`,
     })),
   ]
     .sort((x, y) => (y.fecha ?? "").localeCompare(x.fecha ?? ""))

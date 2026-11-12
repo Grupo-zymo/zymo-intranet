@@ -37,9 +37,9 @@ export function canSeeOperClientes(role: string, appPerms?: string[]): boolean {
   return hasPerm(appPerms, "mod_oper_clientes")
 }
 
-export function canSeeGestionTickets(role: string, appPerms?: string[]): boolean {
-  if (role === "admin") return true
-  return hasPerm(appPerms, "mod_operativo_tickets")
+// Archivado 2026-11-12 junto con Zymo Ally · Tickets (ver canSeeTickets).
+export function canSeeGestionTickets(role: string, _appPerms?: string[]): boolean {
+  return role === "admin"
 }
 
 export function canSeeSGC(role: string, area?: string | null, appPerms?: string[]): boolean {
@@ -110,9 +110,11 @@ export function canSeeLibertadora(role: string, appPerms?: string[]): boolean {
   return hasPerm(appPerms, "mod_libertadora")
 }
 
-export function canSeeTickets(role: string, appPerms?: string[]): boolean {
-  if (role === "admin") return true
-  return hasPerm(appPerms, "mod_tickets")
+// Archivado 2026-11-12: el módulo viejo de PQR (Zymo Ally · Tickets) sale del menú
+// mientras se construye la mesa de ayuda por áreas. Solo el admin entra por URL para
+// consultar el archivo; mod_tickets ya no abre la pantalla.
+export function canSeeTickets(role: string, _appPerms?: string[]): boolean {
+  return role === "admin"
 }
 
 export function canConfigTickets(role: string, appPerms?: string[]): boolean {
