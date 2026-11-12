@@ -2,6 +2,7 @@
 // ocupa la columna derecha. Dos pestañas: Conversación (chat + barra de redacción) y Gestión (responsable,
 // acciones, clasificación, plazos e historial de asignaciones).
 
+import { CentralApoyoInterno } from "./CentralApoyoInterno"
 import { useEffect, useId, useRef, useState } from "react"
 import { AlertTriangle, ArrowLeft, ArrowUpCircle, Lock, RefreshCw, SearchX, Send, X } from "lucide-react"
 import { useTicketToast } from "@/components/tickets/TicketToast"
@@ -480,6 +481,7 @@ function Gestion({
         </Tarjeta>
       )}
 
+      <CentralApoyoInterno caso={caso} />
       <Plazos caso={caso} ahora={ahora} />
       <Historial asignaciones={caso.asignaciones} />
     </div>
