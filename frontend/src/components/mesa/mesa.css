@@ -1,0 +1,60 @@
+/* Mesa de ayuda — Manual de Marca Zymo, SOLO en esta sección (el resto de la
+   intranet sigue con DM Sans). Montserrat se descarga al entrar aquí.
+   Este archivo tiene los tokens y lo básico; la organización de las pantallas
+   (la misma de la Central de tickets) está en mesa-web.css. */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;800&display=swap");
+
+/* .mesa-capa: lo que se monta fuera de la página (diálogos) y necesita los
+   mismos tokens y la misma fuente. */
+.mesa,
+.mesa-capa {
+  --mesa-rojo: #f5333f;      /* Pantone Red 032 C — botones, acentos, texto grande */
+  /* El negro de la marca queda solo para el texto: como fondo se usa el gris (decisión 2026-11-12).
+     --mesa-negro conserva el nombre pero es el gris oscuro de la escala del manual: estados activos y contornos. */
+  --mesa-negro: #575756;
+  --mesa-gris: #e2e2e2;      /* líneas y bordes */
+  --mesa-fondo: #f4f4f4;
+  --mesa-texto: #000000;
+  --mesa-texto-2: #5c5c5c;   /* ≈6.6:1 sobre blanco */
+  font-family: "Montserrat", system-ui, sans-serif;
+  color: var(--mesa-texto);
+}
+.mesa { background: var(--mesa-fondo); min-height: 100%; }
+
+.mesa-num { font-variant-numeric: tabular-nums; }
+
+/* Estado vacío o de error: una línea roja a la izquierda y texto alineado a ella */
+.mesa-vacio {
+  max-width: 40rem;
+  border-left: 3px solid var(--mesa-rojo);
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  animation: mesa-aparece 220ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) { .mesa-vacio { animation: none; } }
+@keyframes mesa-aparece { from { opacity: 0; } to { opacity: 1; } }
+
+.mesa-vacio h2 { font-weight: 800; font-size: 1.35rem; line-height: 1.25; text-wrap: balance; }
+.mesa-vacio p { margin-top: 0.5rem; color: var(--mesa-texto-2); line-height: 1.6; }
+
+.mesa-acciones { margin-top: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+
+/* Botón principal (uno por pantalla) */
+.mesa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  background: var(--mesa-rojo);
+  color: #fff;
+  font-weight: 800;          /* blanco sobre rojo ≈3.9:1: va en negrita grande */
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 150ms ease;
+}
+.mesa-btn:hover:not(:disabled) { background: #d91f2b; }
+.mesa-btn:active:not(:disabled) { transform: scale(0.97); }
+.mesa-btn:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: 3px; }
+.mesa-btn:disabled { opacity: 0.45; cursor: not-allowed; }
