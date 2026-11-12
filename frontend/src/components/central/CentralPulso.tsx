@@ -363,14 +363,19 @@ export function CentralKpisWeb({
   resumen,
   nivel,
   filtros,
+  esperan,
+  onEsperan,
   onFiltrar,
 }: {
   resumen: CentralResumen | undefined
   nivel: CentralNivel
   filtros: CentralFiltros
+  /** Casos abiertos donde el cliente escribió de último; tocar el indicador lleva a los chats. */
+  esperan: number
+  onEsperan: () => void
   onFiltrar: (parcial: Partial<CentralFiltros> | null) => void
 }) {
-  const rejilla = { gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }
+  const rejilla = { gridTemplateColumns: "repeat(auto-fit, minmax(128px, 1fr))" }
   if (!resumen) {
     return (
       <div className="grid gap-4" style={rejilla} aria-busy="true" aria-label="Cargando indicadores">
@@ -417,6 +422,15 @@ export function CentralKpisWeb({
           </button>
         )
       })}
+      <button
+        type="button"
+        onClick={onEsperan}
+        className="ct-card cursor-pointer px-5 py-4 text-left transition-[border-color,transform] duration-150 hover:border-[color:var(--ct-line-strong)] active:scale-[0.99]"
+      >
+        <span className="ct-muted block text-sm font-semibold">Esperan respuesta</span>
+        <span className="ct-mono mt-2 block text-[36px] font-medium leading-none" style={{ color: esperan > 0 ? "var(--ct-red)" : undefined }}>{esperan}</span>
+        <span className="ct-faint mt-1.5 block text-xs">Abrir los chats →</span>
+      </button>
       <div className="ct-card px-5 py-4">
         <span className="ct-muted block text-sm font-semibold">Tiempo medio 1ª respuesta</span>
         <span className="mt-2 block"><HorasGrandes valor={resumen.horasPrimeraRespuesta} /></span>

@@ -16,8 +16,8 @@
   --ct-red: #c11a3c;
   --ct-red-solid: #c11a3c;
   --ct-red-soft: hsl(348 76% 95%);
-  --ct-orange: #c2570c;
-  --ct-amber: #a16207;
+  --ct-orange: #a84a0a;
+  --ct-amber: #8a5206;
   --ct-green: #15803d;
   --ct-blue: #1d5fbf;
   --ct-gray: #62626b;
@@ -253,7 +253,12 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
   border-radius: 999px;
   background: #e9e9ec;
 }
-.ct-segmento button {
+.ct-segmento button,
+.ct-seg-enlace {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   min-height: 40px;
   border-radius: 999px;
   font-size: 0.875rem;
@@ -262,7 +267,8 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
   cursor: pointer;
   transition: background-color 160ms ease-out, color 160ms ease-out;
 }
-.ct-segmento button[aria-selected="true"] { background: var(--ct-surface); color: var(--ct-text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.ct-segmento button[aria-selected="true"],
+.ct-seg-enlace[aria-current="page"] { background: var(--ct-surface); color: var(--ct-text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
 
 /* ── Movimiento: solo carga, transición de estado y feedback ───────────── */
 
@@ -317,23 +323,40 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
   }
 }
 
-/* ── Escritorio (CentralWeb) ───────────────────────────────────────────── */
+/* ── Escritorio ────────────────────────────────────────────────────────── */
 
-.ct-web .ct-chip { height: 28px; font-size: 0.8125rem; }
-.ct-web .ct-avatar { width: 34px; height: 34px; font-size: 0.75rem; }
-.ct-chat-panel { transition: width 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+@media (min-width: 1024px) {
+  .ct-web .ct-chip { height: 28px; font-size: 0.8125rem; }
+  .ct-web .ct-avatar { width: 34px; height: 34px; font-size: 0.75rem; }
+}
 
-/* Zona de chats: bandeja + conversación. Con poco ancho se ve una a la vez; con ≥ 820 px, las dos. */
-.ct-chat { container-type: inline-size; }
-.ct-bandeja { width: 100%; }
-.ct-conv { display: none; }
-.ct-chat[data-caso="true"] .ct-bandeja { display: none; }
-.ct-chat[data-caso="true"] .ct-conv { display: flex; }
-@container (min-width: 820px) {
-  .ct-chat[data-caso] .ct-bandeja { display: flex; width: 340px; flex: none; border-right: 1px solid var(--ct-line); }
-  .ct-chat[data-caso] .ct-conv { display: flex; }
+/* Detalle del caso: con poco ancho, pestañas Conversación | Gestión; con ≥ 900 px, chat y gestión lado a lado. */
+.ct-d { container-type: inline-size; }
+.ct-d-cuerpo { display: flex; flex: 1; min-height: 0; }
+.ct-d-chat { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
+.ct-d-gestion { display: none; flex: 1; min-width: 0; overflow-y: auto; overscroll-behavior: contain; }
+.ct-d[data-pestana="gestion"] .ct-d-chat { display: none; }
+.ct-d[data-pestana="gestion"] .ct-d-gestion { display: block; }
+@container (min-width: 900px) {
+  .ct-d[data-pestana] .ct-d-chat { display: flex; }
+  .ct-d[data-pestana] .ct-d-gestion { display: block; flex: none; width: 400px; border-left: 1px solid var(--ct-line); background: var(--ct-bg); }
+  .ct-d .ct-d-tabs { display: none; }
+}
+
+/* Pendientes: filas que se reacomodan según el ancho de la tarjeta (sin scroll horizontal). */
+.ct-pend { container-type: inline-size; }
+.ct-pend-fila { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 0.75rem 1rem; padding: 1.1rem 1.5rem; }
+.ct-pend-extra { grid-column: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.ct-pend-cabecera { display: none; }
+@container (min-width: 780px) {
+  .ct-pend-fila, .ct-pend-cabecera { grid-template-columns: 84px minmax(0, 1fr) 150px 170px; }
+  .ct-pend-extra { display: contents; }
+  .ct-pend-cabecera { display: grid; gap: 1rem; }
 }
 
 .ct-fila { position: relative; border-top: 1px solid var(--ct-line); transition: background-color 140ms ease-out; }
 .ct-fila:hover { background: var(--ct-hover); }
-.ct-fila[aria-current="true"] { background: var(--ct-red-soft); }
+
+/* Pantallas muy anchas: la conversación no se estira de lado a lado. */
+.ct-d-chat [role="log"] > *,
+.ct-d-chat form > * { max-width: 960px; margin-inline: auto; }

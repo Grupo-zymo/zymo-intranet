@@ -8,15 +8,13 @@ import { EstadoChip, Responsable, SeveridadChip, SlaResumen } from "./partes"
 
 interface Props {
   casos: CentralCasoItem[]
-  /** Radicado abierto en el detalle (se resalta en escritorio). */
-  seleccionado: string | null
   ahora: number
   onAbrir: (radicado: string) => void
 }
 
 const orden = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties
 
-export function CentralLista({ casos, seleccionado, ahora, onAbrir }: Props) {
+export function CentralLista({ casos, ahora, onAbrir }: Props) {
   return (
     <ul className="m-0 flex list-none flex-col gap-3 p-0">
       {casos.map((c, i) => {
@@ -27,7 +25,6 @@ export function CentralLista({ casos, seleccionado, ahora, onAbrir }: Props) {
             <button
               type="button"
               className="ct-caso"
-              aria-current={seleccionado === String(c.radicado)}
               onClick={() => onAbrir(String(c.radicado))}
             >
               <span className="flex items-center justify-between gap-2">

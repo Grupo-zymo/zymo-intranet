@@ -683,7 +683,15 @@ export default function App() {
           path="/servicio-cliente/central"
           element={
             <CentralTicketsRoute>
-              <CentralTicketsPage />
+              <CentralTicketsPage vista="dashboard" />
+            </CentralTicketsRoute>
+          }
+        />
+        <Route
+          path="/servicio-cliente/central/chats"
+          element={
+            <CentralTicketsRoute>
+              <CentralTicketsPage vista="chats" />
             </CentralTicketsRoute>
           }
         />

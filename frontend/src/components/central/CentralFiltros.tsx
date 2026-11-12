@@ -286,6 +286,8 @@ export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [texto])
 
+  const [mas, setMas] = useState(false)
+  const idMas = useId()
   const director = nivel === "director"
   const vistas = VISTAS.filter((v) => director || !v.soloDirector)
   const vistaActiva = vistas.find((v) => v.activa(filtros)) ?? null
@@ -325,10 +327,16 @@ export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimp
               {v.texto}
             </button>
           ))}
+          <button type="button" className="ct-btn" aria-expanded={mas} aria-controls={idMas} onClick={() => setMas((v) => !v)}>
+            <SlidersHorizontal className="size-4" aria-hidden />
+            Más filtros
+            {chips.length > 0 && <span className="ct-mono rounded-full bg-[var(--ct-red-solid)] px-1.5 text-[11px] text-white">{chips.length}</span>}
+          </button>
         </div>
       </div>
 
-      <div className="grid gap-x-3 gap-y-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
+      {mas && (
+      <div id={idMas} className="ct-entra grid gap-x-3 gap-y-3 rounded-2xl bg-[var(--ct-raised)] p-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
         <Campo etiqueta="Estado">
           {(id) => (
             <select id={id} name="estado" className="ct-input" value={filtros.estado} onChange={(e) => onCambiar({ estado: e.target.value as Filtros["estado"] })}>
@@ -394,6 +402,7 @@ export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimp
           )}
         </Campo>
       </div>
+      )}
 
       {chips.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5" aria-label="Filtros activos" role="group">

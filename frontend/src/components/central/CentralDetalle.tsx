@@ -31,6 +31,9 @@ import { DialogoAsignar, DialogoConfirmar } from "./CentralDialogos"
 import { Aviso, Avatar, BarraSla, EstadoChip, Responsable, SeveridadChip, SlaResumen, colorSla } from "./partes"
 
 const LIMITE_MENSAJE = 4000
+
+/** Borradores por caso: sobreviven al cambio de móvil a escritorio (que vuelve a montar el detalle). */
+const borradores = new Map<string, { texto: string; interno: boolean }>()
 const NOTA = "rounded-[1.25rem] rounded-tr-md border border-dashed border-[color:var(--ct-amber)] bg-[rgba(245,158,11,0.1)]"
 
 // ─── Conversación ───────────────────────────────────────────────────────────
@@ -140,16 +143,22 @@ function Conversacion({
 
 /** Barra de redacción fija abajo: texto en pastilla, interruptor de nota interna y botón de enviar. */
 function Redactor({
+  radicado,
   cerrado,
   enviando,
   onEnviar,
 }: {
+  radicado: string
   cerrado: boolean
   enviando: boolean
   onEnviar: (texto: string, interno: boolean, alTerminar: () => void) => void
 }) {
-  const [interno, setInterno] = useState(false)
-  const [texto, setTexto] = useState("")
+  const [interno, setInterno] = useState(() => borradores.get(radicado)?.interno ?? false)
+  const [texto, setTexto] = useState(() => borradores.get(radicado)?.texto ?? "")
+  useEffect(() => {
+    if (texto) borradores.set(radicado, { texto, interno })
+    else borradores.delete(radicado)
+  }, [radicado, texto, interno])
   const caja = useRef<HTMLTextAreaElement>(null)
   const id = useId()
   const limpio = texto.trim()
@@ -442,7 +451,7 @@ function Gestion({
 
       {director && !cerrado && (
         <Tarjeta titulo="Clasificación" id="ct-clasificacion">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
             <div>
               <label htmlFor={idSev} className="ct-label">Severidad</label>
               <select
@@ -503,8 +512,8 @@ export function CentralDetalleVacio() {
       <div className="mb-4 grid size-14 place-items-center rounded-full bg-[var(--ct-red-soft)] text-[color:var(--ct-red)]">
         <Send className="size-5" aria-hidden />
       </div>
-      <p className="m-0 text-base font-bold">Elige un caso de la lista</p>
-      <p className="ct-muted m-0 mt-1 max-w-xs text-sm">Aquí verás la conversación con el cliente y las acciones para gestionarlo.</p>
+      <p className="m-0 text-base font-bold">Elige una conversación</p>
+      <p className="ct-muted m-0 mt-1 max-w-xs text-sm">Aquí verás el chat con el cliente y la gestión del caso.</p>
     </div>
   )
 }
@@ -549,8 +558,31 @@ export function CentralDetalle({
     return () => window.removeEventListener("keydown", tecla)
   }, [dialogo, onCerrar])
 
+  // Una sola acción a la vez: el estado de la mutación llega un instante tarde, así que un doble clic
+  // o un doble Enter se frenan con este cerrojo síncrono.
+  const enCurso = useRef(false)
+  // Quien abrió un diálogo recupera el foco al cerrarlo.
+  const disparador = useRef<HTMLElement | null>(null)
+  function abrirDialogo(d: Dialogo) {
+    if (d) disparador.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    setDialogo(d)
+  }
+  useEffect(() => {
+    if (dialogo !== null) return
+    const t = setTimeout(() => {
+      if (disparador.current?.isConnected) disparador.current.focus()
+      disparador.current = null
+    }, 60)
+    return () => clearTimeout(t)
+  }, [dialogo])
+
   function ejecutar(a: CentralAccion, exito: string, alTerminar?: () => void) {
+    if (enCurso.current) return
+    enCurso.current = true
     accion.mutate(a, {
+      onSettled: () => {
+        enCurso.current = false
+      },
       onSuccess: () => {
         showToast(exito)
         setDialogo(null)
@@ -571,7 +603,8 @@ export function CentralDetalle({
   return (
     <section
       aria-label={`Caso ${r}`}
-      className={`ct-detalle fixed inset-0 z-40 flex flex-col overflow-hidden bg-[var(--ct-bg)] lg:static lg:z-auto lg:h-full lg:bg-[var(--ct-bg)] ${sinMarco ? "" : "lg:rounded-[1.5rem] lg:border"}`}
+      data-pestana={pestana}
+      className={`ct-d ct-detalle fixed inset-0 z-40 flex flex-col overflow-hidden bg-[var(--ct-bg)] lg:static lg:z-auto lg:h-full lg:bg-[var(--ct-bg)] ${sinMarco ? "" : "lg:rounded-[1.5rem] lg:border"}`}
     >
       {/* Encabezado */}
       <header className="flex-none border-b bg-white px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -590,7 +623,7 @@ export function CentralDetalle({
                 </>
               )}
             </div>
-            <h2 className="m-0 mt-1.5 text-lg font-bold leading-snug text-balance [overflow-wrap:anywhere]">
+            <h2 className="m-0 mt-1.5 line-clamp-3 text-lg font-bold leading-snug text-balance [overflow-wrap:anywhere]">
               {caso?.asunto ?? (noExiste ? "Caso no disponible" : "Cargando caso…")}
             </h2>
             <p className="ct-muted m-0 mt-0.5 text-[13px]">
@@ -606,7 +639,7 @@ export function CentralDetalle({
           </div>
         </div>
         {caso && (
-          <div role="tablist" aria-label="Secciones del caso" className="ct-segmento mt-3">
+          <div role="tablist" aria-label="Secciones del caso" className="ct-segmento ct-d-tabs mt-3">
             {(
               [
                 ["chat", `Conversación (${caso.mensajes.length})`],
@@ -648,23 +681,23 @@ export function CentralDetalle({
         </div>
       ) : (
         <>
-          {pestana === "chat" ? (
-            <>
+          <div className="ct-d-cuerpo">
+            <div className="ct-d-chat">
               <Conversacion key={r} caso={caso} enviando={enviando} ahora={ahora} />
               <Redactor
                 key={`redactor-${r}`}
+                radicado={r}
                 cerrado={caso.estado === "cerrado"}
                 enviando={enviando !== null}
                 onEnviar={(texto, interno, limpiar) =>
                   ejecutar({ tipo: "mensaje", radicado: r, texto, interno }, interno ? "Nota interna guardada" : "Respuesta enviada al cliente", limpiar)
                 }
               />
-            </>
-          ) : (
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
-              <Gestion caso={caso} nivel={nivel} miCorreo={miCorreo} ahora={ahora} ocupado={ocupado} onAccion={ejecutar} onDialogo={setDialogo} />
             </div>
-          )}
+            <div className="ct-d-gestion pb-[env(safe-area-inset-bottom)]">
+              <Gestion caso={caso} nivel={nivel} miCorreo={miCorreo} ahora={ahora} ocupado={ocupado} onAccion={ejecutar} onDialogo={abrirDialogo} />
+            </div>
+          </div>
 
           <DialogoAsignar
             abierto={dialogo === "asignar"}
