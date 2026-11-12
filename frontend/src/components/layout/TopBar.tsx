@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import { useLogout } from "@/hooks/useAuth"
-import { getRoleLabel } from "@/lib/roles"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -49,9 +48,9 @@ export function TopBar({ title = "Dashboard" }: TopBarProps) {
                 <p className="text-sm font-medium text-foreground leading-none">
                   {displayName}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {getRoleLabel(user.role)}
-                </p>
+                {user.area && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{user.area}</p>
+                )}
               </div>
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
@@ -70,9 +69,9 @@ export function TopBar({ title = "Dashboard" }: TopBarProps) {
               </Avatar>
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-medium truncate">{displayName}</span>
-                <span className="text-xs text-muted-foreground font-normal truncate">
-                  {getRoleLabel(user.role)}
-                </span>
+                {user.area && (
+                  <span className="text-xs text-muted-foreground font-normal truncate">{user.area}</span>
+                )}
               </div>
             </DropdownMenuLabel>
 

@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import { useLogout } from "@/hooks/useAuth"
-import { EXTERNAL_APPS, getAppsForRole, getRoleLabel } from "@/lib/roles"
+import { EXTERNAL_APPS, getAppsForRole } from "@/lib/roles"
 import { openExternalApp } from "@/lib/openApp"
 import {
   canSeeMantenimiento,
@@ -128,7 +128,7 @@ export function Sidebar() {
             <div className="min-w-0 text-white">
               <p className="m-0 truncate text-base font-bold">{user?.full_name ?? user?.email ?? "Usuario"}</p>
               <p className="m-0 truncate text-xs text-white/85">
-                {[user?.area ?? (user ? getRoleLabel(user.role) : null), user?.sede].filter(Boolean).join(" · ")}
+                {[user?.area, user?.sede].filter(Boolean).join(" · ")}
               </p>
             </div>
           </div>
