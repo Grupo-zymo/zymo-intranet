@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/TopBar"
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar"
 import { MovilBarraSuperior, MovilEspaciador } from "@/components/movil/Movil"
+import { MesaCampana } from "@/components/layout/MesaCampana"
 
 /** Lo que cambia solo en teléfono (por debajo de `md`). */
 export interface PageLayoutMovil {
@@ -43,7 +44,7 @@ function BarraMovil({ title, movil }: { title: string; movil?: PageLayoutMovil }
       subtitulo={movil?.subtitulo}
       izquierda={atras ? "atras" : "menu"}
       onIzquierda={atras ? () => (typeof atras === "string" ? navigate(atras) : atras()) : toggleSidebar}
-      derecha={movil?.acciones}
+      derecha={<><MesaCampana />{movil?.acciones}</>}
     />
   )
 }

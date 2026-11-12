@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/authStore"
 import { useLogout } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { MesaCampana } from "@/components/layout/MesaCampana"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +39,7 @@ export function TopBar({ title = "Dashboard" }: TopBarProps) {
       <h1 className="text-sm font-semibold text-foreground truncate min-w-0">{title}</h1>
 
       <div className="flex items-center gap-2 shrink-0">
+        <MesaCampana />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
