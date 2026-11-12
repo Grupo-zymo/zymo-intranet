@@ -14,6 +14,7 @@ import {
   ListTodo,
   Users,
   Ticket,
+  Headset,
   Smile,
   NotebookPen,
   Handshake,
@@ -37,6 +38,7 @@ import {
   canManageDevTasks,
   canSeeTyC,
   canSeeTickets,
+  nivelTicketsCentral,
   canSeeSAC,
   canSeeReportesDesarrollo,
 } from "@/lib/permissions"
@@ -87,6 +89,7 @@ export function Sidebar() {
   const showLibertadora    = false
   const showTickets        = user ? canSeeTickets(user.role, perms) : false
   const showSac            = user ? canSeeSAC(user.role, perms) : false
+  const showCentral        = user ? nivelTicketsCentral(user.role, perms) !== null : false
   const showTyC            = user ? canSeeTyC(user.role, perms) : false
   const showReportes       = user ? canSeeReportesDesarrollo(user.role, perms) : false
 
@@ -314,6 +317,26 @@ export function Sidebar() {
         )}
 
         {/* ── Section: Planeación ────────────────────────────────────── */}
+        {/* ── Section: Servicio al cliente ───────────────────────────── */}
+        {showCentral && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Servicio al cliente</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <NavItem
+                    to="/servicio-cliente/central"
+                    label="Central de tickets"
+                    icon={<Headset className="w-4 h-4" />}
+                    active={isActive(["/servicio-cliente/central"])}
+                  />
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
         {(showTickets || showSac) && (
           <>
             <SidebarSeparator />

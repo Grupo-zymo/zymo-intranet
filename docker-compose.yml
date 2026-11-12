@@ -232,6 +232,9 @@ services:
       - UPLOAD_DIR=/app/uploads
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:81}
       - PUBLIC_APP_URL=${PUBLIC_APP_URL:-https://zymointranet.com}
+      # Central de tickets: API de la app de autogestión del cliente (servidor a servidor)
+      - AUTOGESTION_API_URL=${AUTOGESTION_API_URL:-}
+      - AUTOGESTION_SERVICE_KEY=${AUTOGESTION_SERVICE_KEY:-}
     volumes:
       - zymoally_uploads:/app/uploads
     depends_on:

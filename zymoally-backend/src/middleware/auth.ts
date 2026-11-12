@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
 import { env } from "../config/env"
+import { resolverAcceso, type AccesoCentral } from "../services/centralAuth"
 
 export interface AuthPayload {
   sub?: number | string
@@ -99,6 +100,30 @@ export function requireSacConfig(req: Request, res: Response, next: NextFunction
     return
   }
   res.status(403).json({ error: "Sin acceso a la configuración de SAC" })
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      central?: AccesoCentral
+    }
+  }
+}
+
+/**
+ * Central de tickets (casos de la app del cliente). Pasa admin,
+ * mod_tickets_central (dirección) o mod_tickets_central_lider (líder), y deja
+ * en req.central el nivel y el correo en minúsculas. A diferencia del resto de
+ * ZymoAlly, el rol gerente NO entra solo por ser gerente: aquí manda el permiso.
+ */
+export function requireCentralAccess(req: Request, res: Response, next: NextFunction): void {
+  const acceso = resolverAcceso(req.user)
+  if (!acceso) {
+    res.status(403).json({ error: "Sin acceso a la Central de tickets" })
+    return
+  }
+  req.central = acceso
+  next()
 }
 
 export interface SurveyLinkPayload {

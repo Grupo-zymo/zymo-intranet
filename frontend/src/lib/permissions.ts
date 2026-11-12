@@ -126,6 +126,30 @@ export function canSeeTicketsGerencia(role: string, appPerms?: string[]): boolea
   return hasPerm(appPerms, "mod_tickets_gerencia")
 }
 
+// ── Central de tickets (casos que radican los clientes en la app de autogestión) ──
+// Dos niveles, siempre por permiso. El backend (zymoally-backend) aplica lo mismo.
+
+/** Dirección de la central: ve todos los casos, asume, asigna, clasifica y cierra. */
+export function canSeeTicketsCentral(role: string, appPerms?: string[]): boolean {
+  if (role === "admin") return true
+  return hasPerm(appPerms, "mod_tickets_central")
+}
+
+/** Líder de operaciones: solo los casos asignados a su correo; responde y los marca en análisis o resueltos. */
+export function canLeadTicketsCentral(role: string, appPerms?: string[]): boolean {
+  if (role === "admin") return false
+  return hasPerm(appPerms, "mod_tickets_central_lider") && !hasPerm(appPerms, "mod_tickets_central")
+}
+
+export type NivelCentralTickets = "director" | "lider"
+
+/** Nivel de la persona en la Central de tickets, o null si no entra. Con los dos permisos gana dirección. */
+export function nivelTicketsCentral(role: string, appPerms?: string[]): NivelCentralTickets | null {
+  if (canSeeTicketsCentral(role, appPerms)) return "director"
+  if (canLeadTicketsCentral(role, appPerms)) return "lider"
+  return null
+}
+
 export function canSeeSAC(role: string, appPerms?: string[]): boolean {
   if (role === "admin") return true
   return hasPerm(appPerms, "mod_sac")

@@ -19,6 +19,7 @@ import {
   canSeeOperClientes,
   canSeeGestionTickets,
   canSeeTickets,
+  nivelTicketsCentral,
   canSeeSAC,
   canSeeReportesDesarrollo,
   canSeeLibertadora,
@@ -64,6 +65,7 @@ const GerencialPage = lazy(() => import("@/pages/gerencial/GerencialPage").then(
 const LibertadoraPage = lazy(() => import("@/pages/libertadora/LibertadoraPage").then((m) => ({ default: m.LibertadoraPage })))
 const LibertadoraPartnerPage = lazy(() => import("@/pages/libertadora/partner/LibertadoraPartnerPage").then((m) => ({ default: m.LibertadoraPartnerPage })))
 const TicketsPage = lazy(() => import("@/pages/tickets/TicketsPage").then((m) => ({ default: m.TicketsPage })))
+const CentralTicketsPage = lazy(() => import("@/pages/central/CentralTicketsPage").then((m) => ({ default: m.CentralTicketsPage })))
 const SacPage = lazy(() => import("@/pages/sac/SacPage").then((m) => ({ default: m.SacPage })))
 const SurveyPage = lazy(() => import("@/pages/survey/SurveyPage").then((m) => ({ default: m.SurveyPage })))
 const TaskPage = lazy(() => import("@/pages/tareas/TaskPage").then((m) => ({ default: m.TaskPage })))
@@ -232,6 +234,15 @@ function TicketsRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
   if (!user) return <Navigate to="/login" replace />
   if (!canSeeTickets(user.role, user.app_permissions)) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
+
+// Central de tickets: entra dirección (mod_tickets_central) o líder
+// (mod_tickets_central_lider). Lo que cada uno puede hacer lo decide el backend.
+function CentralTicketsRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  if (!user) return <Navigate to="/login" replace />
+  if (!nivelTicketsCentral(user.role, user.app_permissions)) return <Navigate to="/dashboard" replace />
   return <>{children}</>
 }
 
@@ -664,6 +675,16 @@ export default function App() {
             <TicketsRoute>
               <TicketsPage />
             </TicketsRoute>
+          }
+        />
+
+        {/* Central de tickets — casos de los clientes (app de autogestión) */}
+        <Route
+          path="/servicio-cliente/central"
+          element={
+            <CentralTicketsRoute>
+              <CentralTicketsPage />
+            </CentralTicketsRoute>
           }
         />
 

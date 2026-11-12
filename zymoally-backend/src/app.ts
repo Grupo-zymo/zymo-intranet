@@ -5,7 +5,7 @@ import cors from "cors"
 import path from "path"
 import { env } from "./config/env"
 import { startReminderCron } from "./cron"
-import { authenticate, requireSacAccess, requireTicketsAccess } from "./middleware/auth"
+import { authenticate, requireCentralAccess, requireSacAccess, requireTicketsAccess } from "./middleware/auth"
 import pqrRouter from "./routers/tickets/pqr"
 import pqrConfigRouter from "./routers/tickets/pqrConfig"
 import pqrDashboardRouter from "./routers/tickets/pqrDashboard"
@@ -17,6 +17,7 @@ import sacDashboardRouter from "./routers/sac/sacDashboard"
 import sacAlertasRouter from "./routers/sac/sacAlertas"
 import sacConfigRouter from "./routers/sac/sacConfig"
 import { ticketsExportRouter, sacExportRouter } from "./routers/export"
+import centralRouter from "./routers/central"
 import publicSurveyRouter from "./routers/public/survey"
 import publicShortLinkRouter from "./routers/public/shortlink"
 
@@ -64,6 +65,9 @@ app.use("/api/sac/dashboard", requireSacAccess, sacDashboardRouter)
 app.use("/api/sac/alertas", requireSacAccess, sacAlertasRouter)
 app.use("/api/sac/config", requireSacAccess, sacConfigRouter)
 app.use("/api/sac/export", requireSacAccess, sacExportRouter)
+
+// --- Central de tickets (casos que radican los clientes en la app de autogestión) ---
+app.use("/api/central-tickets", requireCentralAccess, centralRouter)
 
 // --- 404 handler ---
 app.use((_req: Request, res: Response) => {

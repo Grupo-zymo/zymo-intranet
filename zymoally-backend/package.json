@@ -8,7 +8,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "ts-node prisma/seed.ts",
     "db:generate": "prisma generate",
-    "selfcheck": "ts-node src/services/pqrCode.selfcheck.ts"
+    "selfcheck": "ts-node src/services/central.selfcheck.ts",
+    "selfcheck:pqr": "ts-node src/services/pqrCode.selfcheck.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

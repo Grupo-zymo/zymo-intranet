@@ -230,6 +230,26 @@ export const INTERNAL_MODULE_GROUPS: ModulePermissionGroup[] = [
     ],
   },
   {
+    title: "Central de tickets — Servicio al cliente",
+    subtitle: "Casos que radican los clientes en la app de autogestión",
+    modules: [
+      {
+        id: "mod_tickets_central",
+        category: "modulo",
+        icon: "🎧",
+        name: "Central de tickets — Dirección",
+        description: "Ver todos los casos de los clientes, asumirlos, asignarlos o reasignarlos a un líder de operaciones, responder, cambiar severidad y área, y cerrarlos. Incluye el panel de control completo",
+      },
+      {
+        id: "mod_tickets_central_lider",
+        category: "modulo",
+        icon: "📨",
+        name: "Central de tickets — Líder (mis casos asignados)",
+        description: "Ver solo los casos que le asignaron, responder al cliente o dejar notas internas y marcarlos en análisis o resueltos. No asigna, no cambia severidad ni área y no cierra",
+      },
+    ],
+  },
+  {
     title: "ZymoAlly — SAC",
     subtitle: "Servicio al cliente, encuestas y experiencia",
     modules: [

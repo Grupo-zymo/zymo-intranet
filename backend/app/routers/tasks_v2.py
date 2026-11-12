@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+import secrets
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from jose.exceptions import JWTError
 from pydantic import BaseModel
 from sqlmodel import Session, select
@@ -10,6 +11,8 @@ from app.core.security import decode_token
 from app.database import get_db
 from app.models.user import User
 from app.models.user_tool import UserTool
+from app.personal_database import get_personal_engine
+from app.services.usuarios_por_area import listar_usuarios_por_area
 
 router = APIRouter(prefix="/api/tasks-v2", tags=["Tareas V2"])
 
@@ -21,7 +24,7 @@ class TaskUserRead(BaseModel):
 
 
 def _is_valid_internal_key(key: Optional[str]) -> bool:
-    return bool(key and settings.internal_key and key == settings.internal_key)
+    return bool(key and settings.internal_key and secrets.compare_digest(key.encode(), settings.internal_key.encode()))
 
 
 @router.get("/users", response_model=list[TaskUserRead])
@@ -57,6 +60,24 @@ def list_task_users(
         TaskUserRead(id=int(u.id), full_name=u.full_name, email=u.email)
         for u in users
     ]
+
+
+@router.get("/users-por-area")
+def list_users_por_area(
+    prefijo: str = Query(default="Operaciones", min_length=2, max_length=60),
+    x_internal_key: Optional[str] = Header(default=None),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """
+    Cuentas activas cuya área (`User.area`) empieza por `prefijo`, con el cargo
+    de su ficha del directorio y si ese cargo es de líder. Solo servicio a
+    servicio (X-Internal-Key): lo usa la Central de tickets para saber a quién
+    se le puede asignar un caso. No pasa por nginx.
+    """
+    if not _is_valid_internal_key(x_internal_key):
+        raise HTTPException(status_code=403, detail="Requiere X-Internal-Key válida.")
+    with Session(get_personal_engine()) as personal_db:
+        return listar_usuarios_por_area(db, personal_db, prefijo)
 
 
 @router.post("/users/{user_id}/activate-submit")
