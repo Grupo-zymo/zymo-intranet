@@ -271,7 +271,7 @@ function TooltipTendencia({ active, label, payload }: PuntoTooltip) {
   if (!active || !payload?.length || !label) return null
   const valor = (clave: string) => payload.find((p) => p.dataKey === clave)?.value ?? 0
   return (
-    <div className="ct-raised rounded-lg border border-[color:var(--ct-line-strong)] px-3 py-2 text-xs shadow-[0_8px_24px_-8px_rgba(0,0,0,0.7)]">
+    <div className="ct-raised rounded-lg border border-[color:var(--ct-line-strong)] px-3 py-2 text-xs shadow-[0_8px_24px_-8px_rgba(0,0,0,0.18)]">
       <p className="m-0 mb-1 font-semibold">{diaCorto(label)}</p>
       <p className="ct-mono m-0">{valor("creados")} creados</p>
       <p className="ct-mono m-0 text-[color:var(--ct-green)]">{valor("resueltos")} resueltos</p>

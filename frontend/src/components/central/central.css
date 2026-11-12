@@ -1,48 +1,30 @@
-/* Central de tickets — mundo visual propio: una sala de control en tinta
-   oscura. DM Sans para leer, DM Mono solo para datos (radicados, plazos,
-   conteos). El color se reserva para lo que pide atención: severidad, plazo
-   vencido y la acción principal. Todo vive bajo .central (también los
-   paneles que Radix monta fuera del árbol, que llevan la misma clase). */
+/* Central de tickets — usa los colores de la intranet: fondo gris claro, tarjetas blancas, rojo de marca
+   (hsl 348 76% 43%) como acento y DM Sans. DM Mono solo para datos (radicados, plazos, conteos).
+   El color de estado se reserva para lo que pide atención: severidad, plazo vencido y la acción principal.
+   Todo vive bajo .central (también los paneles que Radix monta fuera del árbol, que llevan la misma clase).
+   Los componentes compartidos (Sheet, Dialog…) heredan las variables claras globales de index.css. */
 
 .central {
-  --ct-bg: #0b0d11;
-  --ct-surface: #12151b;
-  --ct-raised: #191d25;
-  --ct-hover: #1f242e;
-  --ct-line: #262b36;
-  --ct-line-strong: #3a4252;
-  --ct-text: #eceef2;
-  --ct-muted: #a3acbb;
-  --ct-faint: #7f899b;
-  --ct-red: #ff5c68;        /* texto e íconos de alerta sobre oscuro */
-  --ct-red-solid: #d81f33;  /* fondo de la acción principal (blanco encima: 5,3:1) */
-  --ct-orange: #ff9447;
-  --ct-amber: #f2bb47;
-  --ct-green: #45d491;
-  --ct-blue: #74b6ff;
-  --ct-gray: #98a1b0;
-
-  /* Variables de los componentes compartidos (Sheet, Dialog…): dentro de la
-     central también son oscuros, sin tocar el tema claro del resto. */
-  --background: 220 21% 5.5%;
-  --foreground: 220 19% 94%;
-  --card: 220 20% 9%;
-  --card-foreground: 220 19% 94%;
-  --popover: 220 20% 9%;
-  --popover-foreground: 220 19% 94%;
-  --muted: 220 19% 12%;
-  --muted-foreground: 218 15% 69%;
-  --accent: 220 19% 15%;
-  --accent-foreground: 220 19% 94%;
-  --secondary: 220 19% 12%;
-  --secondary-foreground: 220 19% 94%;
-  --border: 221 17% 18%;
-  --input: 219 17% 27%;
-  --ring: 212 100% 73%;
+  --ct-bg: #f4f4f5;          /* fondo de la intranet (240 5% 96%) */
+  --ct-surface: #ffffff;     /* tarjetas */
+  --ct-raised: #fafafa;      /* campos y elementos sobre una tarjeta */
+  --ct-hover: #f4f4f5;
+  --ct-line: #e4e4e7;        /* borde de la intranet (240 6% 90%) */
+  --ct-line-strong: #d4d4d8;
+  --ct-text: #09090b;
+  --ct-muted: #5f5f69;
+  --ct-faint: #686872;
+  --ct-red: #c11a3c;         /* rojo de marca de la intranet: texto, íconos y acento */
+  --ct-red-solid: #c11a3c;   /* fondo de la acción principal (blanco encima: 6,6:1) */
+  --ct-orange: #c2570c;
+  --ct-amber: #a16207;
+  --ct-green: #15803d;
+  --ct-blue: #1d5fbf;
+  --ct-gray: #62626b;
 
   color: var(--ct-text);
   background: var(--ct-bg);
-  color-scheme: dark;
+  color-scheme: light;
   font-family: "DM Sans", system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   scrollbar-color: var(--ct-line-strong) transparent;
@@ -62,8 +44,8 @@
 }
 
 .central ::selection {
-  background: rgba(255, 92, 104, 0.35);
-  color: #fff;
+  background: rgba(193, 26, 60, 0.18);
+  color: inherit;
 }
 
 .central ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -107,11 +89,11 @@
   cursor: pointer;
   transition: background-color 140ms ease-out, border-color 140ms ease-out, transform 120ms ease-out;
 }
-.ct-btn:hover:not(:disabled) { background: var(--ct-hover); border-color: #4a5366; }
+.ct-btn:hover:not(:disabled) { background: var(--ct-hover); border-color: var(--ct-line-strong); }
 .ct-btn:active:not(:disabled) { transform: translateY(1px); }
 .ct-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .ct-btn-primary { background: var(--ct-red-solid); border-color: var(--ct-red-solid); color: #fff; }
-.ct-btn-primary:hover:not(:disabled) { background: #ee2a40; border-color: #ee2a40; }
+.ct-btn-primary:hover:not(:disabled) { background: #a8152f; border-color: #a8152f; }
 .ct-btn-ghost { background: transparent; border-color: transparent; color: var(--ct-muted); }
 .ct-btn-ghost:hover:not(:disabled) { background: var(--ct-hover); border-color: transparent; color: var(--ct-text); }
 .ct-btn-danger { color: var(--ct-red); }
@@ -130,7 +112,7 @@
   transition: border-color 140ms ease-out;
 }
 .ct-input::placeholder { color: var(--ct-faint); }
-.ct-input:hover { border-color: #4a5366; }
+.ct-input:hover { border-color: var(--ct-line-strong); }
 textarea.ct-input { padding: 0.6rem 0.7rem; line-height: 1.5; resize: none; }
 select.ct-input { padding-right: 1.6rem; cursor: pointer; }
 

@@ -60,7 +60,7 @@ function Segmento<T extends string>({
           role="radio"
           aria-checked={valor === o.valor}
           onClick={() => onChange(o.valor)}
-          className="ct-muted flex min-h-[30px] cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors duration-150 hover:text-[color:var(--ct-text)] aria-checked:bg-[var(--ct-hover)] aria-checked:text-[color:var(--ct-text)]"
+          className="ct-muted flex min-h-[30px] cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors duration-150 hover:text-[color:var(--ct-text)] aria-checked:bg-[var(--ct-surface)] aria-checked:text-[color:var(--ct-text)] aria-checked:shadow-sm aria-checked:ring-1 aria-checked:ring-[color:var(--ct-line)]"
         >
           {o.icono}
           {o.texto}
@@ -105,11 +105,11 @@ export function CentralPanel({ nivel, miCorreo }: { nivel: CentralNivel; miCorre
   const ahora = useAhora()
   const director = nivel === "director"
 
-  // El resto de la intranet es claro: mientras la central está abierta, el fondo
-  // de la página también es oscuro (se nota al rebotar el scroll en el teléfono).
+  // Mientras la central está abierta, el fondo de la página usa el gris claro de la intranet
+  // (se nota al rebotar el scroll en el teléfono).
   useEffect(() => {
     const anterior = document.body.style.backgroundColor
-    document.body.style.backgroundColor = "#0b0d11"
+    document.body.style.backgroundColor = "#f4f4f5"
     return () => {
       document.body.style.backgroundColor = anterior
     }
@@ -263,7 +263,7 @@ export function CentralPanel({ nivel, miCorreo }: { nivel: CentralNivel; miCorre
               )}
 
               {lista.error && lista.data && (
-                <p role="alert" className="m-0 flex flex-wrap items-center gap-2 rounded-lg bg-[rgba(255,92,104,0.1)] px-3 py-2 text-[13px]">
+                <p role="alert" className="m-0 flex flex-wrap items-center gap-2 rounded-lg bg-[rgba(193,26,60,0.08)] px-3 py-2 text-[13px]">
                   No pudimos actualizar la lista; ves la última que cargó.
                   <button type="button" className="ct-btn ct-btn-sm" onClick={refrescar}>Reintentar</button>
                 </p>

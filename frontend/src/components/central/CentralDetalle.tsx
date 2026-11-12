@@ -44,7 +44,7 @@ function Burbuja({ mensaje, delCliente, nuevo }: { mensaje: CentralMensaje; delC
   if (mensaje.interno) {
     return (
       <li className={`ml-auto w-full max-w-[88%] ${nuevo ? "ct-burbuja-nueva" : ""}`}>
-        <div className="rounded-xl border border-dashed border-[color:var(--ct-amber)] bg-[rgba(242,187,71,0.07)] px-3.5 py-2.5">
+        <div className="rounded-xl border border-dashed border-[color:var(--ct-amber)] bg-[rgba(245,158,11,0.1)] px-3.5 py-2.5">
           <p className="m-0 mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--ct-amber)]">
             <Lock className="size-3" aria-hidden />
             Nota interna · solo equipo
@@ -63,7 +63,7 @@ function Burbuja({ mensaje, delCliente, nuevo }: { mensaje: CentralMensaje; delC
       <div className="min-w-0">
         <div
           className={`rounded-2xl px-3.5 py-2.5 ${
-            delCliente ? "rounded-tl-md bg-[var(--ct-raised)]" : "rounded-tr-md bg-[#20324a]"
+            delCliente ? "rounded-tl-md border bg-[var(--ct-surface)]" : "rounded-tr-md bg-[hsl(348_76%_95%)]"
           }`}
         >
           <p className="m-0 whitespace-pre-wrap text-sm leading-relaxed [overflow-wrap:anywhere]">{mensaje.texto}</p>
@@ -108,7 +108,7 @@ function Conversacion({ caso, enviando }: { caso: CentralCasoDetalle; enviando: 
           ))}
           {enviando && (
             <li className="ct-burbuja-nueva ml-auto max-w-[88%] opacity-70" aria-label="Enviando mensaje">
-              <div className={`rounded-2xl rounded-tr-md px-3.5 py-2.5 ${enviando.interno ? "border border-dashed border-[color:var(--ct-amber)] bg-[rgba(242,187,71,0.07)]" : "bg-[#20324a]"}`}>
+              <div className={`rounded-2xl rounded-tr-md px-3.5 py-2.5 ${enviando.interno ? "border border-dashed border-[color:var(--ct-amber)] bg-[rgba(245,158,11,0.1)]" : "bg-[hsl(348_76%_95%)]"}`}>
                 <p className="m-0 whitespace-pre-wrap text-sm leading-relaxed [overflow-wrap:anywhere]">{enviando.texto}</p>
               </div>
               <p className="ct-faint ct-latido m-0 mt-1 text-right text-[11px]">Enviando…</p>
@@ -170,7 +170,7 @@ function Redactor({
             className={`flex min-h-[30px] cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors duration-150 ${
               interno === o.valor
                 ? o.valor
-                  ? "bg-[rgba(242,187,71,0.16)] text-[color:var(--ct-amber)]"
+                  ? "bg-[rgba(245,158,11,0.18)] text-[color:var(--ct-amber)]"
                   : "bg-[var(--ct-hover)] text-[color:var(--ct-text)]"
                 : "ct-muted hover:text-[color:var(--ct-text)]"
             }`}
@@ -266,7 +266,7 @@ function TarjetaSla({ caso, ahora }: { caso: CentralCasoDetalle; ahora: number }
         <FilaPlazo titulo="Respuesta de fondo" vence={sla.respuestaFondoVence} cumplidoEn={caso.resueltoEn} ahora={ahora} activo={abierto} />
       </dl>
       {sla.escalamiento && (
-        <div role="note" className="mt-3 flex gap-2.5 rounded-lg bg-[rgba(255,92,104,0.1)] p-3 text-[13px]">
+        <div role="note" className="mt-3 flex gap-2.5 rounded-lg bg-[rgba(193,26,60,0.08)] p-3 text-[13px]">
           <ArrowUpCircle className="mt-0.5 size-4 flex-none text-[color:var(--ct-red)]" aria-hidden />
           <p className="m-0 min-w-0 leading-snug [overflow-wrap:anywhere]">
             <strong className="font-semibold">Escalado.</strong> {sla.escalamiento.motivo}
@@ -277,7 +277,7 @@ function TarjetaSla({ caso, ahora }: { caso: CentralCasoDetalle; ahora: number }
         </div>
       )}
       {caso.urgenteSolicitado && (
-        <div role="note" className="mt-2 flex gap-2.5 rounded-lg bg-[rgba(255,148,71,0.1)] p-3 text-[13px]">
+        <div role="note" className="mt-2 flex gap-2.5 rounded-lg bg-[rgba(194,87,12,0.1)] p-3 text-[13px]">
           <Flame className="mt-0.5 size-4 flex-none text-[color:var(--ct-orange)]" aria-hidden />
           <p className="m-0 leading-snug"><strong className="font-semibold">El cliente pidió subir de nivel.</strong> Considéralo al priorizar.</p>
         </div>

@@ -40,7 +40,7 @@ function Interruptor({ activo, onChange, children }: { activo: boolean; onChange
       role="switch"
       aria-checked={activo}
       onClick={() => onChange(!activo)}
-      className="ct-btn aria-checked:border-[color:var(--ct-red)] aria-checked:bg-[rgba(255,92,104,0.12)] aria-checked:text-[color:var(--ct-red)]"
+      className="ct-btn aria-checked:border-[color:var(--ct-red)] aria-checked:bg-[rgba(193,26,60,0.1)] aria-checked:text-[color:var(--ct-red)]"
     >
       {children}
     </button>
