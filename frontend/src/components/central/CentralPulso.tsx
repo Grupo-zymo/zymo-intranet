@@ -302,7 +302,7 @@ function TooltipTendencia({ active, label, payload }: PuntoTooltip) {
   )
 }
 
-export function CentralTendencia({ dias }: { dias: CentralResumen["ultimos14dias"] }) {
+export function CentralTendencia({ dias, alto = 170 }: { dias: CentralResumen["ultimos14dias"]; alto?: number }) {
   const creados = dias.reduce((n, d) => n + d.creados, 0)
   const resueltos = dias.reduce((n, d) => n + d.resueltos, 0)
   return (
@@ -320,7 +320,7 @@ export function CentralTendencia({ dias }: { dias: CentralResumen["ultimos14dias
           </span>
         </p>
       </div>
-      <div className="mt-3 h-[170px] min-w-0" role="img" aria-label={`Casos de los últimos 14 días: ${creados} creados y ${resueltos} resueltos`}>
+      <div className="mt-3 min-w-0" style={{ height: alto }} role="img" aria-label={`Casos de los últimos 14 días: ${creados} creados y ${resueltos} resueltos`}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={dias} barGap={2} barCategoryGap="22%" margin={{ top: 4, right: 0, bottom: 0, left: -28 }}>
             <CartesianGrid vertical={false} stroke="var(--ct-line)" />
@@ -353,5 +353,93 @@ export function CentralTendencia({ dias }: { dias: CentralResumen["ultimos14dias
         </tbody>
       </table>
     </section>
+  )
+}
+
+// ─── Escritorio: KPI grandes ────────────────────────────────────────────────
+
+/** Fila de KPI del dashboard web: los indicadores filtran los pendientes; los dos tiempos medios solo informan. */
+export function CentralKpisWeb({
+  resumen,
+  nivel,
+  filtros,
+  onFiltrar,
+}: {
+  resumen: CentralResumen | undefined
+  nivel: CentralNivel
+  filtros: CentralFiltros
+  onFiltrar: (parcial: Partial<CentralFiltros> | null) => void
+}) {
+  const rejilla = { gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }
+  if (!resumen) {
+    return (
+      <div className="grid gap-4" style={rejilla} aria-busy="true" aria-label="Cargando indicadores">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className="ct-card p-5">
+            <div className="ct-skeleton h-4 w-24" />
+            <div className="ct-skeleton mt-4 h-9 w-16" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+  const lista: Indicador[] = [
+    ...indicadores(resumen, nivel),
+    {
+      id: "abiertos",
+      titulo: "Abiertos",
+      ayuda: "Recibidos o en análisis",
+      valor: resumen.abiertos,
+      filtro: { estado: "abierto" },
+      activo: (f) => f.estado === "abierto" && !f.asignado && !f.escalado && !f.vencido && !f.urgente && !f.sinRespuesta,
+    },
+  ]
+  return (
+    <section aria-label="Indicadores" className="grid gap-4" style={rejilla}>
+      {lista.map((ind) => {
+        const activo = ind.activo(filtros)
+        return (
+          <button
+            key={ind.id}
+            type="button"
+            aria-pressed={activo}
+            onClick={() => onFiltrar(activo ? null : ind.filtro)}
+            className="ct-card cursor-pointer px-5 py-4 text-left transition-[border-color,background-color,transform] duration-150 hover:border-[color:var(--ct-line-strong)] active:scale-[0.99] aria-pressed:border-[color:var(--ct-red)] aria-pressed:bg-[var(--ct-red-soft)]"
+          >
+            <span className="ct-muted block text-sm font-semibold">{ind.titulo}</span>
+            <span
+              className="ct-mono mt-2 block text-[36px] font-medium leading-none"
+              style={{ color: ind.valor > 0 && ind.tono ? ind.tono : undefined }}
+            >
+              {ind.valor}
+            </span>
+            
+          </button>
+        )
+      })}
+      <div className="ct-card px-5 py-4">
+        <span className="ct-muted block text-sm font-semibold">Tiempo medio 1ª respuesta</span>
+        <span className="mt-2 block"><HorasGrandes valor={resumen.horasPrimeraRespuesta} /></span>
+      </div>
+      <div className="ct-card px-5 py-4">
+        <span className="ct-muted block text-sm font-semibold">Tiempo medio resolución</span>
+        <span className="mt-2 block"><HorasGrandes valor={resumen.horasResolucion} /></span>
+      </div>
+    </section>
+  )
+}
+
+function HorasGrandes({ valor }: { valor: number | null }) {
+  const partes = partesDeHoras(valor)
+  return (
+    <span className="flex items-baseline gap-2">
+      {partes.length === 0 && <span className="ct-mono ct-faint text-[36px] font-medium leading-none">—</span>}
+      {partes.map(([cifra, unidad]) => (
+        <span key={unidad} className="flex items-baseline gap-1">
+          <span className="ct-mono text-[36px] font-medium leading-none">{cifra}</span>
+          <span className="ct-muted text-base">{unidad}</span>
+        </span>
+      ))}
+    </span>
   )
 }

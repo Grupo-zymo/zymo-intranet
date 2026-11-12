@@ -2,9 +2,9 @@
 // Dirección ve y reparte todo; el líder ve solo lo suyo (el servidor lo fuerza; aquí solo se oculta lo que no puede hacer).
 // Diseño de app: en el teléfono una columna y el detalle como pantalla encima; en lg+ lista a la izquierda y detalle a la derecha.
 
-import { useEffect, useState } from "react"
+import { useEffect, useSyncExternalStore } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { ArrowLeft, ChevronLeft, ChevronRight, Inbox, PlugZap, RefreshCw, ShieldAlert, Unplug } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight, Inbox, RefreshCw } from "lucide-react"
 import { TicketToastContainer } from "@/components/tickets/TicketToast"
 import { useCentralCasos, useCentralResumen } from "@/hooks/useCentralTickets"
 import {
@@ -13,12 +13,10 @@ import {
   LIMITE_LISTA,
   aplicarFiltroLocal,
   consultaCasos,
-  estadoDeError,
   filtrosAUrl,
   filtrosDesdeUrl,
   haceCuanto,
   hayFiltros,
-  mensajeDeError,
   usaFiltroLocal,
 } from "@/lib/centralTickets"
 import type { CentralFiltros as Filtros, CentralNivel } from "@/types/centralTickets"
@@ -26,50 +24,11 @@ import { CentralDetalle, CentralDetalleVacio } from "./CentralDetalle"
 import { CentralFiltros } from "./CentralFiltros"
 import { CentralLista, CentralListaCargando } from "./CentralLista"
 import { CentralIndicadores, CentralResumenPlegable } from "./CentralPulso"
-import { Aviso } from "./partes"
+import { Aviso, AvisoServicio, useAhora } from "./partes"
+import { CentralWeb } from "./CentralWeb"
 import "./central.css"
 
-/** Reloj del panel: basta con refrescar los "hace 5 min" cada medio minuto. */
-function useAhora(): number {
-  const [ahora, setAhora] = useState(() => Date.now())
-  useEffect(() => {
-    const t = setInterval(() => setAhora(Date.now()), 30_000)
-    return () => clearInterval(t)
-  }, [])
-  return ahora
-}
-
-/** El servicio no está conectado, no responde o la sesión no tiene acceso. */
-function AvisoServicio({ error, onReintentar }: { error: unknown; onReintentar: () => void }) {
-  const estado = estadoDeError(error)
-  const reintentar = (
-    <button type="button" className="ct-btn" onClick={onReintentar}>
-      <RefreshCw className="size-3.5" aria-hidden />
-      Reintentar
-    </button>
-  )
-  if (estado === 503) {
-    return (
-      <Aviso icono={<Unplug className="size-6" aria-hidden />} titulo="La central todavía no está conectada" accion={reintentar}>
-        Falta enlazar la intranet con la app donde los clientes radican sus casos. Avísale al equipo de Innovación y Desarrollo para que la active.
-      </Aviso>
-    )
-  }
-  if (estado === 403 || estado === 401) {
-    return (
-      <Aviso icono={<ShieldAlert className="size-6" aria-hidden />} titulo="Tu sesión no tiene acceso a la central">
-        Si te acaban de dar el permiso, cierra sesión y vuelve a entrar para que se aplique.
-      </Aviso>
-    )
-  }
-  return (
-    <Aviso icono={<PlugZap className="size-6" aria-hidden />} titulo="No pudimos traer los casos" accion={reintentar}>
-      {mensajeDeError(error, "El servicio de casos no respondió. Intenta de nuevo en un momento.")}
-    </Aviso>
-  )
-}
-
-export function CentralPanel({ nivel, miCorreo }: { nivel: CentralNivel; miCorreo: string }) {
+function CentralMovil({ nivel, miCorreo }: { nivel: CentralNivel; miCorreo: string }) {
   const [params, setParams] = useSearchParams()
   const ahora = useAhora()
   const director = nivel === "director"
@@ -243,4 +202,24 @@ export function CentralPanel({ nivel, miCorreo }: { nivel: CentralNivel; miCorre
       <TicketToastContainer />
     </div>
   )
+}
+
+const ESCRITORIO = "(min-width: 1024px)"
+
+/** ¿Pantalla de escritorio (≥ 1024 px)? Reacciona al cambio de tamaño. */
+function useEscritorio(): boolean {
+  return useSyncExternalStore(
+    (avisar) => {
+      const mq = window.matchMedia(ESCRITORIO)
+      mq.addEventListener("change", avisar)
+      return () => mq.removeEventListener("change", avisar)
+    },
+    () => window.matchMedia(ESCRITORIO).matches,
+    () => false,
+  )
+}
+
+/** Escritorio: dashboard + chats lado a lado. Teléfono y tableta: la app de una columna. */
+export function CentralPanel(props: { nivel: CentralNivel; miCorreo: string }) {
+  return useEscritorio() ? <CentralWeb {...props} /> : <CentralMovil {...props} />
 }

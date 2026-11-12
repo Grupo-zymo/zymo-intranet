@@ -515,12 +515,14 @@ export function CentralDetalle({
   miCorreo,
   ahora,
   onCerrar,
+  sinMarco = false,
 }: {
   radicado: string
   nivel: CentralNivel
   miCorreo: string
   ahora: number
   onCerrar: () => void
+  sinMarco?: boolean
 }) {
   const { data: caso, isLoading, error, refetch } = useCentralCaso(radicado)
   const accion = useCentralAccion()
@@ -569,7 +571,7 @@ export function CentralDetalle({
   return (
     <section
       aria-label={`Caso ${r}`}
-      className="ct-detalle fixed inset-0 z-40 flex flex-col overflow-hidden bg-[var(--ct-bg)] lg:static lg:z-auto lg:h-full lg:rounded-[1.5rem] lg:border lg:bg-[var(--ct-bg)]"
+      className={`ct-detalle fixed inset-0 z-40 flex flex-col overflow-hidden bg-[var(--ct-bg)] lg:static lg:z-auto lg:h-full lg:bg-[var(--ct-bg)] ${sinMarco ? "" : "lg:rounded-[1.5rem] lg:border"}`}
     >
       {/* Encabezado */}
       <header className="flex-none border-b bg-white px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">

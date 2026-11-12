@@ -274,3 +274,144 @@ export function CentralFiltros({ filtros, nivel, lideres, cuenta, onCambiar, onL
     </section>
   )
 }
+
+/** Escritorio: buscador, vistas rápidas y todos los filtros en una barra siempre visible. */
+export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimpiar }: Omit<Props, "cuenta">) {
+  const [texto, setTexto] = useState(filtros.q)
+  useEffect(() => setTexto(filtros.q), [filtros.q])
+  useEffect(() => {
+    if (texto === filtros.q) return
+    const t = setTimeout(() => onCambiar({ q: texto }), 400)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [texto])
+
+  const director = nivel === "director"
+  const vistas = VISTAS.filter((v) => director || !v.soloDirector)
+  const vistaActiva = vistas.find((v) => v.activa(filtros)) ?? null
+  const chips = chipsActivos(filtros, lideres, nivel).filter((c) => c.clave !== vistaActiva?.clave || vistaActiva.id === "todos")
+  const lideresOrdenados = [...lideres].sort((a, b) => a.nombre.localeCompare(b.nombre))
+  const asignadoFuera =
+    filtros.asignado && !["sin", "mios"].includes(filtros.asignado) && !lideres.some((l) => l.email.toLowerCase() === filtros.asignado)
+  const elegirVista = (v: Vista) => onCambiar({ ...FILTROS_VACIOS, q: filtros.q, orden: filtros.orden, ...v.filtro })
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <form
+          role="search"
+          className="relative min-w-[260px] flex-1"
+          onSubmit={(e) => {
+            e.preventDefault()
+            onCambiar({ q: texto })
+          }}
+        >
+          <Search className="ct-faint pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2" aria-hidden />
+          <input
+            type="search"
+            name="q"
+            autoComplete="off"
+            spellCheck={false}
+            aria-label="Buscar por asunto, cliente, empresa o radicado"
+            placeholder="Buscar asunto, cliente o #radicado"
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            className="ct-input !rounded-full !pl-10"
+          />
+        </form>
+        <div role="group" aria-label="Vistas rápidas" className="flex flex-wrap gap-2">
+          {vistas.map((v) => (
+            <button key={v.id} type="button" className="ct-vista" aria-pressed={vistaActiva?.id === v.id} onClick={() => elegirVista(v)}>
+              {v.texto}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-x-3 gap-y-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
+        <Campo etiqueta="Estado">
+          {(id) => (
+            <select id={id} name="estado" className="ct-input" value={filtros.estado} onChange={(e) => onCambiar({ estado: e.target.value as Filtros["estado"] })}>
+              <option value="">Todos</option>
+              <option value="abierto">Abiertos</option>
+              {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_TEXTO[e]}</option>)}
+            </select>
+          )}
+        </Campo>
+        <Campo etiqueta="Severidad">
+          {(id) => (
+            <select id={id} name="severidad" className="ct-input" value={filtros.severidad} onChange={(e) => onCambiar({ severidad: e.target.value as Filtros["severidad"] })}>
+              <option value="">Todas</option>
+              {SEVERIDADES.map((s) => <option key={s} value={s}>{SEVERIDAD_TEXTO[s]}</option>)}
+            </select>
+          )}
+        </Campo>
+        <Campo etiqueta="Área">
+          {(id) => (
+            <select id={id} name="area" className="ct-input" value={filtros.area} onChange={(e) => onCambiar({ area: e.target.value as Filtros["area"] })}>
+              <option value="">Todas</option>
+              {AREAS.map((a) => <option key={a} value={a}>{AREA_TEXTO[a]}</option>)}
+            </select>
+          )}
+        </Campo>
+        <Campo etiqueta="Tipo">
+          {(id) => (
+            <select id={id} name="tipo" className="ct-input" value={filtros.tipo} onChange={(e) => onCambiar({ tipo: e.target.value as Filtros["tipo"] })}>
+              <option value="">Todos</option>
+              {TIPOS.map((t) => <option key={t} value={t}>{TIPO_TEXTO[t]}</option>)}
+            </select>
+          )}
+        </Campo>
+        {director && (
+          <Campo etiqueta="Responsable">
+            {(id) => (
+              <select id={id} name="asignado" className="ct-input" value={filtros.asignado} onChange={(e) => onCambiar({ asignado: e.target.value })}>
+                <option value="">Todos</option>
+                <option value="sin">Sin asignar</option>
+                <option value="mios">Mis casos</option>
+                {asignadoFuera && <option value={filtros.asignado}>{filtros.asignado}</option>}
+                {lideresOrdenados.length > 0 && (
+                  <optgroup label="Líderes">
+                    {lideresOrdenados.map((l) => <option key={l.email} value={l.email.toLowerCase()}>{l.nombre}</option>)}
+                  </optgroup>
+                )}
+              </select>
+            )}
+          </Campo>
+        )}
+        <Campo etiqueta="Creado desde">
+          {(id) => <input id={id} name="desde" type="date" autoComplete="off" className="ct-input" value={filtros.desde} max={filtros.hasta || undefined} onChange={(e) => onCambiar({ desde: e.target.value })} />}
+        </Campo>
+        <Campo etiqueta="Creado hasta">
+          {(id) => <input id={id} name="hasta" type="date" autoComplete="off" className="ct-input" value={filtros.hasta} min={filtros.desde || undefined} onChange={(e) => onCambiar({ hasta: e.target.value })} />}
+        </Campo>
+        <Campo etiqueta="Orden">
+          {(id) => (
+            <select id={id} name="orden" className="ct-input" value={filtros.orden} onChange={(e) => onCambiar({ orden: e.target.value as Filtros["orden"] })}>
+              <option value="recientes">Recientes</option>
+              <option value="vencimiento">Por vencimiento</option>
+            </select>
+          )}
+        </Campo>
+      </div>
+
+      {chips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5" aria-label="Filtros activos" role="group">
+          {chips.map((c) => (
+            <button
+              key={c.clave}
+              type="button"
+              onClick={() => onCambiar(c.quitar)}
+              aria-label={`Quitar filtro ${c.texto}`}
+              className="inline-flex h-9 max-w-[240px] cursor-pointer items-center gap-1 rounded-full border border-[color:var(--ct-line-strong)] bg-white pl-3.5 pr-2.5 text-[13px] font-medium transition-colors hover:bg-[var(--ct-hover)]"
+            >
+              <span className="truncate">{c.texto}</span>
+              <X className="ct-muted size-3.5 flex-none" aria-hidden />
+            </button>
+          ))}
+          <button type="button" className="ct-btn ct-btn-ghost ct-btn-sm" onClick={onLimpiar}>Limpiar</button>
+        </div>
+      )}
+    </div>
+  )
+}
