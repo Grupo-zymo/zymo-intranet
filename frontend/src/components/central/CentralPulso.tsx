@@ -59,15 +59,6 @@ function indicadores(r: CentralResumen, nivel: CentralNivel): Indicador[] {
       filtro: { sinRespuesta: true },
       activo: (f) => f.sinRespuesta,
     },
-    {
-      id: "urgentes",
-      titulo: "Urgentes pedidos",
-      ayuda: "El cliente pidió subir de nivel",
-      valor: r.urgentesSolicitados,
-      tono: "var(--ct-orange)",
-      filtro: { urgente: true },
-      activo: (f) => f.urgente,
-    },
   ]
   // El líder solo ve casos que ya le asignaron: "Sin asignar" no le dice nada.
   return nivel === "lider" ? lista.filter((i) => i.id !== "sin-asignar") : lista
@@ -396,7 +387,7 @@ export function CentralKpisWeb({
       ayuda: "Recibidos o en análisis",
       valor: resumen.abiertos,
       filtro: { estado: "abierto" },
-      activo: (f) => f.estado === "abierto" && !f.asignado && !f.escalado && !f.vencido && !f.urgente && !f.sinRespuesta,
+      activo: (f) => f.estado === "abierto" && !f.asignado && !f.escalado && !f.vencido && !f.sinRespuesta,
     },
   ]
   return (

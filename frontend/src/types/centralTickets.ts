@@ -30,7 +30,6 @@ export interface CentralCasoBase {
   severidad: CentralSeveridad
   estado: CentralEstado
   asunto: string
-  urgenteSolicitado: boolean
   creadoEn: string
   primeraRespuestaEn: string | null
   resueltoEn: string | null
@@ -100,7 +99,6 @@ export interface CentralResumen {
   sinAsignar: number
   escalados: number
   vencidos: number
-  urgentesSolicitados: number
   sinPrimeraRespuesta: number
   horasPrimeraRespuesta: number | null
   horasResolucion: number | null
@@ -129,7 +127,6 @@ export interface CentralFiltros {
   escalado: boolean
   vencido: boolean
   /** Sin filtro en el servicio: se aplican sobre los casos abiertos ya cargados. */
-  urgente: boolean
   sinRespuesta: boolean
   q: string
   desde: string

@@ -1,7 +1,7 @@
 // Lista de casos: tarjetas grandes, iguales en teléfono y escritorio.
 
 import type { CSSProperties } from "react"
-import { AlertTriangle, Flame, MessageSquare } from "lucide-react"
+import { AlertTriangle, MessageSquare } from "lucide-react"
 import { AREA_TEXTO, TIPO_TEXTO, esperaRespuesta, estaAbierto, haceCuanto } from "@/lib/centralTickets"
 import type { CentralCasoItem } from "@/types/centralTickets"
 import { EstadoChip, Responsable, SeveridadChip, SlaResumen } from "./partes"
@@ -30,12 +30,6 @@ export function CentralLista({ casos, ahora, onAbrir }: Props) {
               <span className="flex items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="ct-mono text-base font-medium" translate="no">#{c.radicado}</span>
-                  {c.urgenteSolicitado && (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--ct-orange)]" title="El cliente pidió subir de nivel">
-                      <Flame className="size-3.5" aria-hidden />
-                      Urgente
-                    </span>
-                  )}
                 </span>
                 <span className="ct-faint flex-none text-xs">{haceCuanto(c.creadoEn, ahora)}</span>
               </span>

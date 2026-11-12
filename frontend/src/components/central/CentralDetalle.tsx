@@ -3,7 +3,7 @@
 // acciones, clasificación, plazos e historial de asignaciones).
 
 import { useEffect, useId, useRef, useState } from "react"
-import { AlertTriangle, ArrowLeft, ArrowUpCircle, Flame, Lock, RefreshCw, SearchX, Send, X } from "lucide-react"
+import { AlertTriangle, ArrowLeft, ArrowUpCircle, Lock, RefreshCw, SearchX, Send, X } from "lucide-react"
 import { useTicketToast } from "@/components/tickets/TicketToast"
 import { useCentralAccion, useCentralCaso } from "@/hooks/useCentralTickets"
 import {
@@ -309,12 +309,6 @@ function Plazos({ caso, ahora }: { caso: CentralCasoDetalle; ahora: number }) {
               <span className="ct-muted block text-xs">Se avisó a {destinatarios(sla.escalamiento.destinatarios)}</span>
             )}
           </p>
-        </div>
-      )}
-      {caso.urgenteSolicitado && (
-        <div role="note" className="mt-2 flex gap-2.5 rounded-2xl bg-[rgba(194,87,12,0.1)] p-3.5 text-sm">
-          <Flame className="mt-0.5 size-4 flex-none text-[color:var(--ct-orange)]" aria-hidden />
-          <p className="m-0 leading-snug"><strong className="font-bold">El cliente pidió subir de nivel.</strong> Considéralo al priorizar.</p>
         </div>
       )}
     </Tarjeta>

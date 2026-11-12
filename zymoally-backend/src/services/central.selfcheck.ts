@@ -47,7 +47,6 @@ function itemDe(c: (typeof CASOS)[string]) {
     ...c,
     severidad: "media",
     area: "bodega",
-    urgenteSolicitado: false,
     creadoEn: new Date().toISOString(),
     primeraRespuestaEn: null,
     resueltoEn: null,
@@ -191,7 +190,7 @@ function probarAutorizacion() {
   const ahora = new Date("2026-11-12T15:00:00Z")
   const r = resumenDeCasos(
     [
-      { estado: "recibido", severidad: "alta", area: "bodega", urgenteSolicitado: true, creadoEn: "2026-11-12T08:00:00Z", sla: { vencido: true, escalamiento: { motivo: "x" } } },
+      { estado: "recibido", severidad: "alta", area: "bodega", creadoEn: "2026-11-12T08:00:00Z", sla: { vencido: true, escalamiento: { motivo: "x" } } },
       { estado: "en_analisis", severidad: "media", area: "administrativo", creadoEn: "2026-11-10T08:00:00Z", primeraRespuestaEn: "2026-11-10T10:00:00Z", sla: { vencido: false, escalamiento: null } },
       { estado: "resuelto", severidad: "baja", area: "bodega", creadoEn: "2026-11-01T08:00:00Z", primeraRespuestaEn: "2026-11-01T12:00:00Z", resueltoEn: "2026-11-02T08:00:00Z", sla: { vencido: true } },
       { estado: "cerrado", severidad: "baja", area: "bodega", creadoEn: "2026-08-01T08:00:00Z", resueltoEn: "2026-08-02T08:00:00Z" },
@@ -206,7 +205,6 @@ function probarAutorizacion() {
   assert.deepStrictEqual(r.porSeveridad, { critica: 0, alta: 1, media: 1, baja: 0 })
   assert.strictEqual(r.vencidos, 1, "un resuelto vencido ya no cuenta como vencido abierto")
   assert.strictEqual(r.escalados, 1)
-  assert.strictEqual(r.urgentesSolicitados, 1)
   assert.strictEqual(r.sinPrimeraRespuesta, 1)
   assert.strictEqual(r.sinAsignar, 0)
   assert.strictEqual(r.horasPrimeraRespuesta, 3)

@@ -80,7 +80,7 @@ Si falta alguna, la central muestra «todavía no está conectada» (el servidor
 
 ## Límites conocidos
 
-- Los indicadores «Urgentes del cliente» y «Sin primera respuesta» no tienen filtro en el servicio: el panel trae los 100 casos abiertos más recientes y filtra ahí. Con más de 100 abiertos avisa que la vista es parcial. El tablero también trabaja con máximo 100 casos.
+- El indicador «Sin primera respuesta» no tiene filtro en el servicio: el panel trae los 100 casos abiertos más recientes y filtra ahí. Con más de 100 abiertos avisa que la vista es parcial. El tablero también trabaja con máximo 100 casos.
 - El resumen del líder se arma con sus primeros 500 casos y sus tiempos medios salen en horas de reloj (los de Dirección los entrega el servicio).
 - Un permiso recién dado o quitado se nota al volver a iniciar sesión.
 - No hay adjuntos ni avisos por correo desde la intranet: el panel hay que tenerlo abierto (se refresca solo).

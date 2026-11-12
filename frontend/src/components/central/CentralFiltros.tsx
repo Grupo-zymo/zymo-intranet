@@ -38,11 +38,11 @@ interface Vista {
   soloDirector?: boolean
 }
 
-const SIN_EXTRAS = (f: Filtros) => !f.escalado && !f.vencido && !f.urgente && !f.sinRespuesta && !f.severidad && !f.area && !f.tipo && !f.desde && !f.hasta
+const SIN_EXTRAS = (f: Filtros) => !f.escalado && !f.vencido && !f.sinRespuesta && !f.severidad && !f.area && !f.tipo && !f.desde && !f.hasta
 
 const VISTAS: Vista[] = [
   { id: "abiertos", texto: "Abiertos", filtro: { estado: "abierto" }, clave: "estado", activa: (f) => f.estado === "abierto" && !f.asignado && SIN_EXTRAS(f) },
-  { id: "escalados", texto: "Escalados", filtro: { escalado: true }, clave: "escalado", activa: (f) => f.escalado && !f.estado && !f.asignado && !f.vencido && !f.urgente && !f.sinRespuesta },
+  { id: "escalados", texto: "Escalados", filtro: { escalado: true }, clave: "escalado", activa: (f) => f.escalado && !f.estado && !f.asignado && !f.vencido && !f.sinRespuesta },
   { id: "sin", texto: "Sin asignar", filtro: { estado: "abierto", asignado: "sin" }, clave: "asignado", soloDirector: true, activa: (f) => f.asignado === "sin" && SIN_EXTRAS(f) },
   { id: "mios", texto: "Mis casos", filtro: { asignado: "mios" }, clave: "asignado", soloDirector: true, activa: (f) => f.asignado === "mios" && !f.estado && SIN_EXTRAS(f) },
   { id: "todos", texto: "Todos", filtro: {}, clave: null, activa: (f) => !f.estado && !f.asignado && SIN_EXTRAS(f) },
@@ -96,7 +96,6 @@ function chipsActivos(f: Filtros, lideres: CentralCargaLider[], nivel: CentralNi
   }
   if (f.escalado) chips.push({ clave: "escalado", texto: "Escalados", quitar: { escalado: false } })
   if (f.vencido) chips.push({ clave: "vencido", texto: "Vencidos", quitar: { vencido: false } })
-  if (f.urgente) chips.push({ clave: "urgente", texto: "Urgentes pedidos", quitar: { urgente: false } })
   if (f.sinRespuesta) chips.push({ clave: "sinRespuesta", texto: "Sin 1ª respuesta", quitar: { sinRespuesta: false } })
   if (f.desde) chips.push({ clave: "desde", texto: `Desde ${diaCorto(f.desde)}`, quitar: { desde: "" } })
   if (f.hasta) chips.push({ clave: "hasta", texto: `Hasta ${diaCorto(f.hasta)}`, quitar: { hasta: "" } })

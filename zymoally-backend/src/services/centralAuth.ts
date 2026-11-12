@@ -154,7 +154,6 @@ export interface CasoResumible {
   estado: string
   severidad: string
   area: string
-  urgenteSolicitado?: boolean
   creadoEn: string
   primeraRespuestaEn?: string | null
   resueltoEn?: string | null
@@ -217,7 +216,6 @@ export function resumenDeCasos(
     sinAsignar: 0,
     escalados,
     vencidos,
-    urgentesSolicitados: abiertos.filter((c) => c.urgenteSolicitado === true).length,
     sinPrimeraRespuesta: abiertos.filter((c) => !c.primeraRespuestaEn).length,
     horasPrimeraRespuesta: promedioHoras(casos.map((c) => [c.creadoEn, c.primeraRespuestaEn])),
     horasResolucion: promedioHoras(casos.map((c) => [c.creadoEn, c.resueltoEn])),

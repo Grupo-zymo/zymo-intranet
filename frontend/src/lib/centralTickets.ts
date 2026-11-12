@@ -51,7 +51,6 @@ export const FILTROS_VACIOS: CentralFiltros = {
   asignado: "",
   escalado: false,
   vencido: false,
-  urgente: false,
   sinRespuesta: false,
   q: "",
   desde: "",
@@ -78,7 +77,6 @@ export function filtrosDesdeUrl(params: URLSearchParams): CentralFiltros {
     asignado: (params.get("asignado") ?? "").trim().toLowerCase(),
     escalado: params.get("escalado") === "true",
     vencido: params.get("vencido") === "true",
-    urgente: params.get("urgente") === "true",
     sinRespuesta: params.get("sinRespuesta") === "true",
     q: params.get("q") ?? "",
     desde: params.get("desde") ?? "",
@@ -108,7 +106,7 @@ export function hayFiltros(f: CentralFiltros): boolean {
 
 /** Los filtros locales (sin equivalente en el servicio) se resuelven sobre los casos abiertos. */
 export function usaFiltroLocal(f: CentralFiltros): boolean {
-  return f.urgente || f.sinRespuesta
+  return f.sinRespuesta
 }
 
 /** Consulta para GET /casos. `amplio` trae la página más grande posible (tablero y filtros locales). */
@@ -132,7 +130,7 @@ export function consultaCasos(f: CentralFiltros, amplio: boolean): Record<string
 }
 
 export function aplicarFiltroLocal(items: CentralCasoItem[], f: CentralFiltros): CentralCasoItem[] {
-  return items.filter((c) => (!f.urgente || c.urgenteSolicitado) && (!f.sinRespuesta || !c.primeraRespuestaEn))
+  return items.filter((c) => !f.sinRespuesta || !c.primeraRespuestaEn)
 }
 
 export function estaAbierto(estado: CentralEstado): boolean {
