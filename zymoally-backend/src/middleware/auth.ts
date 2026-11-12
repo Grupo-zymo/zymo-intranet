@@ -10,6 +10,10 @@ export interface AuthPayload {
   full_name?: string
   role?: string
   app_permissions?: string[]
+  // También vienen en el JWT del backend Python (routers/auth.py); los usa la mesa de ayuda.
+  area?: string | null
+  sede?: string | null
+  areas_extra?: number[]
 }
 
 declare global {

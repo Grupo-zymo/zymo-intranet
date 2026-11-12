@@ -250,6 +250,19 @@ export const INTERNAL_MODULE_GROUPS: ModulePermissionGroup[] = [
     ],
   },
   {
+    title: "Mesa de ayuda — Solicitudes entre áreas",
+    subtitle: "Toda cuenta crea solicitudes y ve las de su área sin permiso; esto es solo para líderes",
+    modules: [
+      {
+        id: "mod_tickets_lider",
+        category: "modulo",
+        icon: "🎯",
+        name: "Mesa de ayuda — Líder de área",
+        description: "Definir los objetivos de su área (tiempo de respuesta y de cierre) y ver el tablero de indicadores de su área. Aplica al área de la cuenta y a sus áreas adicionales",
+      },
+    ],
+  },
+  {
     title: "ZymoAlly — SAC",
     subtitle: "Servicio al cliente, encuestas y experiencia",
     modules: [
