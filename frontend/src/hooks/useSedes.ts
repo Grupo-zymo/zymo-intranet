@@ -67,8 +67,8 @@ export function useUpdateSede() {
 export function useDeleteSede() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: number) => {
-      await api.delete(`/sedes/${id}`)
+    mutationFn: async ({ id, forzar = false }: { id: number; forzar?: boolean }) => {
+      await api.delete(`/sedes/${id}`, { params: forzar ? { forzar: true } : undefined })
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sedes"] }),
   })

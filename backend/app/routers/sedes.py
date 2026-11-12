@@ -92,6 +92,7 @@ def update_sede(
 @router.delete("/{sede_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_sede(
     sede_id: int,
+    forzar: bool = Query(False, description="Quita la sede aunque tenga personas (quedan sin sede)."),
     _: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -99,12 +100,15 @@ def delete_sede(
     if not sede:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sede no encontrada.")
 
-    in_use = db.exec(select(User).where(User.sede == sede.name)).first()
-    if in_use:
+    personas = db.exec(select(User).where(User.sede == sede.name)).all()
+    if personas and not forzar:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"La sede '{sede.name}' está asignada a uno o más usuarios y no puede eliminarse.",
+            detail=f"La sede '{sede.name}' tiene {len(personas)} persona(s) asignada(s).",
         )
+    for p in personas:
+        p.sede = None
+        db.add(p)
 
     db.delete(sede)
     db.commit()

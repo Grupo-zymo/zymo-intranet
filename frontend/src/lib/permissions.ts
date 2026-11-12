@@ -203,7 +203,6 @@ export function canSeeMantenimiento(
   appPerms?: string[]
 ): boolean {
   if (role === "admin") return true
-  if (role === "directivo") return true
   if (role === "auxiliar_mantenimiento") return true
   return hasPerm(appPerms, "mod_mantenimiento")
 }
@@ -236,7 +235,7 @@ export function canOperateMantenimientoCampo(
   return canManageMantenimiento(role, appPerms)
 }
 
-/** Solo admin y directivo pueden ver todos — auxiliar ve los suyos */
+/** Solo admin puede ver todos — auxiliar ve los suyos */
 export function canSeeAllMantenimientos(role: string): boolean {
-  return role === "admin" || role === "directivo"
+  return role === "admin"
 }

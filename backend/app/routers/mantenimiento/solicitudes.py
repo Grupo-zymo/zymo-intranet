@@ -373,7 +373,7 @@ def listar_solicitudes(
     stmt = select(SolicitudMantenimiento)
 
     puede_ver_todos = (
-        current_user.role in ("admin", "directivo")
+        current_user.role == "admin"
         or (
             user_has_permission(app_db, current_user, "mod_mantenimiento")
             and current_user.role != "auxiliar_mantenimiento"
@@ -445,7 +445,7 @@ def obtener_solicitud(
         raise HTTPException(status_code=404, detail="Solicitud no encontrada.")
 
     from app.core.permissions import user_has_permission
-    puede_ver_todos = current_user.role in ("admin", "directivo") or user_has_permission(app_db, current_user, "mod_mantenimiento")
+    puede_ver_todos = current_user.role == "admin" or user_has_permission(app_db, current_user, "mod_mantenimiento")
     es_propio = sol.solicitante_id == current_user.id or sol.asignado_id == current_user.id
     es_compras_externo = (
         sol.modalidad == "externo"
@@ -561,8 +561,8 @@ def asignar_auxiliar(
     app_db: Session = Depends(get_db),
     current_user: User = Depends(require_mantenimiento),
 ):
-    """Asignación manual — solo admin/directivo. Internos: pool. Externos: compras vía asignar-par."""
-    if current_user.role not in ("admin", "directivo"):
+    """Asignación manual — solo admin. Internos: pool. Externos: compras vía asignar-par."""
+    if current_user.role != "admin":
         raise HTTPException(
             status_code=403,
             detail="La asignación manual está restringida. Internos: pool del auxiliar. Externos: bandeja de compras.",

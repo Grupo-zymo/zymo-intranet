@@ -33,7 +33,7 @@ def escalar_interno_a_externo(
     if not motivo.strip():
         raise HTTPException(status_code=400, detail="El motivo del escalamiento es obligatorio.")
 
-    es_gestor = actor.role in ("admin", "directivo")
+    es_gestor = actor.role == "admin"
     if es_gestor:
         pass
     elif actor.role == "auxiliar_mantenimiento":

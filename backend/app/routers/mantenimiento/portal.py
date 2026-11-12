@@ -61,14 +61,14 @@ class PortalSessionOut(BaseModel):
 def _caps(user: User, app_db: Session) -> dict:
     is_aux = user.role == "auxiliar_mantenimiento"
     can_manage = (
-        user.role in ("admin", "directivo")
+        user.role == "admin"
         or (not is_aux and user_has_permission(app_db, user, "mod_mantenimiento"))
     )
     return {
         "can_manage": can_manage,
         "can_operate": is_aux or can_manage,
-        "can_approve": user.role in ("admin", "directivo"),
-        "can_see_tablero": user.role in ("admin", "directivo"),
+        "can_approve": user.role == "admin",
+        "can_see_tablero": user.role == "admin",
         "is_auxiliar": is_aux,
     }
 
@@ -129,9 +129,7 @@ def portal_listar_solicitudes(
         caps = _caps(user, app_db)
         stmt = select(SolicitudMantenimiento)
 
-        if caps["can_manage"] and user.role in ("admin", "directivo"):
-            pass
-        elif caps["can_manage"]:
+        if caps["can_manage"]:
             pass
         elif user.role == "auxiliar_mantenimiento":
             stmt = stmt.where(SolicitudMantenimiento.asignado_id == user.id)
@@ -257,7 +255,7 @@ def portal_asignar(portal_token: str, solicitud_id: int, body: AsignarBody):
         user, _ = resolve_portal_user(portal_token, oc_db, app_db)
         caps = _caps(user, app_db)
         _require_manage(caps)
-        if user.role not in ("admin", "directivo"):
+        if user.role != "admin":
             raise HTTPException(
                 status_code=403,
                 detail="Asignación manual restringida. Use pool (internos) o bandeja compras (externos).",

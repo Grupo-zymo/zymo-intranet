@@ -65,76 +65,10 @@ _DEFAULT_ROLES = [
         "app_permissions": [],  # admin bypass explícito en código
     },
     {
-        "name": "directivo",
-        "label": "Directivo",
-        "description": "Dirección — OC (ver/aprobar) y apps externas",
-        "app_permissions": ["matriz", "mod_oc_ver", "mod_oc_aprobar"],
-    },
-    {
-        "name": "talento_cultura",
-        "label": "Talento y Cultura",
-        "description": "Gestión de talento humano",
-        "app_permissions": ["matriz", "mod_tc", "mod_tc_editar", "mod_tc_importar"],
-    },
-    {
-        "name": "comercial",
-        "label": "Comercial",
-        "description": "Área comercial y ventas",
-        "app_permissions": ["matriz", "crm"],
-    },
-    {
-        "name": "operativo",
-        "label": "Operativo",
-        "description": "Operaciones logísticas",
-        "app_permissions": ["matriz", "mod_operativo"],
-    },
-    {
-        "name": "gestor_tickets",
-        "label": "Gestor de Tickets",
-        "description": "Supervisor/analista/coordinador — gestiona en Operativo los tickets de ZymoAlly asignados a su nombre",
-        "app_permissions": ["matriz", "mod_operativo_tickets"],
-    },
-    {
         "name": "empleado",
         "label": "Empleado",
         "description": "Acceso básico para colaboradores",
         "app_permissions": ["matriz"],
-    },
-    {
-        "name": "calidad",
-        "label": "Gestión de Calidad",
-        "description": "Administración del SGC y catálogo de proveedores",
-        "app_permissions": ["mod_sgc", "matriz"],
-    },
-    {
-        "name": "gerente",
-        "label": "Gerente",
-        "description": "Gerencia general — módulo gerencial (KPIs, ZYMO)",
-        "app_permissions": ["mod_gerencial", "matriz"],
-    },
-    {
-        "name": "administrativo",
-        "label": "Administrativo",
-        "description": "Gestión administrativa y módulo OC",
-        "app_permissions": ["mod_oc_ver", "mod_oc_aprobar", "mod_oc_config", "matriz"],
-    },
-    {
-        "name": "compras",
-        "label": "Compras",
-        "description": "Auxiliar de compras — gestión de solicitudes y cotizaciones",
-        "app_permissions": ["mod_oc_ver", "matriz"],
-    },
-    {
-        "name": "financiero",
-        "label": "Financiero",
-        "description": "Módulo de facturas y validación contable",
-        "app_permissions": ["mod_financiero", "matriz"],
-    },
-    {
-        "name": "auxiliar_mantenimiento",
-        "label": "Auxiliar de Mantenimiento",
-        "description": "Gestión de solicitudes de mantenimiento — sin acceso al módulo OC/Compras",
-        "app_permissions": ["mod_mantenimiento"],
     },
     {
         # Cuentas exclusivas para IA (analista del SIG vía MCP-001). Acceso completo al SIG

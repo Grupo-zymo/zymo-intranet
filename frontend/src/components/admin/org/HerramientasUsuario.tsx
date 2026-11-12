@@ -130,8 +130,8 @@ export function UserToolsModal({ user, onClose }: { user: { id: number; full_nam
               return (
                 <div key={tool.key} className="flex items-center justify-between gap-4 rounded-xl border border-org-linea px-4 py-3">
                   <div className="min-w-0">
-                    <p className="text-[13px] font-medium text-org-tinta">{tool.label}</p>
-                    <p className="text-[12px] text-org-tinta/55">{tool.desc}</p>
+                    <p className="break-words text-[13px] font-medium text-org-tinta">{tool.label}</p>
+                    <p className="break-words text-[12px] text-org-tinta/55">{tool.desc}</p>
                   </div>
                   <button
                     type="button" role="switch" aria-checked={activa} aria-label={tool.label} onClick={() => alternar(tool.key, activa)} disabled={ocupado}
@@ -150,7 +150,7 @@ export function UserToolsModal({ user, onClose }: { user: { id: number; full_nam
               {ownedTeam ? (
                 <div className="rounded-xl bg-org-tinte px-4 py-3">
                   <p className="font-mono text-[10px] uppercase text-org-tinta/50">Equipo asignado</p>
-                  <p className="text-[14px] font-medium text-org-rojo">{ownedTeam.name}</p>
+                  <p className="break-words text-[14px] font-medium text-org-rojo">{ownedTeam.name}</p>
                 </div>
               ) : <p className="text-[12px] text-org-rojo">Este gestor todavía no tiene un equipo asignado.</p>}
               <label className="block">
@@ -179,7 +179,7 @@ export function UserToolsModal({ user, onClose }: { user: { id: number; full_nam
                 <ul className="space-y-1.5">
                   {memberTeams.map((team) => (
                     <li key={team.id} className="flex items-center justify-between rounded-xl bg-org-tinte px-3 py-2">
-                      <span className="text-[13px] font-medium text-org-tinta">{team.name}</span>
+                      <span className="min-w-0 flex-1 break-words text-[13px] font-medium text-org-tinta">{team.name}</span>
                       <button type="button" onClick={() => quitarDeEquipo(team.id)} disabled={ocupado} className="text-[12px] font-medium text-org-rojo underline underline-offset-2 hover:text-org-oscuro">Remover</button>
                     </li>
                   ))}
@@ -231,8 +231,8 @@ function TareasDe({ userId, allTeams }: { userId: number; allTeams: Team[] }) {
           <div key={teamId} className="overflow-hidden rounded-xl border border-org-linea">
             <button type="button" aria-expanded={abierto} onClick={() => setAbiertos({ ...abiertos, [teamId]: !abierto })}
               className="flex w-full items-center justify-between bg-org-tinte/60 px-3 py-2 text-left transition-colors hover:bg-org-tinte">
-              <span className="text-[12px] font-medium text-org-tinta">{allTeams.find((t) => t.id === teamId)?.name ?? `Equipo #${teamId}`}</span>
-              <span className="flex items-center gap-1.5 font-mono text-[11px] text-org-tinta/55">{lista.length} tarea{lista.length === 1 ? "" : "s"}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", abierto && "rotate-180")} aria-hidden /></span>
+              <span className="min-w-0 truncate text-[12px] font-medium text-org-tinta">{allTeams.find((t) => t.id === teamId)?.name ?? `Equipo #${teamId}`}</span>
+              <span className="flex shrink-0 items-center gap-1.5 pl-2 font-mono text-[11px] text-org-tinta/55">{lista.length} tarea{lista.length === 1 ? "" : "s"}<ChevronDown className={cn("h-3.5 w-3.5 transition-transform", abierto && "rotate-180")} aria-hidden /></span>
             </button>
             {abierto && (
               <ul className="divide-y divide-org-linea/60">

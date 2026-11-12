@@ -198,7 +198,7 @@ def listar_tareas(
     intranet_db: Session = Depends(get_db),
     db: Session = Depends(get_gerencial_db),
 ):
-    """Lista tareas con filtros. Vista amplia si tiene mod_gerencial o mod_oc_aprobar (p. ej. directivo)."""
+    """Lista tareas con filtros. Vista amplia si tiene mod_gerencial o mod_oc_aprobar."""
     if not user_has_any_permission(
         intranet_db, current_user, ["mod_gerencial", "mod_oc_aprobar"]
     ):

@@ -158,7 +158,7 @@ function SedesPanel() {
     if (!deleteTarget) return
     setError(undefined)
     try {
-      await deleteSede.mutateAsync(deleteTarget.id)
+      await deleteSede.mutateAsync({ id: deleteTarget.id })
       setDeleteTarget(null)
     } catch (err) {
       setError(getApiError(err))

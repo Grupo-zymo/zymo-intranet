@@ -30,7 +30,7 @@ def listar_pool_disponibles(
     current_user: User = Depends(get_current_user),
 ):
     """Solicitudes internas sin auxiliar — pool para auto-asignación."""
-    if current_user.role not in ("auxiliar_mantenimiento", "admin", "directivo"):
+    if current_user.role not in ("auxiliar_mantenimiento", "admin"):
         from app.core.permissions import user_has_permission
         if not user_has_permission(app_db, current_user, "mod_mantenimiento"):
             raise HTTPException(status_code=403, detail="Acceso denegado.")

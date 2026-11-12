@@ -152,6 +152,7 @@ function Sedes() {
   const { data: sedes = [] } = useSedes()
   const crear = useCreateSede()
   const borrar = useDeleteSede()
+  const qc = useQueryClient()
   const [nueva, setNueva] = useState("")
   const [error, setError] = useState<string>()
 
@@ -162,23 +163,35 @@ function Sedes() {
     try { await crear.mutateAsync({ name }); setNueva("") } catch (err) { setError(getApiError(err)) }
   }
 
+  async function quitar(id: number, name: string) {
+    setError(undefined)
+    try {
+      if (!window.confirm(`¿Quitar la sede «${name}»?`)) return
+      await borrar.mutateAsync({ id })
+    } catch (err) {
+      // 409 = tiene personas: el backend dice cuántas; si el admin insiste, quedan sin sede
+      if ((err as { response?: { status?: number } })?.response?.status !== 409) { setError(getApiError(err)); return }
+      if (!window.confirm(`${getApiError(err)}\n\nSi la quitas, esas personas quedan sin sede. ¿Continuar?`)) return
+      try {
+        await borrar.mutateAsync({ id, forzar: true })
+        qc.invalidateQueries({ queryKey: ["users"] })
+      } catch (e2) { setError(getApiError(e2)) }
+    }
+  }
+
   return (
     <div className="mt-auto border-t border-white/15 px-5 pb-5 pt-4">
       <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/60">Sedes</p>
       <ul className="mt-2 flex flex-wrap gap-1.5">
         {sedes.map((s) => (
-          <li key={s.id} className="group inline-flex items-center gap-1 rounded-full bg-white/12 py-0.5 pl-2.5 pr-1 text-[12px]">
-            {s.name}
+          <li key={s.id} className="group inline-flex max-w-full items-center gap-1 rounded-full bg-white/12 py-0.5 pl-2.5 pr-1 text-[12px]">
+            <span className="truncate" title={s.name}>{s.name}</span>
             <button
               type="button" aria-label={`Quitar la sede ${s.name}`}
-              onClick={async () => {
-                if (!window.confirm(`¿Quitar la sede «${s.name}»?`)) return
-                setError(undefined)
-                try { await borrar.mutateAsync(s.id) } catch (err) { setError(getApiError(err)) }
-              }}
-              className="rounded-full p-0.5 text-white/50 transition-colors hover:bg-white/20 hover:text-white"
+              onClick={() => quitar(s.id, s.name)}
+              className="shrink-0 rounded-full p-1 text-white/60 transition-colors hover:bg-white/20 hover:text-white"
             >
-              <X className="h-3 w-3" aria-hidden />
+              <X className="h-3.5 w-3.5" aria-hidden />
             </button>
           </li>
         ))}
@@ -189,7 +202,7 @@ function Sedes() {
         placeholder="+ Nueva sede" aria-label="Nombre de la nueva sede"
         className="mt-2.5 w-full rounded-md border border-white/20 bg-transparent px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/50 focus:border-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       />
-      {error && <p role="alert" className="mt-2 text-[11px] text-white">{error}</p>}
+      {error && <p role="alert" className="mt-2 break-words text-xs leading-snug text-white">{error}</p>}
     </div>
   )
 }

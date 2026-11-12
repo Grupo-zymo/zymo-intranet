@@ -75,7 +75,7 @@ export function PermisosUsuario({ areaId, usuario, onCerrar }: { areaId: number;
                         <label className={cn("flex items-start gap-2 rounded-lg px-1.5 py-1 text-[13px]", bloqueado ? "cursor-not-allowed text-org-tinta/35" : "cursor-pointer text-org-tinta hover:bg-org-tinte")}
                           title={bloqueado ? "Exclusiva de otras áreas" : m.description}>
                           <input type="checkbox" disabled={bloqueado} checked={marcados.has(m.id)} onChange={() => setMarcados(toggle(marcados, m.id))} className="mt-0.5 h-4 w-4 accent-org-vivo" />
-                          <span className="flex-1">{m.name}</span>
+                          <span className="min-w-0 flex-1 break-words">{m.name}</span>
                           {bloqueado && <Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />}
                         </label>
                       </li>
@@ -97,7 +97,7 @@ export function PermisosUsuario({ areaId, usuario, onCerrar }: { areaId: number;
                   <li key={a.id}>
                     <label className="flex cursor-pointer items-start gap-2 rounded-lg px-1.5 py-1 text-[13px] text-org-tinta hover:bg-org-tinte">
                       <input type="checkbox" checked={extra.has(a.id)} onChange={() => setExtra((s) => { const n = new Set(s); if (n.has(a.id)) n.delete(a.id); else n.add(a.id); return n })} className="mt-0.5 h-4 w-4 accent-org-vivo" />
-                      <span className="flex-1">{a.name}</span>
+                      <span className="min-w-0 flex-1 break-words">{a.name}</span>
                     </label>
                   </li>
                 ))}
@@ -106,8 +106,8 @@ export function PermisosUsuario({ areaId, usuario, onCerrar }: { areaId: number;
           )}
         </div>
 
-        <footer className="flex items-center gap-3 border-t border-org-linea px-6 py-3">
-          {error && <p role="alert" className="min-w-0 flex-1 truncate text-[12px] text-org-rojo" title={error}>{error}</p>}
+        <footer className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-org-linea px-6 py-3">
+          {error && <p role="alert" className="min-w-0 flex-1 break-words text-[12px] leading-snug text-org-rojo">{error}</p>}
           <span className="ml-auto font-mono text-[11px] text-org-tinta/50">{marcados.size} marcado{marcados.size === 1 ? "" : "s"}</span>
           <button type="button" onClick={onCerrar} className="h-9 rounded-full px-4 text-[13px] text-org-tinta/70 transition-colors hover:bg-org-tinte">Cancelar</button>
           <button type="button" onClick={guardar} disabled={!cambios || fijar.isPending} className="h-9 rounded-full bg-org-rojo px-5 text-[13px] font-medium text-white transition-colors hover:bg-org-oscuro disabled:opacity-50">
