@@ -19,6 +19,10 @@ import sacAlertasRouter from "./routers/sac/sacAlertas"
 import sacConfigRouter from "./routers/sac/sacConfig"
 import { ticketsExportRouter, sacExportRouter } from "./routers/export"
 import centralRouter from "./routers/central"
+import mesaTicketsRouter from "./routers/mesa/tickets"
+import mesaConfigRouter from "./routers/mesa/config"
+import mesaAvisosRouter from "./routers/mesa/avisos"
+import { requireMesaAccess } from "./middleware/mesa"
 import publicSurveyRouter from "./routers/public/survey"
 import publicShortLinkRouter from "./routers/public/shortlink"
 
@@ -36,6 +40,10 @@ app.use(
 app.use(express.json())
 
 // --- Static uploads ---
+// Las evidencias de la mesa de ayuda solo se descargan con sesión (GET /api/mesa/evidencias/:id)
+app.use("/uploads/mesa", (_req: Request, res: Response) => {
+  res.status(404).end()
+})
 app.use("/uploads", express.static(path.resolve(env.UPLOAD_DIR)))
 
 // --- Health check ---
@@ -70,6 +78,9 @@ app.use("/api/sac/export", requireSacAccess, sacExportRouter)
 
 // --- Central de tickets (casos que radican los clientes en la app de autogestión) ---
 app.use("/api/central-tickets", requireCentralAccess, centralRouter)
+
+// --- Mesa de ayuda interna por áreas (toda cuenta autenticada; las reglas van por ticket) ---
+app.use("/api/mesa", requireMesaAccess, mesaConfigRouter, mesaAvisosRouter, mesaTicketsRouter)
 
 // --- 404 handler ---
 app.use((_req: Request, res: Response) => {
