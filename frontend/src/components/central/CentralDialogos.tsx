@@ -9,7 +9,7 @@ import { mensajeDeError } from "@/lib/centralTickets"
 import type { CentralLider } from "@/types/centralTickets"
 import { Avatar } from "./partes"
 
-const CONTENIDO = "central ct-panel max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-lg gap-0 overflow-hidden rounded-xl p-0"
+const CONTENIDO = "central ct-panel max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-lg gap-0 overflow-hidden rounded-[1.5rem] p-0"
 
 const sinTildes = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
 
@@ -22,7 +22,7 @@ function Opcion({ lider, elegido, actual, onElegir }: { lider: CentralLider; ele
         aria-selected={elegido}
         disabled={actual}
         onClick={onElegir}
-        className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-[var(--ct-hover)] disabled:cursor-not-allowed disabled:opacity-55 aria-selected:bg-[var(--ct-raised)]"
+        className="flex w-full cursor-pointer items-center gap-3 min-h-[52px] rounded-2xl px-2.5 py-2 text-left transition-colors duration-150 hover:bg-[var(--ct-hover)] disabled:cursor-not-allowed disabled:opacity-55 aria-selected:bg-[var(--ct-red-soft)]"
       >
         <Avatar nombre={lider.nombre} className="!size-8 !text-[11px]" />
         <span className="min-w-0 flex-1">
@@ -112,7 +112,7 @@ export function DialogoAsignar({
               placeholder="Buscar por nombre, cargo o área…"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="ct-input !pl-9"
+              className="ct-input !rounded-full !pl-10"
             />
           </div>
         </div>

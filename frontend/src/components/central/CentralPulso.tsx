@@ -1,6 +1,7 @@
-// Parte alta del panel: indicadores clicables, carga por líder y tendencia.
+// Parte alta del panel: tarjetas-indicador que filtran y, plegable, el resumen (tiempos, carga por líder, tendencia).
 
-import type { ReactNode } from "react"
+import { useId, useState } from "react"
+import { ChevronDown } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { diaCorto, partesDeHoras } from "@/lib/centralTickets"
 import type { CentralCargaLider, CentralFiltros, CentralNivel, CentralResumen } from "@/types/centralTickets"
@@ -15,21 +16,13 @@ interface Indicador {
   valor: number
   /** Color del número cuando es mayor que cero. */
   tono?: string
-  /** Filtros que aplica al hacer clic (sobre filtros limpios). */
+  /** Filtros que aplica al tocar (sobre filtros limpios). */
   filtro: Partial<CentralFiltros>
   activo: (f: CentralFiltros) => boolean
 }
 
 function indicadores(r: CentralResumen, nivel: CentralNivel): Indicador[] {
   const lista: Indicador[] = [
-    {
-      id: "abiertos",
-      titulo: "Abiertos",
-      ayuda: "Recibidos o en análisis",
-      valor: r.abiertos,
-      filtro: { estado: "abierto" },
-      activo: (f) => f.estado === "abierto" && !f.asignado && !f.escalado && !f.vencido && !f.urgente && !f.sinRespuesta,
-    },
     {
       id: "sin-asignar",
       titulo: "Sin asignar",
@@ -58,22 +51,22 @@ function indicadores(r: CentralResumen, nivel: CentralNivel): Indicador[] {
       activo: (f) => f.vencido,
     },
     {
-      id: "urgentes",
-      titulo: "Urgentes del cliente",
-      ayuda: "El cliente pidió subir de nivel",
-      valor: r.urgentesSolicitados,
-      tono: "var(--ct-orange)",
-      filtro: { urgente: true },
-      activo: (f) => f.urgente,
-    },
-    {
       id: "sin-respuesta",
-      titulo: "Sin primera respuesta",
+      titulo: "Sin 1ª respuesta",
       ayuda: "El cliente aún no ha recibido respuesta",
       valor: r.sinPrimeraRespuesta,
       tono: "var(--ct-blue)",
       filtro: { sinRespuesta: true },
       activo: (f) => f.sinRespuesta,
+    },
+    {
+      id: "urgentes",
+      titulo: "Urgentes pedidos",
+      ayuda: "El cliente pidió subir de nivel",
+      valor: r.urgentesSolicitados,
+      tono: "var(--ct-orange)",
+      filtro: { urgente: true },
+      activo: (f) => f.urgente,
     },
   ]
   // El líder solo ve casos que ya le asignaron: "Sin asignar" no le dice nada.
@@ -84,20 +77,16 @@ function indicadores(r: CentralResumen, nivel: CentralNivel): Indicador[] {
 function Horas({ valor }: { valor: number | null }) {
   const partes = partesDeHoras(valor)
   return (
-    <span className="mt-1.5 flex items-baseline gap-1">
-      {partes.length === 0 && <span className="ct-mono ct-faint text-[28px] font-medium leading-none">—</span>}
+    <span className="mt-1.5 flex items-baseline gap-1.5">
+      {partes.length === 0 && <span className="ct-mono ct-faint text-2xl font-medium leading-none">—</span>}
       {partes.map(([cifra, unidad]) => (
         <span key={unidad} className="flex items-baseline gap-0.5">
-          <span className="ct-mono text-[28px] font-medium leading-none">{cifra}</span>
+          <span className="ct-mono text-2xl font-medium leading-none">{cifra}</span>
           <span className="ct-muted text-[13px]">{unidad}</span>
         </span>
       ))}
     </span>
   )
-}
-
-function Celda({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`min-w-0 border-b border-r border-[color:var(--ct-line)] ${className}`}>{children}</div>
 }
 
 export function CentralIndicadores({
@@ -111,61 +100,95 @@ export function CentralIndicadores({
   filtros: CentralFiltros
   onFiltrar: (parcial: Partial<CentralFiltros> | null) => void
 }) {
-  const columnas = nivel === "lider" ? "xl:grid-cols-7" : "xl:grid-cols-8"
+  const franja = "ct-sin-barra -mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1 scroll-px-4 sm:mx-0 sm:px-0"
 
   if (!resumen) {
     return (
-      <div className="ct-surface overflow-hidden rounded-xl border" aria-busy="true">
-        <div className={`-mb-px -mr-px grid grid-cols-2 sm:grid-cols-4 ${columnas}`}>
-          {Array.from({ length: nivel === "lider" ? 7 : 8 }, (_, i) => (
-            <Celda key={i} className="px-4 py-3.5">
-              <div className="ct-skeleton h-3 w-20" />
-              <div className="ct-skeleton mt-3 h-7 w-12" />
-            </Celda>
-          ))}
-        </div>
+      <div className={franja} aria-busy="true" aria-label="Cargando indicadores">
+        {Array.from({ length: nivel === "lider" ? 4 : 5 }, (_, i) => (
+          <div key={i} className="ct-indicador pointer-events-none">
+            <div className="ct-skeleton h-3 w-20" />
+            <div className="ct-skeleton mt-3 h-8 w-12" />
+          </div>
+        ))}
       </div>
     )
   }
 
   return (
-    <section aria-label="Indicadores" className="ct-surface overflow-hidden rounded-xl border">
-      <div className={`-mb-px -mr-px grid grid-cols-2 sm:grid-cols-4 ${columnas}`}>
+    <section aria-label="Indicadores" className={franja}>
       {indicadores(resumen, nivel).map((ind) => {
         const activo = ind.activo(filtros)
         return (
-          <Celda key={ind.id}>
-            <button
-              type="button"
-              aria-pressed={activo}
-              title={ind.ayuda}
-              onClick={() => onFiltrar(activo ? null : ind.filtro)}
-              className="group relative block h-full w-full cursor-pointer px-4 py-3.5 text-left transition-colors duration-150 hover:bg-[var(--ct-hover)] aria-pressed:bg-[var(--ct-raised)]"
+          <button
+            key={ind.id}
+            type="button"
+            className="ct-indicador"
+            aria-pressed={activo}
+            title={ind.ayuda}
+            onClick={() => onFiltrar(activo ? null : ind.filtro)}
+          >
+            <span className="ct-muted block truncate text-xs font-semibold">{ind.titulo}</span>
+            <span
+              className="ct-mono mt-1.5 block text-[32px] font-medium leading-none"
+              style={{ color: ind.valor > 0 && ind.tono ? ind.tono : undefined }}
             >
-              <span
-                aria-hidden
-                className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-[var(--ct-red)] transition-transform duration-200 ease-out group-aria-pressed:scale-x-100"
-              />
-              <span className="ct-muted block truncate text-xs font-medium group-aria-pressed:text-[color:var(--ct-text)]">{ind.titulo}</span>
-              <span
-                className="ct-mono mt-1.5 block text-[28px] font-medium leading-none"
-                style={{ color: ind.valor > 0 && ind.tono ? ind.tono : undefined }}
-              >
-                {ind.valor}
-              </span>
-            </button>
-          </Celda>
+              {ind.valor}
+            </span>
+          </button>
         )
       })}
-      <Celda className="px-4 py-3.5">
-        <span className="ct-muted block truncate text-xs font-medium">Primera respuesta</span>
-        <Horas valor={resumen.horasPrimeraRespuesta} />
-      </Celda>
-      <Celda className="px-4 py-3.5">
-        <span className="ct-muted block truncate text-xs font-medium">Resolución</span>
-        <Horas valor={resumen.horasResolucion} />
-      </Celda>
-      </div>
+    </section>
+  )
+}
+
+/** Sección plegable «Resumen»: tiempos medios, tendencia y carga por líder (solo dirección). */
+export function CentralResumenPlegable({
+  resumen,
+  nivel,
+  asignadoActivo,
+  onFiltrarLider,
+}: {
+  resumen: CentralResumen
+  nivel: CentralNivel
+  asignadoActivo: string
+  onFiltrarLider: (email: string | null) => void
+}) {
+  const [abierto, setAbierto] = useState(false)
+  const id = useId()
+  return (
+    <section aria-label="Resumen" className="ct-card overflow-hidden">
+      <button
+        type="button"
+        aria-expanded={abierto}
+        aria-controls={id}
+        onClick={() => setAbierto((v) => !v)}
+        className="flex min-h-[52px] w-full cursor-pointer items-center justify-between gap-3 px-5 text-left"
+      >
+        <span className="text-[15px] font-bold">Resumen</span>
+        <span className="ct-muted flex items-center gap-2 text-xs">
+          <span><span className="ct-mono">{resumen.abiertos}</span> abiertos · <span className="ct-mono">{resumen.total}</span> en total</span>
+          <ChevronDown className={`size-4 transition-transform duration-200 ${abierto ? "rotate-180" : ""}`} aria-hidden />
+        </span>
+      </button>
+      {abierto && (
+        <div id={id} className="ct-entra flex flex-col gap-5 border-t px-5 pb-5 pt-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-[var(--ct-raised)] p-3.5">
+              <span className="ct-muted block text-xs font-semibold">Primera respuesta</span>
+              <Horas valor={resumen.horasPrimeraRespuesta} />
+            </div>
+            <div className="rounded-2xl bg-[var(--ct-raised)] p-3.5">
+              <span className="ct-muted block text-xs font-semibold">Resolución</span>
+              <Horas valor={resumen.horasResolucion} />
+            </div>
+          </div>
+          <CentralTendencia dias={resumen.ultimos14dias} />
+          {nivel === "director" && (
+            <CentralCargaLideres lideres={resumen.porLider} asignadoActivo={asignadoActivo} onFiltrar={onFiltrarLider} />
+          )}
+        </div>
+      )}
     </section>
   )
 }
@@ -192,11 +215,11 @@ function FilaLider({
         aria-pressed={activo}
         onClick={onClick}
         aria-label={`${lider.nombre}: ${lider.abiertos} abiertos, ${lider.vencidos} vencidos, ${lider.escalados} escalados, ${lider.resueltos30d} resueltos en 30 días. ${activo ? "Quitar filtro" : "Filtrar por este líder"}`}
-        className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_repeat(4,2.1rem)] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_repeat(4,2.75rem)] rounded-lg px-2 py-2 text-left transition-colors duration-150 hover:bg-[var(--ct-hover)] aria-pressed:bg-[var(--ct-raised)]"
+        className="grid min-h-[48px] w-full cursor-pointer grid-cols-[minmax(0,1fr)_repeat(4,2.1rem)] items-center gap-x-2 rounded-xl px-2 py-2 text-left transition-colors duration-150 hover:bg-[var(--ct-hover)] aria-pressed:bg-[var(--ct-red-soft)]"
       >
         <span className="min-w-0">
           <span className="flex min-w-0 items-center gap-2">
-            <span className="flex max-sm:hidden"><Avatar nombre={lider.nombre} /></span>
+            <Avatar nombre={lider.nombre} className="!size-6 !text-[10px]" />
             <span className="truncate text-[13px] font-medium">{lider.nombre}</span>
           </span>
           <span className="mt-1.5 flex h-1.5 overflow-hidden rounded-full bg-[var(--ct-line)]" aria-hidden>
@@ -231,21 +254,21 @@ export function CentralCargaLideres({
   const ordenados = [...lideres].sort((a, b) => b.abiertos - a.abiertos || a.nombre.localeCompare(b.nombre))
   const maximo = Math.max(1, ...ordenados.map((l) => l.abiertos))
   return (
-    <section aria-labelledby="ct-carga" className="ct-surface flex min-w-0 flex-col rounded-xl border p-4">
-      <h2 id="ct-carga" className="m-0 text-sm font-semibold">Carga por líder</h2>
+    <section aria-labelledby="ct-carga" className="flex min-w-0 flex-col">
+      <h3 id="ct-carga" className="m-0 text-sm font-bold">Carga por líder</h3>
       {ordenados.length === 0 ? (
         <p className="ct-muted m-0 mt-3 text-[13px]">Todavía no hay casos asignados a un líder.</p>
       ) : (
         <>
           <p className="ct-faint m-0 mt-0.5 text-xs">Abiertos, vencidos, escalados y resueltos en 30 días</p>
-          <div className="ct-faint mt-2 grid grid-cols-[minmax(0,1fr)_repeat(4,2.1rem)] gap-x-2 px-2 text-right text-[11px] sm:grid-cols-[minmax(0,1fr)_repeat(4,2.75rem)]" aria-hidden>
+          <div className="ct-faint mt-2 grid grid-cols-[minmax(0,1fr)_repeat(4,2.1rem)] gap-x-2 px-2 text-right text-[11px]" aria-hidden>
             <span />
             <span>Ab.</span>
             <span>Venc.</span>
             <span>Esc.</span>
             <span>30 d</span>
           </div>
-          <ul className="m-0 mt-1 max-h-[200px] list-none overflow-y-auto p-0">
+          <ul className="m-0 mt-1 max-h-[240px] list-none overflow-y-auto p-0">
             {ordenados.map((l) => {
               const activo = asignadoActivo === l.email.toLowerCase()
               return (
@@ -271,7 +294,7 @@ function TooltipTendencia({ active, label, payload }: PuntoTooltip) {
   if (!active || !payload?.length || !label) return null
   const valor = (clave: string) => payload.find((p) => p.dataKey === clave)?.value ?? 0
   return (
-    <div className="ct-raised rounded-lg border border-[color:var(--ct-line-strong)] px-3 py-2 text-xs shadow-[0_8px_24px_-8px_rgba(0,0,0,0.18)]">
+    <div className="rounded-xl border border-[color:var(--ct-line-strong)] bg-white px-3 py-2 text-xs shadow-[0_8px_24px_-8px_rgba(0,0,0,0.18)]">
       <p className="m-0 mb-1 font-semibold">{diaCorto(label)}</p>
       <p className="ct-mono m-0">{valor("creados")} creados</p>
       <p className="ct-mono m-0 text-[color:var(--ct-green)]">{valor("resueltos")} resueltos</p>
@@ -283,9 +306,9 @@ export function CentralTendencia({ dias }: { dias: CentralResumen["ultimos14dias
   const creados = dias.reduce((n, d) => n + d.creados, 0)
   const resueltos = dias.reduce((n, d) => n + d.resueltos, 0)
   return (
-    <section aria-labelledby="ct-tendencia" className="ct-surface flex min-w-0 flex-col rounded-xl border p-4">
+    <section aria-labelledby="ct-tendencia" className="flex min-w-0 flex-col">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="ct-tendencia" className="m-0 text-sm font-semibold">Últimos 14 días</h2>
+        <h3 id="ct-tendencia" className="m-0 text-sm font-bold">Últimos 14 días</h3>
         <p className="m-0 flex gap-4 text-xs">
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-sm bg-[var(--ct-muted)]" aria-hidden />
@@ -297,7 +320,7 @@ export function CentralTendencia({ dias }: { dias: CentralResumen["ultimos14dias
           </span>
         </p>
       </div>
-      <div className="mt-3 h-[220px] min-w-0" role="img" aria-label={`Casos de los últimos 14 días: ${creados} creados y ${resueltos} resueltos`}>
+      <div className="mt-3 h-[170px] min-w-0" role="img" aria-label={`Casos de los últimos 14 días: ${creados} creados y ${resueltos} resueltos`}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={dias} barGap={2} barCategoryGap="22%" margin={{ top: 4, right: 0, bottom: 0, left: -28 }}>
             <CartesianGrid vertical={false} stroke="var(--ct-line)" />
@@ -312,8 +335,8 @@ export function CentralTendencia({ dias }: { dias: CentralResumen["ultimos14dias
             />
             <YAxis allowDecimals={false} tick={{ fill: "var(--ct-faint)", fontSize: 11 }} tickLine={false} axisLine={false} width={52} />
             <Tooltip content={<TooltipTendencia />} cursor={{ fill: "var(--ct-hover)" }} />
-            <Bar dataKey="creados" fill="var(--ct-muted)" radius={[2, 2, 0, 0]} isAnimationActive={false} />
-            <Bar dataKey="resueltos" fill="var(--ct-green)" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="creados" fill="var(--ct-muted)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="resueltos" fill="var(--ct-green)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

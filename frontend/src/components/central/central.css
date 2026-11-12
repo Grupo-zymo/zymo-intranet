@@ -1,26 +1,27 @@
-/* Central de tickets — usa los colores de la intranet: fondo gris claro, tarjetas blancas, rojo de marca
-   (hsl 348 76% 43%) como acento y DM Sans. DM Mono solo para datos (radicados, plazos, conteos).
-   El color de estado se reserva para lo que pide atención: severidad, plazo vencido y la acción principal.
-   Todo vive bajo .central (también los paneles que Radix monta fuera del árbol, que llevan la misma clase).
-   Los componentes compartidos (Sheet, Dialog…) heredan las variables claras globales de index.css. */
+/* Central de tickets — se ve como la app móvil del cliente (tarjetas grandes, pills, burbujas) pero con los
+   colores de la intranet: fondo gris claro, tarjetas blancas, rojo de marca (hsl 348 76% 43%) y DM Sans.
+   DM Mono solo para datos (radicado, conteos, plazos). Mobile-first: en lg+ lista a la izquierda y detalle a la derecha.
+   Todo vive bajo .central (también los paneles que Radix monta fuera del árbol, que llevan la misma clase). */
 
 .central {
-  --ct-bg: #f4f4f5;          /* fondo de la intranet (240 5% 96%) */
-  --ct-surface: #ffffff;     /* tarjetas */
-  --ct-raised: #fafafa;      /* campos y elementos sobre una tarjeta */
+  --ct-bg: #f4f4f5;
+  --ct-surface: #ffffff;
+  --ct-raised: #fafafa;
   --ct-hover: #f4f4f5;
-  --ct-line: #e4e4e7;        /* borde de la intranet (240 6% 90%) */
+  --ct-line: #e4e4e7;
   --ct-line-strong: #d4d4d8;
   --ct-text: #09090b;
   --ct-muted: #5f5f69;
   --ct-faint: #686872;
-  --ct-red: #c11a3c;         /* rojo de marca de la intranet: texto, íconos y acento */
-  --ct-red-solid: #c11a3c;   /* fondo de la acción principal (blanco encima: 6,6:1) */
+  --ct-red: #c11a3c;
+  --ct-red-solid: #c11a3c;
+  --ct-red-soft: hsl(348 76% 95%);
   --ct-orange: #c2570c;
   --ct-amber: #a16207;
   --ct-green: #15803d;
   --ct-blue: #1d5fbf;
   --ct-gray: #62626b;
+  --ct-radio: 1.5rem;
 
   color: var(--ct-text);
   background: var(--ct-bg);
@@ -35,19 +36,13 @@
   caret-color: var(--ct-red);
 }
 
-
-/* Bordes: especificidad cero para ganarle al reset de Tailwind sin pisar sus utilidades. */
 :where(.central) *,
 :where(.central) *::before,
 :where(.central) *::after {
   border-color: var(--ct-line);
 }
 
-.central ::selection {
-  background: rgba(193, 26, 60, 0.18);
-  color: inherit;
-}
-
+.central ::selection { background: rgba(193, 26, 60, 0.18); color: inherit; }
 .central ::-webkit-scrollbar { width: 10px; height: 10px; }
 .central ::-webkit-scrollbar-thumb {
   background: var(--ct-line-strong);
@@ -61,82 +56,116 @@
 .ct-faint { color: var(--ct-faint); }
 .ct-surface { background: var(--ct-surface); }
 .ct-raised { background: var(--ct-raised); }
+.ct-card {
+  background: var(--ct-surface);
+  border: 1px solid var(--ct-line);
+  border-radius: var(--ct-radio);
+}
+.ct-sin-barra { scrollbar-width: none; }
+.ct-sin-barra::-webkit-scrollbar { display: none; }
 
-/* Foco visible en todo lo interactivo, igual en ratón y teclado. */
 .central :is(button, a, input, select, textarea, [role="option"], [tabindex]):focus-visible {
   outline: 2px solid var(--ct-blue);
   outline-offset: 2px;
-  border-radius: 6px;
 }
 
-/* ── Controles ─────────────────────────────────────────────────────────── */
+/* ── Controles (objetivo táctil de 44 px; 40 con puntero fino) ─────────── */
 
 .ct-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 36px;
-  padding: 0 0.85rem;
+  min-height: 44px;
+  padding: 0 1.1rem;
   border: 1px solid var(--ct-line-strong);
-  border-radius: 8px;
-  background: var(--ct-raised);
+  border-radius: 999px;
+  background: var(--ct-surface);
   color: var(--ct-text);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 140ms ease-out, border-color 140ms ease-out, transform 120ms ease-out;
 }
-.ct-btn:hover:not(:disabled) { background: var(--ct-hover); border-color: var(--ct-line-strong); }
-.ct-btn:active:not(:disabled) { transform: translateY(1px); }
+.ct-btn:hover:not(:disabled) { background: var(--ct-hover); }
+.ct-btn:active:not(:disabled) { transform: scale(0.98); }
 .ct-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .ct-btn-primary { background: var(--ct-red-solid); border-color: var(--ct-red-solid); color: #fff; }
 .ct-btn-primary:hover:not(:disabled) { background: #a8152f; border-color: #a8152f; }
 .ct-btn-ghost { background: transparent; border-color: transparent; color: var(--ct-muted); }
-.ct-btn-ghost:hover:not(:disabled) { background: var(--ct-hover); border-color: transparent; color: var(--ct-text); }
+.ct-btn-ghost:hover:not(:disabled) { background: var(--ct-hover); color: var(--ct-text); }
 .ct-btn-danger { color: var(--ct-red); }
-.ct-btn-sm { min-height: 30px; padding: 0 0.6rem; font-size: 0.75rem; }
+.ct-btn-sm { min-height: 40px; padding: 0 0.9rem; font-size: 0.8125rem; }
+.ct-btn-redondo { width: 44px; padding: 0; flex: none; }
+@media (pointer: fine) {
+  .ct-btn { min-height: 40px; }
+  .ct-btn-redondo { width: 40px; }
+  .ct-btn-sm { min-height: 34px; }
+}
 
 .ct-input {
   width: 100%;
-  min-height: 36px;
-  padding: 0 0.7rem;
+  min-height: 44px;
+  padding: 0 1rem;
   border: 1px solid var(--ct-line-strong);
-  border-radius: 8px;
-  background: var(--ct-bg);
+  border-radius: 1rem;
+  background: var(--ct-surface);
   color: var(--ct-text);
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: 1rem; /* 16 px: iOS no hace zoom al enfocar */
   transition: border-color 140ms ease-out;
 }
+@media (pointer: fine) { .ct-input { min-height: 40px; font-size: 0.875rem; } }
 .ct-input::placeholder { color: var(--ct-faint); }
-.ct-input:hover { border-color: var(--ct-line-strong); }
-textarea.ct-input { padding: 0.6rem 0.7rem; line-height: 1.5; resize: none; }
+.ct-input:focus-visible { outline-offset: 0; border-color: var(--ct-blue); }
+textarea.ct-input { padding: 0.7rem 1rem; line-height: 1.5; resize: none; }
 select.ct-input { padding-right: 1.6rem; cursor: pointer; }
 
 .ct-label {
   display: block;
-  margin-bottom: 0.3rem;
-  font-size: 0.6875rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--ct-muted);
 }
 
-/* Etiqueta de estado / severidad: punto de color + texto, nunca solo color. */
+/* Chips de vista rápida (tocables) */
+.ct-vista {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid var(--ct-line-strong);
+  border-radius: 999px;
+  background: var(--ct-surface);
+  color: var(--ct-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: none;
+  transition: background-color 140ms ease-out, color 140ms ease-out, border-color 140ms ease-out;
+}
+.ct-vista[aria-pressed="true"] { background: var(--ct-red-solid); border-color: var(--ct-red-solid); color: #fff; font-weight: 700; }
+@media (pointer: fine) { .ct-vista { min-height: 38px; } }
+
+/* Etiqueta de estado / severidad (pill) */
 .ct-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  height: 22px;
-  padding: 0 0.5rem;
+  height: 26px;
+  padding: 0 0.7rem;
   border: 1px solid var(--ct-line-strong);
   border-radius: 999px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
   color: var(--ct-text);
+  background: var(--ct-surface);
 }
 .ct-chip::before {
   content: "";
@@ -148,7 +177,7 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
 }
 .ct-chip[data-solido="true"] {
   border-color: transparent;
-  background: color-mix(in srgb, var(--tono) 18%, transparent);
+  background: color-mix(in srgb, var(--tono) 14%, white);
   color: var(--tono);
 }
 .ct-chip[data-solido="true"]::before { display: none; }
@@ -157,23 +186,16 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
-  background: var(--ct-hover);
-  border: 1px solid var(--ct-line-strong);
-  font-size: 0.625rem;
+  background: var(--ct-red-soft);
+  font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--ct-text);
+  color: var(--ct-red);
 }
 
-/* Barra de plazo: el relleno es el % consumido. */
-.ct-sla-barra {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--ct-line);
-  overflow: hidden;
-}
+.ct-sla-barra { height: 6px; border-radius: 999px; background: var(--ct-line); overflow: hidden; }
 .ct-sla-barra > span {
   display: block;
   height: 100%;
@@ -184,54 +206,105 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
 }
 
 .ct-skeleton {
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--ct-raised) 0%, var(--ct-hover) 50%, var(--ct-raised) 100%);
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #ececee 0%, #f6f6f7 50%, #ececee 100%);
   background-size: 200% 100%;
   animation: ct-brillo 1.4s linear infinite;
 }
 
-/* ── Movimiento: solo carga, cambio de estado y feedback ───────────────── */
+/* Tarjeta de caso */
+.ct-caso {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 1.1rem 1.15rem;
+  background: var(--ct-surface);
+  border: 1px solid var(--ct-line);
+  border-radius: var(--ct-radio);
+  cursor: pointer;
+  transition: border-color 140ms ease-out, box-shadow 140ms ease-out, transform 120ms ease-out;
+}
+.ct-caso:hover { border-color: var(--ct-line-strong); }
+.ct-caso:active { transform: scale(0.992); }
+.ct-caso[aria-current="true"] { border-color: var(--ct-red); box-shadow: 0 0 0 1px var(--ct-red); }
+
+/* Tarjeta-indicador */
+.ct-indicador {
+  flex: none;
+  width: 136px;
+  scroll-snap-align: start;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  background: var(--ct-surface);
+  border: 1px solid var(--ct-line);
+  border-radius: 1.25rem;
+  cursor: pointer;
+  transition: border-color 140ms ease-out, background-color 140ms ease-out, transform 120ms ease-out;
+}
+.ct-indicador:active { transform: scale(0.98); }
+.ct-indicador[aria-pressed="true"] { border-color: var(--ct-red); background: var(--ct-red-soft); }
+
+/* Segmento (Conversación | Gestión) */
+.ct-segmento {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 4px;
+  border-radius: 999px;
+  background: #e9e9ec;
+}
+.ct-segmento button {
+  min-height: 40px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ct-muted);
+  cursor: pointer;
+  transition: background-color 160ms ease-out, color 160ms ease-out;
+}
+.ct-segmento button[aria-selected="true"] { background: var(--ct-surface); color: var(--ct-text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+
+/* ── Movimiento: solo carga, transición de estado y feedback ───────────── */
 
 @keyframes ct-crecer { from { transform: scaleX(0); } }
 @keyframes ct-brillo { to { background-position: -200% 0; } }
-@keyframes ct-entrar {
-  from { opacity: 0; transform: translateY(6px); }
-}
-@keyframes ct-pulso {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-@keyframes ct-enviado {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); }
-}
+@keyframes ct-entrar { from { opacity: 0; transform: translateY(6px); } }
+@keyframes ct-pulso { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes ct-enviado { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+@keyframes ct-deslizar { from { transform: translateY(24px); opacity: 0; } }
 
-/* Filas y tarjetas entran escalonadas (--i = posición), solo las 12 primeras. */
 .ct-entra {
   animation: ct-entrar 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(min(var(--i, 0), 12) * 22ms);
 }
 .ct-burbuja-nueva { animation: ct-enviado 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 .ct-latido { animation: ct-pulso 1.6s ease-in-out infinite; }
+.ct-detalle { animation: ct-deslizar 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+@media (min-width: 1024px) { .ct-detalle { animation-name: ct-entrar; } }
 
-/* Panel lateral del caso: los estilos del Sheet compartido son claros. */
+/* Hoja inferior de filtros y diálogos: los estilos compartidos del Sheet/Dialog son claros. */
 .central.ct-panel {
   background: var(--ct-bg);
   border-color: var(--ct-line);
   color: var(--ct-text);
 }
+.central.ct-hoja {
+  border-radius: 1.75rem 1.75rem 0 0;
+  max-height: 92dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
 .central.ct-panel > button[class*="absolute"] {
   top: 14px;
   right: 14px;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 999px;
   color: var(--ct-muted);
   opacity: 1;
-  background: transparent;
+  background: var(--ct-surface);
 }
-.central.ct-panel > button[class*="absolute"]:hover { background: var(--ct-hover); color: var(--ct-text); }
 
 @media (prefers-reduced-motion: reduce) {
   .central *,
