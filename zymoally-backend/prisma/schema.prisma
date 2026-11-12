@@ -10,42 +10,42 @@ datasource db {
 // ─── Tickets (PQR) ─────────────────────────────────────────────────────────
 
 model ZymoPqrTicket {
-  id                 Int               @id @default(autoincrement())
-  code               String            @unique
-  createdAt          DateTime          @default(now())
-  monthKey           String
-  area               String
-  areaPrefix         String
-  client             String?
-  platform           String?
-  supervisor         String?
-  supervisorEmail    String?
-  analysts           String[]          @default([])
-  analystEmails      String[]          @default([])
-  coordinator        String?
-  coordinatorEmail   String?
-  manager            String?
-  managerEmail       String?
-  phone              String?
-  email              String?
-  owner              String?
-  date               String
-  dueDate            String?
-  type               String
-  status             String
-  priority           String
-  impact             String?
-  channel            String?
-  managementCriteria String?
-  closedDate         String?
-  closedAt           DateTime?
-  description        String?
+  id                    Int               @id @default(autoincrement())
+  code                  String            @unique
+  createdAt             DateTime          @default(now())
+  monthKey              String
+  area                  String
+  areaPrefix            String
+  client                String?
+  platform              String?
+  supervisor            String?
+  supervisorEmail       String?
+  analysts              String[]          @default([])
+  analystEmails         String[]          @default([])
+  coordinator           String?
+  coordinatorEmail      String?
+  manager               String?
+  managerEmail          String?
+  phone                 String?
+  email                 String?
+  owner                 String?
+  date                  String
+  dueDate               String?
+  type                  String
+  status                String
+  priority              String
+  impact                String?
+  channel               String?
+  managementCriteria    String?
+  closedDate            String?
+  closedAt              DateTime?
+  description           String?
   // Flujo por etapas (supervisor asigna -> analista gestiona -> gerencia
   // valida). originalAnalyst* es un snapshot inmutable del primer analista
   // asignado — analysts/analystEmails de arriba sigue siendo la lista VIVA,
   // editable por el supervisor (puede sumar/quitar gente después).
-  originalAnalysts      String[]  @default([])
-  originalAnalystEmails String[]  @default([])
+  originalAnalysts      String[]          @default([])
+  originalAnalystEmails String[]          @default([])
   assignedAt            DateTime?
   readyForValidationAt  DateTime?
   validatedBy           String?
@@ -53,9 +53,9 @@ model ZymoPqrTicket {
   // Fase F — recordatorios de 1 mes sin gestionar (día 7/15/22/30 desde
   // createdAt). Guarda el último hito ya notificado para no re-enviar y para
   // seguir alcanzando el siguiente hito aunque el cron se salte un día.
-  lastReminderDay    Int               @default(0)
-  actions            ZymoPqrAction[]
-  evidence           ZymoPqrEvidence[]
+  lastReminderDay       Int               @default(0)
+  actions               ZymoPqrAction[]
+  evidence              ZymoPqrEvidence[]
 }
 
 model ZymoPqrAction {
@@ -90,7 +90,7 @@ model ZymoConfigList {
   syncedAt     DateTime?
   contactEmail String?
   contactPhone String?
-  slaHours     Int?      // solo aplica a listType="priorities" — horas laborales límite de gestión
+  slaHours     Int? // solo aplica a listType="priorities" — horas laborales límite de gestión
 
   @@unique([listType, value])
   @@index([listType])
@@ -118,24 +118,24 @@ model ZymoAreaPrefix {
 // ─── SAC (Servicio al Cliente) ─────────────────────────────────────────────
 
 model ZymoClientSurvey {
-  id            Int      @id @default(autoincrement())
-  createdAt     DateTime @default(now())
-  date          String
-  company       String?
-  role          String?
-  email         String?
-  phone         String?
-  nps           Int
-  npsCategory   String
-  satisfaction  Int
-  delivery      Int
-  attention     Int
-  meeting       Int
-  solution      Int
-  valuedAspect  String?
-  issue         String?
-  comment       String?
-  nextStep      String?
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  date         String
+  company      String?
+  role         String?
+  email        String?
+  phone        String?
+  nps          Int
+  npsCategory  String
+  satisfaction Int
+  delivery     Int
+  attention    Int
+  meeting      Int
+  solution     Int
+  valuedAspect String?
+  issue        String?
+  comment      String?
+  nextStep     String?
 }
 
 model ZymoExperienceSurvey {
@@ -174,4 +174,163 @@ model ZymoVisitReport {
   urgency      Int
   observations String?
   actionPlan   String?
+}
+
+// ─── Mesa de ayuda interna por áreas (2026-11) ─────────────────────────────
+// Reemplaza a ZymoPqrTicket (archivado, sus tablas no se tocan). Las áreas son
+// las del panel admin de la intranet (backend Python): aquí solo se guarda su
+// id + un snapshot del nombre. Flujo: Ticket → Consecutivo → Evidencia.
+
+// Configuración de cada área que recibe tickets: prefijo del consecutivo y
+// metas que define su líder (horas; null = sin meta).
+model MesaArea {
+  areaId                Int             @id // id del área en el panel admin
+  nombre                String // snapshot del nombre
+  prefijo               String          @unique // ej. "IT" → IT-2026-0001
+  recibeTickets         Boolean         @default(true)
+  // Servicio al Cliente: sus miembros redirigen tickets y suman responsables de otras áreas
+  esSac                 Boolean         @default(false)
+  metaPrimeraRespuestaH Int?
+  metaCierreH           Int?
+  metasActualizadasPor  String?
+  metasActualizadasEn   DateTime?
+  categorias            MesaCategoria[]
+  tickets               MesaTicket[]
+}
+
+model MesaCategoria {
+  id      Int          @id @default(autoincrement())
+  areaId  Int
+  area    MesaArea     @relation(fields: [areaId], references: [areaId])
+  nombre  String
+  activa  Boolean      @default(true)
+  orden   Int          @default(0)
+  tickets MesaTicket[]
+
+  @@unique([areaId, nombre])
+}
+
+model MesaTicket {
+  id                 Int               @id @default(autoincrement())
+  codigo             String            @unique // PREFIJO-AAAA-NNNN
+  prefijo            String
+  anio               Int
+  numero             Int
+  areaId             Int // área destino (la que atiende)
+  area               MesaArea          @relation(fields: [areaId], references: [areaId])
+  areaNombre         String
+  categoriaId        Int?
+  categoria          MesaCategoria?    @relation(fields: [categoriaId], references: [id])
+  asunto             String
+  descripcion        String
+  estado             String            @default("abierto") // abierto | en_espera | cerrado
+  prioridad          String? // alta | media | baja (opcional)
+  venceEn            DateTime?
+  // Quien lo crea (sale del JWT; el nombre se resuelve contra el backend Python)
+  creadorId          Int
+  creadorNombre      String
+  creadorEmail       String
+  creadorArea        String?
+  creadorSede        String?
+  // SAC: caso de la Central de tickets que originó este ticket interno
+  radicadoOrigen     String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  primeraRespuestaEn DateTime?
+  cerradoEn          DateTime?
+  // Borrado lógico: el creador lo elimina, solo el admin ve el registro
+  eliminadoEn        DateTime?
+  eliminadoPorId     Int?
+  eliminadoPorNombre String?
+  motivoEliminacion  String?
+  responsables       MesaResponsable[]
+  mensajes           MesaMensaje[]
+  evidencias         MesaEvidencia[]
+  historial          MesaHistorial[]
+  avisos             MesaAviso[]
+  // Para avisar una sola vez cuando el ticket pasa la meta del área
+  avisoRespuestaEn   DateTime?
+  avisoCierreEn      DateTime?
+
+  @@unique([prefijo, anio, numero])
+  @@index([areaId, estado])
+  @@index([creadorId])
+  @@index([eliminadoEn])
+}
+
+// Varios responsables por ticket (SAC puede sumar gente de otras áreas)
+model MesaResponsable {
+  id          Int        @id @default(autoincrement())
+  ticketId    Int
+  ticket      MesaTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId      Int
+  nombre      String
+  email       String
+  area        String?
+  asignadoEn  DateTime   @default(now())
+  asignadoPor String?
+
+  @@unique([ticketId, userId])
+  @@index([userId])
+}
+
+// Comentarios (públicos para el creador) y notas internas (solo el área)
+model MesaMensaje {
+  id          Int             @id @default(autoincrement())
+  ticketId    Int
+  ticket      MesaTicket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  autorId     Int
+  autorNombre String
+  texto       String
+  interno     Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  evidencias  MesaEvidencia[]
+
+  @@index([ticketId])
+}
+
+model MesaEvidencia {
+  id              Int          @id @default(autoincrement())
+  ticketId        Int
+  ticket          MesaTicket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  mensajeId       Int?
+  mensaje         MesaMensaje? @relation(fields: [mensajeId], references: [id])
+  nombreArchivo   String
+  ruta            String // relativa a UPLOAD_DIR
+  tipo            String
+  tamano          Int
+  subidoPorId     Int
+  subidoPorNombre String
+  createdAt       DateTime     @default(now())
+
+  @@index([ticketId])
+}
+
+// Historial de cambios (creado, asignado, estado, redirigido, eliminado…)
+model MesaHistorial {
+  id          Int        @id @default(autoincrement())
+  ticketId    Int
+  ticket      MesaTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actorId     Int
+  actorNombre String
+  accion      String
+  detalle     Json?
+  createdAt   DateTime   @default(now())
+
+  @@index([ticketId])
+}
+
+// Avisos de la campana de la intranet: uno por persona y por evento de un ticket.
+model MesaAviso {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  ticketId  Int
+  ticket    MesaTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tipo      String // nuevo | asignacion | respuesta | nota | cierre | redireccion | fuera_de_meta
+  texto     String
+  leidoEn   DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([userId, leidoEn])
+  @@index([ticketId])
 }
