@@ -9,6 +9,7 @@ import {
   useAddTicketAction, useUploadTicketEvidence, useDeleteTicket,
 } from "@/hooks/useTickets"
 import { extractErrorMessage } from "@/lib/ticketErrors"
+import { urlRecurso } from "@/lib/entorno"
 
 type DrawerTab = "detalle" | "bitacora" | "evidencias"
 
@@ -178,7 +179,7 @@ export function TicketDrawer() {
             {ticket.evidence.map((ev) => (
               <a
                 key={ev.id}
-                href={ev.url ?? "#"}
+                href={urlRecurso(ev.url) ?? "#"}
                 target="_blank"
                 rel="noreferrer"
                 className="block rounded-md border border-zinc-200 px-3 py-2 text-[13px] text-primary hover:underline"

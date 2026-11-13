@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Check, Link2 } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { BlurFade } from "@/components/ui/blur-fade"
+import { abrirExterno } from "@/lib/entorno"
 
 interface Props {
   open: boolean
@@ -24,7 +25,7 @@ export function CompartirEnlaceSheet({ open, onOpenChange, url, titulo }: Props)
 
   function compartirWhatsapp() {
     const texto = encodeURIComponent(`${titulo}\n${url}`)
-    window.open(`https://wa.me/?text=${texto}`, "_blank", "noopener,noreferrer")
+    abrirExterno(`https://wa.me/?text=${texto}`)
   }
 
   async function copiarEnlace() {

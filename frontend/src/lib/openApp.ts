@@ -1,4 +1,5 @@
 import type { AppDefinition } from "@/lib/roles"
+import { abrirExterno } from "@/lib/entorno"
 
 /** Abre una app externa en pestaña nueva; si tiene sso_endpoint entra ya autenticada. */
 export async function openExternalApp(app: AppDefinition, token: string | null): Promise<void> {
@@ -12,7 +13,7 @@ export async function openExternalApp(app: AppDefinition, token: string | null):
       })
       if (res.ok) {
         const { sso_token } = await res.json()
-        window.open(`${app.url.replace(/\/$/, "")}/?sso_token=${sso_token}`, "_blank", "noopener,noreferrer")
+        abrirExterno(`${app.url.replace(/\/$/, "")}/?sso_token=${sso_token}`)
         return
       }
     } catch {
@@ -20,5 +21,5 @@ export async function openExternalApp(app: AppDefinition, token: string | null):
     }
   }
 
-  window.open(app.url, "_blank", "noopener,noreferrer")
+  abrirExterno(app.url)
 }

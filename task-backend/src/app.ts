@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from "express"
 import cors from "cors"
 import path from "path"
 import { env } from "./config/env"
+import { corsOrigin } from "./config/cors"
 import { authenticate } from "./middleware/auth"
 import { errorHandler } from "./middleware/errorHandler"
 import teamsRouter from "./routers/teams"
@@ -22,9 +23,10 @@ const app = express()
 // --- Middleware ---
 app.use(
   cors({
-    origin: env.CORS_ORIGIN ?? "*",
+    origin: corsOrigin(env.CORS_ORIGIN),
     credentials: true,
-    allowedHeaders: ["Authorization", "Content-Type", "X-Internal-Key"],
+    allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+    exposedHeaders: ["Content-Disposition", "X-Total-Count", "X-Page", "X-Limit"],
   })
 )
 app.use(express.json())

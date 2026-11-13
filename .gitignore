@@ -26,6 +26,7 @@ data/
 !.env.example
 # Excepción: .env.production del frontend solo contiene la URL pública del backend (sin secretos)
 !frontend/.env.production
+!frontend/.env.android
 
 # Node / Frontend
 node_modules/

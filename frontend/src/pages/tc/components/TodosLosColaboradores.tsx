@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { api } from "@/lib/api"
 import { Search, Loader2, UserRound } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface PersonaFila {
   id: number
@@ -69,7 +70,7 @@ export function TodosLosColaboradores({ sedeId }: { sedeId: number }) {
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-500/10 text-teal-400 overflow-hidden">
                   {p.foto_url ? (
-                    <img src={p.foto_url} alt={p.nombre} className="h-full w-full object-cover" />
+                    <img src={urlRecurso(p.foto_url)} alt={p.nombre} className="h-full w-full object-cover" />
                   ) : (
                     <UserRound className="w-4 h-4" />
                   )}

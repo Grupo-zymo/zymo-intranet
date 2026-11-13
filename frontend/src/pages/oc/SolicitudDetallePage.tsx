@@ -59,6 +59,7 @@ import { EstadoBadge } from "./SolicitudesPage"
 import { ImageModal } from "@/components/ui/ImageModal"
 import { absoluteApiUrl } from "@/lib/api"
 import type { CotizacionProveedor, HistorialEntrada, ItemCotizacion, OrdenCompra } from "@/types/oc"
+import { urlRecurso } from "@/lib/entorno"
 
 /** Componente <img> que carga la imagen via fetch con Authorization header (no expone token en URL). */
 function AuthImg({ src, alt, className, onClick }: { src: string; alt: string; className?: string; onClick?: () => void }) {
@@ -1670,7 +1671,7 @@ export function SolicitudDetallePage() {
                   <div className="mt-3 pt-3 border-t border-border/30">
                     <p className="text-xs font-medium text-muted-foreground mb-1">Evidencia adjunta</p>
                     <a
-                      href={solicitud.evidencia_url}
+                      href={urlRecurso(solicitud.evidencia_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"

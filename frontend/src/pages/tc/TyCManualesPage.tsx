@@ -7,6 +7,7 @@ import { canEditTyC } from "@/lib/permissions"
 import { useSedes, type SedeItem } from "@/hooks/useSedes"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ArrowLeft, Upload, Download, Trash2, Search, BookOpen, RefreshCw, AlertTriangle } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface Area  { id: number; name: string }
 interface Cargo {
@@ -433,7 +434,7 @@ export function TyCManualesPage() {
                       <div className="flex items-center gap-1 shrink-0">
                         {tieneArchivo && (
                           <a
-                            href={cargo.manual_url}
+                            href={urlRecurso(cargo.manual_url)}
                             download={cargo.manual_filename}
                             target="_blank"
                             rel="noreferrer"

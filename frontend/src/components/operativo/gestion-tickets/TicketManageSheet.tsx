@@ -15,6 +15,7 @@ import {
 } from "@/hooks/useTickets"
 import { extractErrorMessage } from "@/lib/ticketErrors"
 import { formatSlaHours } from "@/lib/ticketWork"
+import { urlRecurso } from "@/lib/entorno"
 
 type Tab = "detalle" | "bitacora" | "evidencias"
 type PersonaDirectorio = { id: number; nombre: string; email: string }
@@ -340,7 +341,7 @@ export function TicketManageSheet({ ticketId, onClose }: { ticketId: number | nu
             {ticket.evidence.map((ev) => (
               <a
                 key={ev.id}
-                href={ev.url ?? "#"}
+                href={urlRecurso(ev.url) ?? "#"}
                 target="_blank"
                 rel="noreferrer"
                 className="block rounded-md border border-zinc-200 px-3 py-2 text-[13px] text-primary hover:underline"

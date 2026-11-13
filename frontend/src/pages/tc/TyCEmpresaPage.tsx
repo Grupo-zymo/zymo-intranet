@@ -12,6 +12,7 @@ import {
   ArrowLeft, ArrowUpRight, GitBranch, Layers, Users,
   UserCheck, Mars, Venus, Loader2, ChevronDown, ChevronUp, Settings2,
 } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface HubCargo { id: number; nombre: string; personas_count: number }
 interface HubArea {
@@ -89,7 +90,7 @@ export function TyCEmpresaPage() {
             <header className="flex items-center gap-4">
               {hub.empresa.logo_url && (
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-teal-500/15 bg-white">
-                  <img src={hub.empresa.logo_url} alt={`Logo ${hub.empresa.nombre}`} className="h-[82%] w-[82%] object-contain" />
+                  <img src={urlRecurso(hub.empresa.logo_url)} alt={`Logo ${hub.empresa.nombre}`} className="h-[82%] w-[82%] object-contain" />
                 </span>
               )}
               <div>

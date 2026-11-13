@@ -6,6 +6,7 @@ import {
   useRegenerarAccesoMovil,
 } from "@/hooks/useMantenimiento"
 import type { EstadoMantenimiento } from "@/types/mantenimiento"
+import { abrirExterno } from "@/lib/entorno"
 
 const ESTADOS_ACCESO: EstadoMantenimiento[] = [
   "solicitud", "programado", "ejecucion",
@@ -44,7 +45,7 @@ export function AccesoMovilPanel({ solicitudId, consecutivo, estado }: Props) {
       return
     }
     const url = `https://wa.me/${data.whatsapp_numero}?text=${encodeURIComponent(data.mensaje_whatsapp)}`
-    window.open(url, "_blank", "noopener,noreferrer")
+    abrirExterno(url)
   }
 
   async function handleRegenerar() {

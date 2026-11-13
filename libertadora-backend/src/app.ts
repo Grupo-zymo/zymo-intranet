@@ -3,6 +3,7 @@ import "./utils/asyncErrors" // ANTES de montar rutas: un handler async que lanz
 import express, { Request, Response, NextFunction } from "express"
 import cors from "cors"
 import { env } from "./config/env"
+import { corsOrigin } from "./config/cors"
 import { requireAuth, requireAdmin } from "./middleware/auth"
 import loginRouter from "./routers/login"
 import prospectosRouter from "./routers/prospectos"
@@ -16,9 +17,10 @@ const app = express()
 
 app.use(
   cors({
-    origin: env.CORS_ORIGIN ?? "*",
+    origin: corsOrigin(env.CORS_ORIGIN),
     credentials: true,
-    allowedHeaders: ["Authorization", "Content-Type"],
+    allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+    exposedHeaders: ["Content-Disposition"],
   })
 )
 app.use(express.json())

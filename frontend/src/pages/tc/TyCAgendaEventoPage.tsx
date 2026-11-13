@@ -7,6 +7,7 @@ import {
   ArrowLeft, Plus, X, Users, FileText, CheckCircle2, ClipboardList,
   Camera, Download, Upload, ImageOff, Pencil, Save, Flag, Lock, Trash2,
 } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface PersonaMini {
   id: number; nombre: string
@@ -726,7 +727,7 @@ export function TyCAgendaEventoPage() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Foto de evidencia (opcional)</p>
               {evento.foto_evidencia_url ? (
                 <img
-                  src={evento.foto_evidencia_url}
+                  src={urlRecurso(evento.foto_evidencia_url)}
                   alt={`Evidencia fotográfica de la inducción ${evento.titulo}`}
                   width={800}
                   height={450}
@@ -761,7 +762,7 @@ export function TyCAgendaEventoPage() {
                 </label>
               </div>
               {evento.acta_firmada_url && (
-                <a href={evento.acta_firmada_url} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center gap-1.5 text-xs text-emerald-400">
+                <a href={urlRecurso(evento.acta_firmada_url)} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center gap-1.5 text-xs text-emerald-400">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Acta firmada ya subida — ver archivo
                 </a>
               )}

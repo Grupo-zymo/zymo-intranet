@@ -34,6 +34,7 @@ import { canManageMantenimiento, canOperateMantenimientoCampo, canSeeAllMantenim
 import type { AprobacionPayload, EstadoMantenimiento } from "@/types/mantenimiento"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { urlRecurso } from "@/lib/entorno"
 
 // Mapa de transiciones para mostrar botones de acción
 const SIGUIENTE_ESTADO: Record<string, { label: string; estado: EstadoMantenimiento }> = {
@@ -619,7 +620,7 @@ export default function MantenimientoDetallePage() {
                 Evidencia
               </p>
               <img
-                src={sol.evidencia_url}
+                src={urlRecurso(sol.evidencia_url)}
                 alt="Evidencia del trabajo"
                 width={320}
                 height={192}

@@ -6,6 +6,7 @@ import { CargandoPagina } from "@/components/layout/CargandoPagina"
 import { useBotonAtras } from "@/hooks/useBotonAtras"
 import { BloqueoBiometrico, OfertaBiometria } from "@/components/SesionSegura"
 import { loginSilencioso } from "@/hooks/useAuth"
+import { esNativo } from "@/lib/entorno"
 import { avisoLogin } from "@/lib/almacenSesion"
 import { jwtVigente } from "@/lib/sesionDecision"
 import {
@@ -246,6 +247,12 @@ function CentralTicketsRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// El APK no incluye estas pantallas (Libertadora, encuestas públicas, portal público de mantenimiento): en nativo vuelven al inicio.
+function SoloWeb({ children }: { children: React.ReactNode }) {
+  if (esNativo) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
 function LibertadoraRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
   if (!user) return <Navigate to="/login" replace />
@@ -357,18 +364,18 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         {/* Portal móvil permanente — auxiliar sin login */}
-        <Route path="/m/portal/:portalToken" element={<MantenimientoPortalShell />}>
+        <Route path="/m/portal/:portalToken" element={<SoloWeb><MantenimientoPortalShell /></SoloWeb>}>
           <Route index element={<MantenimientoPage />} />
           <Route path=":id" element={<MantenimientoDetallePage />} />
         </Route>
-        <Route path="/m/q/:accessToken" element={<MantenimientoMobilePage mode="stable" />} />
-        <Route path="/m/:token" element={<MantenimientoMobilePage mode="jwt" />} />
+        <Route path="/m/q/:accessToken" element={<SoloWeb><MantenimientoMobilePage mode="stable" /></SoloWeb>} />
+        <Route path="/m/:token" element={<SoloWeb><MantenimientoMobilePage mode="jwt" /></SoloWeb>} />
         {/* Encuesta pública ZymoAlly SAC — sin login, mismo patrón que /m/:token */}
-        <Route path="/e/:surveyType" element={<SurveyPage />} />
+        <Route path="/e/:surveyType" element={<SoloWeb><SurveyPage /></SoloWeb>} />
         {/* Formato de Ausentismo — público sin login, mismo patrón que /m/:token */}
         <Route path="/tc/formatos/ausentismo" element={<TyCFormatoAusentismoPage />} />
         {/* Panel del socio externo (Skandia) — login propio, sin cuenta en la intranet */}
-        <Route path="/libertadora/socio" element={<LibertadoraPartnerPage />} />
+        <Route path="/libertadora/socio" element={<SoloWeb><LibertadoraPartnerPage /></SoloWeb>} />
         <Route
           path="/login"
           element={
@@ -452,9 +459,9 @@ export default function App() {
         <Route
           path="/admin/configuracion/usuarios-externos"
           element={
-            <AdminRoute>
+            <SoloWeb><AdminRoute>
               <UsuariosExternosPage />
-            </AdminRoute>
+            </AdminRoute></SoloWeb>
           }
         />
         {/* Administrativo */}
@@ -688,9 +695,9 @@ export default function App() {
         <Route
           path="/libertadora"
           element={
-            <LibertadoraRoute>
+            <SoloWeb><LibertadoraRoute>
               <LibertadoraPage />
-            </LibertadoraRoute>
+            </LibertadoraRoute></SoloWeb>
           }
         />
         {/* Zymo Ally — Tickets */}

@@ -7,6 +7,7 @@ import { PageLayout } from "@/components/layout/PageLayout"
 import { PersonaFormModal } from "./components/PersonaFormModal"
 import { TC_ESTADOS, TC_EMPRESA_PALETTE } from "@/lib/tc-constants"
 import { Search, Plus, RefreshCw, ArrowLeft, Users, UserCheck, UserX, Venus, Mars } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface Empresa { id: number; nombre: string; codigo: string }
 interface Area    { id: number; name: string }
@@ -346,7 +347,7 @@ export function TyCDirectorioPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-500/10 text-teal-500 text-xs font-bold overflow-hidden">
                         {p.foto_url
-                          ? <img src={p.foto_url} alt={p.nombre} className="w-full h-full object-cover" />
+                          ? <img src={urlRecurso(p.foto_url)} alt={p.nombre} className="w-full h-full object-cover" />
                           : (p.initials || p.nombre.slice(0, 2).toUpperCase())
                         }
                       </div>

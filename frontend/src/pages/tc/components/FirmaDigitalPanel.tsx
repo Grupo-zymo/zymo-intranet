@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { api } from "@/lib/api"
 import { PenLine, Trash2, RotateCcw, Check, X } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface Props {
   personaId: number
@@ -148,7 +149,7 @@ export function FirmaDigitalPanel({ personaId, firmaUrl, puedeEditar, onSaved }:
     <div className="space-y-2">
       {firmaUrl ? (
         <div className="inline-flex flex-col gap-2">
-          <img src={firmaUrl} alt="Firma digital" className="h-20 rounded-lg border border-border bg-white px-3" />
+          <img src={urlRecurso(firmaUrl)} alt="Firma digital" className="h-20 rounded-lg border border-border bg-white px-3" />
           {puedeEditar && (
             <div className="flex items-center gap-2">
               <button onClick={abrirPad} className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-input rounded-md hover:bg-accent transition-colors">

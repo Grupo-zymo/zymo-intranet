@@ -1,4 +1,5 @@
 /** Lee un archivo de imagen como data URL (base64). */
+import { urlRecurso } from "@/lib/entorno"
 export function readImageAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -50,7 +51,7 @@ export function FotoEvidenciaField({
       />
       {valuePreview && (
         <img
-          src={valuePreview}
+          src={urlRecurso(valuePreview)}
           alt="Vista previa de evidencia"
           width={320}
           height={128}

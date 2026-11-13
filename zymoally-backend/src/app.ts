@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from "express"
 import cors from "cors"
 import path from "path"
 import { env } from "./config/env"
+import { corsOrigin } from "./config/cors"
 import { startReminderCron } from "./cron"
 import { authenticate, requireCentralAccess, requireSacAccess, requireTicketsAccess } from "./middleware/auth"
 import pqrRouter from "./routers/tickets/pqr"
@@ -26,9 +27,10 @@ const app = express()
 // --- Middleware ---
 app.use(
   cors({
-    origin: env.CORS_ORIGIN ?? "*",
+    origin: corsOrigin(env.CORS_ORIGIN),
     credentials: true,
-    allowedHeaders: ["Authorization", "Content-Type"],
+    allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+    exposedHeaders: ["Content-Disposition"],
   })
 )
 app.use(express.json())

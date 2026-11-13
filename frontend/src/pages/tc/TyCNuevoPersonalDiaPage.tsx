@@ -6,6 +6,7 @@ import {
   ArrowLeft, Clock, Users, Camera, Download, Upload, Flag, Lock,
   CheckCircle2, ChevronDown, ChevronUp, Loader2, Trash2,
 } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface BloquePersona { id: number; nombre: string; cargo_nombre: string; incluido: boolean; asistio: boolean | null }
 type EstadoBloque = "Agendado" | "En curso" | "Finalizado"
@@ -308,7 +309,7 @@ function BloqueCard({ bloque: b, onChange }: { bloque: Bloque; onChange: () => v
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Evidencia</p>
               {b.foto_evidencia_url ? (
-                <img src={b.foto_evidencia_url} alt="Evidencia" className="rounded-lg max-h-48 border border-border" />
+                <img src={urlRecurso(b.foto_evidencia_url)} alt="Evidencia" className="rounded-lg max-h-48 border border-border" />
               ) : (
                 <label className="flex items-center gap-1.5 h-8 px-3 text-xs rounded-lg border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer w-fit transition-colors">
                   <Camera className="w-3.5 h-3.5" />

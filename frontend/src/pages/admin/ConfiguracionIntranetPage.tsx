@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom"
 import { ShieldCheck, Building2, Mail, MessageCircle, Webhook, Palette, ChevronRight, LockKeyhole, Handshake } from "lucide-react"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { BlurFade } from "@/components/ui/blur-fade"
+import { esNativo } from "@/lib/entorno"
 
 interface ConfigCard {
   to: string
@@ -93,7 +94,7 @@ export function ConfiguracionIntranetPage() {
         </BlurFade>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CARDS.map((card, i) => (
+          {CARDS.filter((c) => !(esNativo && c.to.includes("usuarios-externos"))).map((card, i) => (
             <BlurFade key={card.to} duration={0.35} delay={0.08 + i * 0.06}>
               <button
                 type="button"

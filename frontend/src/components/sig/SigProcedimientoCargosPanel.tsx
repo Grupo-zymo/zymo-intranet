@@ -5,6 +5,7 @@ import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { DocxViewer, PdfFrame } from "@/components/sig/SigFileViewer"
 import { Search, Users, Check, AlertTriangle, Loader, BookOpen, X, FileText, Paperclip } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 export interface ProcCargoAsignado {
   id: number
@@ -345,7 +346,7 @@ function CargoManualModal({ cargo, onClose }: { cargo: TcCargo; onClose: () => v
     if (!isDocx || !url) return
     setLoading(true)
     setError(null)
-    fetch(url)
+    fetch(urlRecurso(url))
       .then((r) => {
         if (!r.ok) throw new Error()
         return r.arrayBuffer()
@@ -360,7 +361,7 @@ function CargoManualModal({ cargo, onClose }: { cargo: TcCargo; onClose: () => v
     if (!isExcel || !url) return
     setLoading(true)
     setError(null)
-    fetch(url)
+    fetch(urlRecurso(url))
       .then((r) => {
         if (!r.ok) throw new Error()
         return r.arrayBuffer()

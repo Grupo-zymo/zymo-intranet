@@ -3,6 +3,7 @@ import "./utils/asyncErrors" // ANTES de montar rutas: un handler async que lanz
 import express, { Request, Response, NextFunction } from "express"
 import cors from "cors"
 import { env } from "./config/env"
+import { corsOrigin } from "./config/cors"
 import { authenticate } from "./middleware/auth"
 import areasRouter from "./routers/areas"
 import procedimientosRouter from "./routers/procedimientos"
@@ -25,9 +26,10 @@ const app = express()
 app.set("case sensitive routing", true) // /api/Indicadores ya no coincide con /api/indicadores
 
 app.use(cors({
-  origin: env.CORS_ORIGIN ?? "*",
+  origin: corsOrigin(env.CORS_ORIGIN),
   credentials: true,
-  allowedHeaders: ["Authorization", "Content-Type"],
+  allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+  exposedHeaders: ["Content-Disposition"],
 }))
 app.use(express.json({ limit: "10mb" })) // markdown puede ser largo
 

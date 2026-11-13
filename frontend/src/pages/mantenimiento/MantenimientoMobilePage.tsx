@@ -6,8 +6,9 @@ import type {
   MobileHubOut,
   MobileSolicitudResumen,
 } from "@/types/mantenimiento"
+import { urlRecurso } from "@/lib/entorno"
 
-const API = "/api/mantenimiento"
+const API = urlRecurso("/api/mantenimiento")
 
 type Vista = "hub" | "detalle" | "oc" | "ok"
 type Accion = "en_camino" | "completado" | "necesita_repuesto"

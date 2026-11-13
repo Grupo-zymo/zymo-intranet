@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import { urlRecurso } from "@/lib/entorno"
 
-const API = "/api/mantenimiento"
+const API = urlRecurso("/api/mantenimiento")
 
 interface Props {
   mode: "jwt" | "stable"

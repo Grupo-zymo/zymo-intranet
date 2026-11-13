@@ -9,6 +9,7 @@ import {
   Users, GitBranch, Upload, FileText, TrendingUp, ArrowUpRight,
   CalendarDays, Settings2, UserX, Building2, UserPlus, Plus, Pencil, FileStack, CheckCircle2,
 } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface Stats {
   total: number
@@ -338,7 +339,7 @@ function EmpresaGrupoCard({
       <button type="button" onClick={onClick} className="w-full text-center px-5 py-6">
         <span className="mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-[18px] border border-teal-500/15 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
           {logoUrl ? (
-            <img src={logoUrl} alt={`Escudo ${nombre}`} className="h-[82%] w-[82%] object-contain" />
+            <img src={urlRecurso(logoUrl)} alt={`Escudo ${nombre}`} className="h-[82%] w-[82%] object-contain" />
           ) : (
             <Building2 className="h-8 w-8 text-muted-foreground/40" aria-hidden />
           )}

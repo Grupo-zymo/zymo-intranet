@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
 
 export function DesarrolloInnovacionTab() {
+  const navigate = useNavigate()
 
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
@@ -17,7 +19,7 @@ export function DesarrolloInnovacionTab() {
         a la nueva herramienta transversal con mejores capacidades de seguimiento.
       </p>
       <Button
-        onClick={() => window.open("/tareas-v2", "_blank")}
+        onClick={() => navigate("/tareas-v2")}
         variant="default"
         className="bg-gray-950 hover:bg-gray-800"
       >

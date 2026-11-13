@@ -23,6 +23,7 @@ import {
   ArrowLeft, X, ChevronLeft, ChevronRight, Inbox, Users, Plus,
   Upload, Link2, Trash2, Check, Loader2,
 } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -147,7 +148,7 @@ function AvatarMini({ p }: { p: PersonaMini }) {
   if (!err && p.foto_url) {
     return (
       <img
-        src={p.foto_url} alt={p.nombre} title={p.nombre}
+        src={urlRecurso(p.foto_url)} alt={p.nombre} title={p.nombre}
         onError={() => setErr(true)}
         className="w-5 h-5 rounded-full object-cover border-2 border-white shadow-sm"
       />
@@ -170,7 +171,7 @@ function Avatar({ p, size = 24 }: { p: PersonaMini; size?: number }) {
   if (!err && p.foto_url) {
     return (
       <img
-        src={p.foto_url} alt={p.nombre} title={p.nombre} onError={() => setErr(true)}
+        src={urlRecurso(p.foto_url)} alt={p.nombre} title={p.nombre} onError={() => setErr(true)}
         style={style}
         className="rounded-full object-cover border-2 border-background ring-1 ring-white/10 shrink-0"
       />
@@ -193,7 +194,7 @@ function CargoAvatar({ orgImageUrl, nombre, size = 48 }: { orgImageUrl: string; 
   if (!err && orgImageUrl) {
     return (
       <img
-        src={orgImageUrl} alt={nombre} onError={() => setErr(true)}
+        src={urlRecurso(orgImageUrl)} alt={nombre} onError={() => setErr(true)}
         style={style}
         className="rounded-full object-cover border-2 border-[#dab04b]/50 ring-1 ring-black/5 shrink-0"
       />
@@ -256,7 +257,7 @@ function OrgChartNode({ data }: NodeProps<Node<CargoNodeData>>) {
         <div className="flex justify-center mb-2 mt-1">
           {data.org_image_url ? (
             <img
-              src={data.org_image_url} alt=""
+              src={urlRecurso(data.org_image_url)} alt=""
               className="w-11 h-11 rounded-full object-cover"
               style={{ border: `2px solid ${root ? "rgba(246,195,74,0.7)" : "rgba(218,175,75,0.5)"}` }}
             />

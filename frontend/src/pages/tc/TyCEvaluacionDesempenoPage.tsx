@@ -6,6 +6,7 @@ import {
   type RubricaCategoria,
 } from "@/lib/evaluacionDesempenoRubricas"
 import { Search, ClipboardCheck, Loader2, X, User, RotateCcw } from "lucide-react"
+import { urlRecurso } from "@/lib/entorno"
 
 interface PersonaLista {
   id: number
@@ -352,7 +353,7 @@ function FirmaOAviso({ url, propia, nombre }: { url: string | null; propia?: boo
     return <p className="text-xs text-muted-foreground">Se toma de tu propia firma registrada en T&C al enviar.</p>
   }
   if (url) {
-    return <img src={url} alt={`Firma de ${nombre}`} className="h-16 rounded-lg border border-border bg-white px-3" />
+    return <img src={urlRecurso(url)} alt={`Firma de ${nombre}`} className="h-16 rounded-lg border border-border bg-white px-3" />
   }
   return <p className="text-xs text-amber-500">{nombre} no tiene firma digital registrada — no se podrá enviar hasta que la agregue en su perfil.</p>
 }

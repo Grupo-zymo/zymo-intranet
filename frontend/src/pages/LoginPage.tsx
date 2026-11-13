@@ -8,6 +8,7 @@ import { avisoLogin, recordarSesion } from "@/lib/almacenSesion"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff } from "lucide-react"
+import { abrirExterno, esNativo } from "@/lib/entorno"
 
 // ponytail: the redirect target comes from EXTERNAL_APPS (a trusted, code-controlled list),
 // never from a query-string value — so there's no open-redirect surface to validate against.
@@ -19,7 +20,9 @@ async function redirectToSsoApp(appId: string): Promise<void> {
   // own proxy, this one calls the backend directly).
   const backendPath = app.sso_endpoint.replace(/^\/api/, "")
   const { data } = await api.get<{ sso_token: string }>(backendPath)
-  window.location.href = `${app.url}/?sso_token=${data.sso_token}`
+  const destino = `${app.url}/?sso_token=${data.sso_token}`
+  if (esNativo) abrirExterno(destino)
+  else window.location.href = destino
 }
 
 export function LoginPage() {

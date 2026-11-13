@@ -13,6 +13,7 @@ import {
   TC_CAP_ESTADOS, TC_SANCION_TIPOS, TC_NOVEDAD_TIPOS, TC_NOVEDAD_ESTADOS,
 } from "@/lib/tc-constants"
 import { FirmaDigitalPanel } from "./components/FirmaDigitalPanel"
+import { urlRecurso } from "@/lib/entorno"
 
 // ── Interfaces ────────────────────────────────────────────────────────────────
 
@@ -244,7 +245,7 @@ export function TyCPersonaPage() {
             <div className="relative group/avatar shrink-0 h-14 w-14">
               <div className="w-full h-full rounded-full bg-teal-500/10 text-teal-500 text-xl font-semibold overflow-hidden flex items-center justify-center">
                 {persona.foto_url
-                  ? <img src={persona.foto_url} alt={persona.nombre} className="w-full h-full object-cover" />
+                  ? <img src={urlRecurso(persona.foto_url)} alt={persona.nombre} className="w-full h-full object-cover" />
                   : (persona.initials || persona.nombre.slice(0, 2).toUpperCase())
                 }
               </div>
@@ -610,7 +611,7 @@ function CapacitacionesTab({ personaId, puedeEditar }: { personaId: number; pued
                 </div>
                 {c.observaciones && <p className="text-xs text-muted-foreground mt-1 italic">{c.observaciones}</p>}
                 {c.diploma_url && (
-                  <a href={c.diploma_url} target="_blank" rel="noopener noreferrer"
+                  <a href={urlRecurso(c.diploma_url)} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium text-teal-500 hover:text-teal-400 transition-colors">
                     <Award className="w-3 h-3" />
                     Ver diploma
@@ -619,7 +620,7 @@ function CapacitacionesTab({ personaId, puedeEditar }: { personaId: number; pued
                 {(c.documentos?.length ?? 0) > 0 && (
                   <div className="flex flex-wrap gap-2 mt-1.5">
                     {c.documentos!.map((d, i) => (
-                      <a key={i} href={d.url} target="_blank" rel="noopener noreferrer"
+                      <a key={i} href={urlRecurso(d.url)} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-400 hover:text-sky-300 transition-colors">
                         <Link2 className="w-3 h-3" />
                         {d.nombre || "Documento"}

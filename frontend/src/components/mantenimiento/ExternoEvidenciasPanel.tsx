@@ -2,6 +2,7 @@ import { FotoEvidenciaField } from "@/components/mantenimiento/FotoEvidenciaFiel
 import { mntImgPreview } from "@/components/mantenimiento/mntFormClasses"
 import { useSubirEvidenciaExterna } from "@/hooks/useMantenimiento"
 import type { SolicitudMantenimiento } from "@/types/mantenimiento"
+import { urlRecurso } from "@/lib/entorno"
 
 const FASE_LABELS: Record<string, string> = {
   sin_antes: "Falta foto inicial",
@@ -36,7 +37,7 @@ export function ExternoEvidenciasPanel({ sol, puedeSubir }: Props) {
           <p className="text-xs font-medium text-foreground mb-2">Antes del servicio</p>
           {sol.evidencia_antes_url ? (
             <img
-              src={sol.evidencia_antes_url}
+              src={urlRecurso(sol.evidencia_antes_url)}
               alt="Evidencia antes del servicio"
               width={320}
               height={144}
@@ -67,7 +68,7 @@ export function ExternoEvidenciasPanel({ sol, puedeSubir }: Props) {
           <p className="text-xs font-medium text-foreground mb-2">Después del servicio</p>
           {sol.evidencia_despues_url ? (
             <img
-              src={sol.evidencia_despues_url}
+              src={urlRecurso(sol.evidencia_despues_url)}
               alt="Evidencia después del servicio"
               width={320}
               height={144}

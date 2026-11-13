@@ -2,6 +2,7 @@ import { useState } from "react"
 import { api } from "@/lib/api"
 import { Building2, ClipboardCheck, Link2, Loader2, Search } from "lucide-react"
 import { CompartirEnlaceSheet } from "./components/CompartirEnlaceSheet"
+import { urlRecurso, urlPublica } from "@/lib/entorno"
 
 interface PersonaEncontrada {
   id: number
@@ -135,7 +136,7 @@ export function TyCFormatoAusentismoPage() {
                       <div className="flex items-center gap-3 rounded-xl border border-border p-3">
                         <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white shrink-0">
                           {persona.logo_url ? (
-                            <img src={persona.logo_url} alt={persona.empresa_nombre} className="h-[80%] w-[80%] object-contain" />
+                            <img src={urlRecurso(persona.logo_url)} alt={persona.empresa_nombre} className="h-[80%] w-[80%] object-contain" />
                           ) : (
                             <Building2 className="h-4 w-4 text-muted-foreground/40" />
                           )}
@@ -212,7 +213,7 @@ export function TyCFormatoAusentismoPage() {
 
                     <Seccion titulo="Firma del empleado">
                       {persona.firma_url ? (
-                        <img src={persona.firma_url} alt="Firma" className="h-16 rounded-lg border border-border bg-white px-3" />
+                        <img src={urlRecurso(persona.firma_url)} alt="Firma" className="h-16 rounded-lg border border-border bg-white px-3" />
                       ) : (
                         <p className="text-xs text-amber-500">
                           Este colaborador no tiene firma digital registrada en su perfil de T&C — pídele a T&C que se la agregue antes de continuar.
@@ -252,7 +253,7 @@ export function TyCFormatoAusentismoPage() {
       <CompartirEnlaceSheet
         open={compartirAbierto}
         onOpenChange={setCompartirAbierto}
-        url={typeof window !== "undefined" ? window.location.href : ""}
+        url={typeof window !== "undefined" ? urlPublica(window.location.pathname + window.location.search) : ""}
         titulo="Formato de Ausentismo"
       />
     </div>

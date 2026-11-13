@@ -7,6 +7,7 @@ import { useSacUI } from "@/context/SacContext"
 import { useSendSurveyLink } from "@/hooks/useSac"
 import { useTicketToast } from "@/components/tickets/TicketToast"
 import { extractErrorMessage } from "@/lib/ticketErrors"
+import { urlPublica } from "@/lib/entorno"
 
 const LABEL = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.06em] text-zinc-500"
 
@@ -33,7 +34,7 @@ export function SendSurveyDialog() {
     if (!surveyType) return
     try {
       const result = await sendLink.mutateAsync(surveyType)
-      setUrl(result.shortUrl)
+      setUrl(urlPublica(result.shortUrl))
     } catch (err) {
       showToast(extractErrorMessage(err, "No se pudo generar el link."), "error")
     }
