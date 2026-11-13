@@ -3,6 +3,7 @@
 
 import { Link, NavLink } from "react-router-dom"
 import { ArrowLeft, RefreshCw } from "lucide-react"
+import { MesaCampana } from "@/components/layout/MesaCampana"
 import { FILTROS_VACIOS, consultaCasos, haceCuanto } from "@/lib/centralTickets"
 import type { CentralNivel } from "@/types/centralTickets"
 import "./central.css"
@@ -44,6 +45,8 @@ export function CentralCabecera({
           {actualizadoEn ? <span className="max-sm:hidden">{` · actualizado ${haceCuanto(new Date(actualizadoEn).toISOString(), ahora)}`}</span> : null}
         </p>
       </div>
+      {/* Avisos de la mesa de ayuda: quien pasa el día en la central también tiene que verlos */}
+      <div className="lg:order-3"><MesaCampana /></div>
       <button type="button" className="ct-btn ct-btn-redondo lg:order-3 lg:!w-auto lg:!px-4" onClick={onActualizar} disabled={actualizando} aria-label="Actualizar ahora">
         <RefreshCw className={`size-4 ${actualizando ? "animate-spin" : ""}`} aria-hidden />
         <span className="max-lg:hidden">Actualizar</span>
