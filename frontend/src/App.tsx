@@ -24,6 +24,7 @@ import {
   canUseAprobaciones,
   canSeeOperClientes,
   canSeeGestionTickets,
+  canSeeMesa,
   canSeeTickets,
   nivelTicketsCentral,
   canSeeSAC,
@@ -229,6 +230,13 @@ function SigRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" state={isMobile ? { from: location } : undefined} replace />
   }
   if (!canSeeSIG(user.role, user.app_permissions)) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
+
+function MesaRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  if (!user) return <Navigate to="/login" replace />
+  if (!canSeeMesa(user.role, user.app_permissions)) return <Navigate to="/dashboard" replace />
   return <>{children}</>
 }
 
@@ -711,13 +719,13 @@ export default function App() {
           }
         />
 
-        {/* Mesa de ayuda interna por áreas — abierta a toda cuenta activa (cualquiera crea solicitudes) */}
+        {/* Mesa de ayuda interna por áreas — admin, o quien tenga el permiso de acceso o el de líder */}
         <Route
           path="/mesa-ayuda/*"
           element={
-            <PrivateRoute>
+            <MesaRoute>
               <MesaAyudaPage />
-            </PrivateRoute>
+            </MesaRoute>
           }
         />
 

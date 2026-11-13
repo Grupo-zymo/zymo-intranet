@@ -4,8 +4,10 @@ import {
   esLiderDe,
   filtroLista,
   normalizarArea,
+  puedeEntrarMesa,
   relacionCon,
   resolverAccesoMesa,
+  PERM_MESA,
   PERM_MESA_LIDER,
   type AccionMesa,
   type TicketParaAcceso,
@@ -36,6 +38,14 @@ assert.deepStrictEqual(acceso({ id: 5, area: "Gestion" }).areaIds, [], "coincide
 assert.strictEqual(resolverAccesoMesa(undefined, AREAS), null)
 assert.strictEqual(resolverAccesoMesa({ area: "Gestion IT" }, AREAS), null, "sin id no hay acceso")
 assert.strictEqual(resolverAccesoMesa({ id: "abc" }, AREAS), null)
+
+// ── Entrada a la mesa: al inicio solo el admin; a los demás los habilita un admin por permiso ──
+assert.ok(puedeEntrarMesa({ role: "admin" }), "el admin entra siempre")
+assert.ok(puedeEntrarMesa({ role: "empleado", app_permissions: [PERM_MESA] }))
+assert.ok(puedeEntrarMesa({ role: "empleado", app_permissions: [PERM_MESA_LIDER] }), "el permiso de líder incluye el acceso")
+assert.ok(!puedeEntrarMesa({ role: "empleado", app_permissions: [] }), "sin permiso no entra")
+assert.ok(!puedeEntrarMesa({ role: "gerente", app_permissions: ["mod_tickets_central"] }), "ni gerente ni otros permisos de tickets abren la mesa")
+assert.ok(!puedeEntrarMesa({ role: "empleado" }) && !puedeEntrarMesa(undefined))
 
 // ── Personas ──
 const admin = acceso({ id: 1, role: "admin", area: "Gestion IT" })

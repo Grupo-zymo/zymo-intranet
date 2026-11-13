@@ -2,7 +2,7 @@
 
 Mesa de ayuda **interna**: una persona le pide algo a un área, el área lo atiende y todo queda en el ticket. Reemplaza a «Zymo Ally · Tickets» (PQR), que quedó archivado: salió del menú y su API (`/api/tickets/*`) solo le responde al admin, para consultar los tickets viejos. No es la Central de tickets (`docs/central-tickets.md`), que atiende casos de **clientes**.
 
-- Ruta: `/mesa-ayuda` (menú lateral → **Mesa de ayuda**; se abre a pantalla completa, como la Central). Entra toda cuenta activa.
+- Ruta: `/mesa-ayuda` (menú lateral → **Mesa de ayuda**; se abre a pantalla completa, como la Central). **Al estrenarla solo entran los administradores**; a cada persona la habilita un admin (ver «Acceso»).
 - Backend: `zymoally-backend`, tablas `Mesa*` en su propia base de datos.
 - Estado: funcional en local, sin desplegar. Hechas las fases 0–8 (entorno, modelo, permisos, API, pantallas, enlace con la Central, administración, tablero del líder y avisos) y la reorganización con la misma estructura de la Central. Falta desplegar.
 
@@ -42,9 +42,24 @@ Las reglas viven en el servidor (`services/mesaAuth.ts`), nunca solo en la panta
 - Ser `gerente` no abre tickets de otras áreas.
 - Un ticket eliminado solo se puede consultar, y solo por el admin.
 
+### Acceso
+
+La mesa se abre por permiso, y lo aplica el servidor (`puedeEntrarMesa` en `services/mesaAuth.ts`, usado por `middleware/mesa.ts`): sin él, toda ruta de `/api/mesa` responde **403**, aunque la cuenta sea del área. En el frontend (`canSeeMesa`) quien no lo tiene no ve la entrada del menú, ni la campana, ni el bloque «Apoyo de otras áreas» de la Central, y `/mesa-ayuda` lo devuelve al Dashboard.
+
+| Quién | Entra |
+|---|---|
+| Admin (`role = admin`) | Siempre |
+| `mod_tickets_mesa` — «Mesa de ayuda — Acceso» | Sí: crea solicitudes, ve y atiende las de su área, recibe avisos |
+| `mod_tickets_lider` — «Mesa de ayuda — Líder de área» | Sí (incluye el acceso), más metas, tipos de solicitud y tablero de su área |
+| Cualquier otra cuenta, incluido el rol `gerente` | No |
+
+Se asignan en **Organización → Editar permisos** (por persona o por área), grupo «Mesa de ayuda — Solicitudes entre áreas». La persona debe cerrar sesión y volver a entrar: el permiso viaja en el token.
+
+**Para poner un área en marcha** hace falta: (1) activarla en la pestaña Configuración de la mesa, con su prefijo; y (2) darles el permiso de acceso a las personas de esa área. Si un área recibe solicitudes pero nadie de ella tiene el permiso, los tickets llegan y nadie los ve salvo el admin.
+
 ### Líder y Servicio al Cliente
 
-- **Líder de área** — permiso `mod_tickets_lider` (se asigna en **Organización → Editar permisos**; la persona debe cerrar sesión y volver a entrar). Define las metas de su área, maneja sus categorías y ve su tablero. El admin no define metas.
+- **Líder de área** — permiso `mod_tickets_lider` (incluye el acceso). Define las metas de su área, maneja sus categorías y ve su tablero. El admin no define metas.
 - **Servicio al Cliente (SAC)** — no es un permiso: es pertenecer a un área marcada `esSac` en la mesa. Hoy esa área es **Planeación y Consultoria**, que tiene a su cargo SAC; el día que SAC tenga área propia en el panel admin, solo se mueve la marca. SAC puede, en los tickets con los que tiene relación (los creó o llegaron a su área): **redirigirlos** a otra área (conserva el consecutivo; se limpian categoría y responsables), **sumar responsables** de cualquier área y **enlazar** un caso de la Central de tickets (`radicadoOrigen`).
 
 ## API (`/zymoally-api/api/mesa/*`)

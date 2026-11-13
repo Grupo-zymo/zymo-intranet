@@ -13,6 +13,8 @@ import {
 import { zymoallyApi } from "@/lib/zymoallyApi"
 import { formatFechaRelativa } from "@/lib/dates"
 import { useMesaPush } from "@/hooks/useMesaPush"
+import { canSeeMesa } from "@/lib/permissions"
+import { useAuthStore } from "@/store/authStore"
 
 interface Aviso {
   id: number
@@ -33,9 +35,12 @@ const CLAVE = ["mesa", "avisos"]
 export function MesaCampana() {
   const navigate = useNavigate()
   const qc = useQueryClient()
+  // Sin acceso a la mesa no hay campana ni consultas (el servidor respondería 403)
+  const tieneMesa = useAuthStore((s) => (s.user ? canSeeMesa(s.user.role, s.user.app_permissions) : false))
   const avisos = useQuery<{ sinLeer: number; masSinLeer: number; items: Aviso[] }>({
     queryKey: CLAVE,
     queryFn: async () => (await zymoallyApi.get("/api/mesa/avisos")).data,
+    enabled: tieneMesa,
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
     staleTime: 10_000,

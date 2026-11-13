@@ -38,6 +38,7 @@ import {
   canSubmitDevTasks,
   canManageDevTasks,
   canSeeTyC,
+  canSeeMesa,
   nivelTicketsCentral,
   canSeeSAC,
   canSeeReportesDesarrollo,
@@ -89,6 +90,7 @@ export function Sidebar() {
   const showLibertadora    = false
   const showSac            = user ? canSeeSAC(user.role, perms) : false
   const showCentral        = user ? nivelTicketsCentral(user.role, perms) !== null : false
+  const showMesa           = user ? canSeeMesa(user.role, perms) : false
   const showTyC            = user ? canSeeTyC(user.role, perms) : false
   const showReportes       = user ? canSeeReportesDesarrollo(user.role, perms) : false
 
@@ -159,12 +161,14 @@ export function Sidebar() {
                 icon={<LayoutDashboard className="w-4 h-4" />}
                 active={isActive(["/dashboard"])}
               />
-              <NavItem
-                to="/mesa-ayuda"
-                label="Mesa de ayuda"
-                icon={<LifeBuoy className="w-4 h-4" />}
-                active={isActive(["/mesa-ayuda"])}
-              />
+              {showMesa && (
+                <NavItem
+                  to="/mesa-ayuda"
+                  label="Mesa de ayuda"
+                  icon={<LifeBuoy className="w-4 h-4" />}
+                  active={isActive(["/mesa-ayuda"])}
+                />
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

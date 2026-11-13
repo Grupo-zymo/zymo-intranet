@@ -11,7 +11,18 @@
 
 import type { Prisma } from "@prisma/client"
 
+// Acceso a la mesa de ayuda. Al estrenarla solo entran los administradores: un admin
+// habilita a cada persona en Organización → Editar permisos. El permiso de líder incluye el acceso.
+export const PERM_MESA = "mod_tickets_mesa"
 export const PERM_MESA_LIDER = "mod_tickets_lider"
+
+/** ¿Esta cuenta puede entrar a la mesa de ayuda? (admin, o con el permiso de acceso o el de líder) */
+export function puedeEntrarMesa(user: { role?: string; app_permissions?: string[] } | undefined): boolean {
+  if (!user) return false
+  if (user.role === "admin") return true
+  const permisos = Array.isArray(user.app_permissions) ? user.app_permissions : []
+  return permisos.includes(PERM_MESA) || permisos.includes(PERM_MESA_LIDER)
+}
 
 export type Decision = { ok: true } | { ok: false; status: 403 | 404; error: string }
 const PERMITIDO: Decision = { ok: true }

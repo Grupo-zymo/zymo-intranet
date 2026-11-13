@@ -128,6 +128,14 @@ export function canSeeTicketsGerencia(role: string, appPerms?: string[]): boolea
   return hasPerm(appPerms, "mod_tickets_gerencia")
 }
 
+// ── Mesa de ayuda interna por áreas ──
+/** Al estrenarla solo la ven los administradores; a cada persona la habilita un admin (mod_tickets_mesa).
+ *  El permiso de líder incluye el acceso. El backend (zymoally-backend) aplica lo mismo. */
+export function canSeeMesa(role: string, appPerms?: string[]): boolean {
+  if (role === "admin") return true
+  return hasPerm(appPerms, "mod_tickets_mesa") || hasPerm(appPerms, "mod_tickets_lider")
+}
+
 // ── Central de tickets (casos que radican los clientes en la app de autogestión) ──
 // Dos niveles, siempre por permiso. El backend (zymoally-backend) aplica lo mismo.
 

@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken"
 import { env } from "../config/env"
 import { prisma } from "../config/prisma"
 import app from "../app"
-import { PERM_MESA_LIDER } from "./mesaAuth"
+import { PERM_MESA, PERM_MESA_LIDER } from "./mesaAuth"
 import { avisarFueraDeMeta } from "./mesaAvisos"
 import { DIR_EVIDENCIAS } from "../routers/mesa/tickets"
 
@@ -18,14 +18,16 @@ const SAC = 990002
 const TYC = 990003
 const AREAS = [IT, SAC, TYC]
 
+const CON_ACCESO = { app_permissions: [PERM_MESA] }
 const P = {
-  admin: { id: 9001, role: "admin", area: "ZZ IT" },
-  creador: { id: 9010, area: "ZZ TyC" },
-  it1: { id: 9020, area: "zz  it" }, // mayúsculas y espacios distintos: misma área
-  it2: { id: 9021, area: "ZZ IT" },
-  lider: { id: 9022, area: "ZZ IT", app_permissions: [PERM_MESA_LIDER] },
-  sac: { id: 9030, area: "ZZ SAC" },
-  ajeno: { id: 9050, area: "ZZ TyC" },
+  admin: { id: 9001, role: "admin", area: "ZZ IT" }, // el admin entra sin permiso
+  creador: { id: 9010, area: "ZZ TyC", ...CON_ACCESO },
+  it1: { id: 9020, area: "zz  it", ...CON_ACCESO }, // mayúsculas y espacios distintos: misma área
+  it2: { id: 9021, area: "ZZ IT", ...CON_ACCESO },
+  lider: { id: 9022, area: "ZZ IT", app_permissions: [PERM_MESA_LIDER] }, // el de líder incluye el acceso
+  sac: { id: 9030, area: "ZZ SAC", ...CON_ACCESO },
+  ajeno: { id: 9050, area: "ZZ TyC", ...CON_ACCESO },
+  sinAcceso: { id: 9060, area: "ZZ IT" }, // del área, pero nadie le ha activado la mesa
 } as const
 type Quien = keyof typeof P
 
@@ -111,6 +113,12 @@ async function main() {
     const id = creado.data.id
     assert.strictEqual((await api("creador", "POST", "/tickets", formulario({ areaId: String(IT), asunto: "x", descripcion: "" }))).status, 400)
     assert.strictEqual((await api("creador", "POST", "/tickets", formulario({ areaId: String(IT), asunto: "Con radicado", descripcion: "d", radicadoOrigen: "PQR-1" }))).status, 403, "solo SAC enlaza casos de la Central")
+
+    // ── Sin el permiso no se entra a nada de la mesa, aunque la cuenta sea del área ──
+    for (const ruta of ["/tickets?vista=area", `/tickets/${id}`, "/yo", "/avisos", "/areas"]) {
+      assert.strictEqual((await api("sinAcceso", "GET", ruta)).status, 403, `sin permiso: ${ruta}`)
+    }
+    assert.strictEqual((await api("sinAcceso", "POST", "/tickets", formulario({ areaId: String(IT), asunto: "No debería", descripcion: "d" }))).status, 403)
 
     // ── Cada quien ve lo suyo ──
     assert.strictEqual((await api("creador", "GET", "/tickets?vista=mias")).data.total, 1)
@@ -244,7 +252,7 @@ async function main() {
 
     // ── A quién se puede asignar ──
     const equipo = await api("it1", "GET", `/usuarios?areaId=${IT}`)
-    assert.deepStrictEqual(equipo.data.map((c: { id: number }) => c.id).sort(), [P.admin.id, P.it1.id, P.it2.id, P.lider.id].sort())
+    assert.deepStrictEqual(equipo.data.map((c: { id: number }) => c.id).sort(), [P.admin.id, P.it1.id, P.it2.id, P.lider.id, P.sinAcceso.id].sort())
     assert.strictEqual((await api("creador", "GET", `/usuarios?areaId=${IT}`)).status, 403)
     assert.strictEqual((await api("it1", "GET", "/usuarios")).status, 403)
     assert.strictEqual((await api("sac", "GET", "/usuarios")).status, 200)
@@ -312,7 +320,7 @@ async function main() {
     assert.strictEqual(await avisarFueraDeMeta(new Date(), AREAS), 0, "recién creado: dentro de meta")
     // Una semana después: más de 24 h laborales sea cual sea el día en que corra la prueba
     const enTresDias = new Date(Date.now() + 7 * 86_400_000)
-    assert.strictEqual(await avisarFueraDeMeta(enTresDias, AREAS), 8, "4 personas del área × 2 metas (respuesta y cierre)")
+    assert.strictEqual(await avisarFueraDeMeta(enTresDias, AREAS), 10, "5 personas del área × 2 metas (respuesta y cierre)")
     assert.strictEqual(await avisarFueraDeMeta(enTresDias, AREAS), 0, "no se repite")
     assert.deepStrictEqual(await avisosDe("lider", t4.id), ["fuera_de_meta", "fuera_de_meta", "nuevo"])
     assert.deepStrictEqual(await avisosDe("creador", t4.id), [], "a quien lo pidió no se le avisa la meta del área")

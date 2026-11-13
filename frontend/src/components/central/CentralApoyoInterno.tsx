@@ -3,6 +3,8 @@ import { Link } from "react-router-dom"
 import { MesaNueva } from "@/components/mesa/MesaNueva"
 import { useMesaPorRadicado, useMesaYo } from "@/hooks/useMesa"
 import { ESTADO_TEXTO } from "@/lib/mesa"
+import { canSeeMesa } from "@/lib/permissions"
+import { useAuthStore } from "@/store/authStore"
 import type { CentralCasoDetalle } from "@/types/centralTickets"
 
 /**
@@ -11,6 +13,13 @@ import type { CentralCasoDetalle } from "@/types/centralTickets"
  * apoyo a otra área. El cliente nunca ve estos tickets.
  */
 export function CentralApoyoInterno({ caso }: { caso: CentralCasoDetalle }) {
+  const tieneMesa = useAuthStore((s) => (s.user ? canSeeMesa(s.user.role, s.user.app_permissions) : false))
+  // Quien no tiene la mesa habilitada no ve este bloque (y no se consulta nada)
+  if (!tieneMesa) return null
+  return <ApoyoInterno caso={caso} />
+}
+
+function ApoyoInterno({ caso }: { caso: CentralCasoDetalle }) {
   const radicado = String(caso.radicado)
   const yo = useMesaYo()
   const enlazados = useMesaPorRadicado(radicado)

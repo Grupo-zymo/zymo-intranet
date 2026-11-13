@@ -251,14 +251,21 @@ export const INTERNAL_MODULE_GROUPS: ModulePermissionGroup[] = [
   },
   {
     title: "Mesa de ayuda — Solicitudes entre áreas",
-    subtitle: "Toda cuenta crea solicitudes y ve las de su área sin permiso; esto es solo para líderes",
+    subtitle: "Al inicio solo la ven los administradores: aquí se habilita a cada persona",
     modules: [
+      {
+        id: "mod_tickets_mesa",
+        category: "modulo",
+        icon: "🛟",
+        name: "Mesa de ayuda — Acceso",
+        description: "Entrar a la mesa de ayuda: crear solicitudes para otras áreas, ver y atender las que llegan a su área, y recibir los avisos en la campana",
+      },
       {
         id: "mod_tickets_lider",
         category: "modulo",
         icon: "🎯",
         name: "Mesa de ayuda — Líder de área",
-        description: "Definir los objetivos de su área (tiempo de respuesta y de cierre) y ver el tablero de indicadores de su área. Aplica al área de la cuenta y a sus áreas adicionales",
+        description: "Incluye el acceso. Además define los objetivos de su área (tiempo de respuesta y de cierre), maneja sus tipos de solicitud y ve el tablero de indicadores. Aplica al área de la cuenta y a sus áreas adicionales",
       },
     ],
   },
