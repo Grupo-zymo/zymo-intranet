@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
@@ -186,12 +187,7 @@ export function OperClientesPage() {
   async function descargarPlantilla() {
     try {
       const { data } = await api.get("/operativo/clientes/plantilla", { responseType: "blob" })
-      const url = URL.createObjectURL(data as Blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = "Plantilla_Cargue_Clientes.xlsx"
-      a.click()
-      URL.revokeObjectURL(url)
+      await guardarArchivo(data as Blob, "Plantilla_Cargue_Clientes.xlsx")
     } catch {
       setBanner({ ok: false, msg: "No se pudo descargar la plantilla." })
     }

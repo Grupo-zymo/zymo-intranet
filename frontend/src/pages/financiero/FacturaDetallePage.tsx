@@ -1,3 +1,6 @@
+import { ArchivoNoVisible } from "@/components/ArchivoNoVisible"
+import { esNativo } from "@/lib/entorno"
+import { abrirBlobEnNuevaVentana } from "@/lib/archivos"
 import { useState, useRef, useEffect } from "react"
 import { useDraft, useAutosaveDraft, useDeleteDraft } from "@/hooks/useDraft"
 import { useNavigate, useParams } from "react-router-dom"
@@ -136,7 +139,8 @@ export function FacturaDetallePage() {
       return
     }
     const esPdf = factura.pdf_path.toLowerCase().endsWith(".pdf")
-    if (!esPdf) {
+    // En el APK no hay visor PDF embebido: se muestra la tarjeta de descarga en su lugar
+    if (!esPdf || esNativo) {
       setPdfBlobUrl(null)
       return
     }
@@ -220,10 +224,7 @@ export function FacturaDetallePage() {
   async function handleVerProforma() {
     if (!solicitudId) return
     const resp = await api.get(`/api/financiero/facturas/${solicitudId}/proforma`, { responseType: "blob" })
-    const url = URL.createObjectURL(resp.data as Blob)
-    const win = window.open(url, "_blank", "noopener,noreferrer")
-    if (!win) URL.revokeObjectURL(url)
-    else window.setTimeout(() => URL.revokeObjectURL(url), 120_000)
+    await abrirBlobEnNuevaVentana(resp.data as Blob, "proforma")
   }
 
   function handleGuardarBitacora() {
@@ -238,10 +239,7 @@ export function FacturaDetallePage() {
     const resp = await api.get(`/api/financiero/cotizaciones/${cotizacionId}/adjunto`, {
       responseType: "blob",
     })
-    const url = URL.createObjectURL(resp.data as Blob)
-    const win = window.open(url, "_blank", "noopener,noreferrer")
-    if (!win) URL.revokeObjectURL(url)
-    else window.setTimeout(() => URL.revokeObjectURL(url), 120_000)
+    await abrirBlobEnNuevaVentana(resp.data as Blob, "adjunto-cotizacion")
   }
 
   if (loadingSolicitud) {
@@ -802,6 +800,14 @@ export function FacturaDetallePage() {
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                         Cargando PDF…
                       </div>
+                    )}
+
+                    {esNativo && factura?.pdf_path?.toLowerCase().endsWith(".pdf") && (
+                      <ArchivoNoVisible
+                        nombre={factura.pdf_path.split(/[\/]/).pop() ?? "factura.pdf"}
+                        detalle="Documento PDF"
+                        onDescargar={() => void openAuthenticatedApiBlob(`/api/financiero/facturas/${facturaId}/pdf`)}
+                      />
                     )}
 
                     {pdfBlobUrl && (

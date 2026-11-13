@@ -1,3 +1,5 @@
+import { guardarArchivo } from "@/lib/archivos"
+import { esNativo } from "@/lib/entorno"
 import { useEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -61,11 +63,7 @@ async function leerTabla(buf: ArrayBuffer): Promise<Hoja[]> {
 /** Descarga el archivo original de un recurso del SIG. */
 export async function descargarArchivo(base: string, nombre: string) {
   const b = (await sigApi.get<Blob>(`${base}/archivo`, { responseType: "blob" })).data
-  const a = document.createElement("a")
-  a.href = URL.createObjectURL(b)
-  a.download = nombre
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+  await guardarArchivo(b, nombre)
 }
 
 export function ArchivoPrevisualizador({ base, nombre, mime, tamano, altura = "70vh", embebido = false }: {
@@ -91,6 +89,10 @@ export function ArchivoPrevisualizador({ base, nombre, mime, tamano, altura = "7
 
     ;(async () => {
       try {
+        // APK: PDF, Word, Excel y tablas del SIG solo se descargan (sin visor); texto, imágenes, audio y video siguen igual
+        if (esNativo && (ext === "pdf" || EXT.excel.includes(ext) || EXT.tabla.includes(ext) || EXT.office.includes(ext))) {
+          return poner({ t: "otro", motivo: "Los documentos del SIG se descargan para abrirlos en el celular." })
+        }
         if (ext === "pdf") {
           if (grande) return poner({ t: "otro", motivo: `Pesa ${mb(tamano!)}: es demasiado para verlo aquí. Descárgalo.` })
           return poner({ t: "url", tipo: "pdf", url: blobUrl(await pedir("archivo"), "application/pdf") })

@@ -1,3 +1,4 @@
+import { abrirBlobEnNuevaVentana } from "@/lib/archivos"
 import { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { PageLayout } from "@/components/layout/PageLayout"
@@ -349,8 +350,7 @@ function FacturaCard({
                     `/api/financiero/facturas/${s.solicitud_id}/proforma`,
                     { responseType: "blob" }
                   )
-                  const url = URL.createObjectURL(resp.data as Blob)
-                  window.open(url, "_blank")
+                  await abrirBlobEnNuevaVentana(resp.data as Blob, "proforma")
                 }}
                 className="mt-2 flex items-center gap-1.5 text-xs font-medium text-yellow-700 underline hover:text-yellow-900"
               >

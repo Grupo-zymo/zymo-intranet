@@ -5,6 +5,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { CargandoPagina } from "@/components/layout/CargandoPagina"
 import { useBotonAtras } from "@/hooks/useBotonAtras"
 import { BloqueoBiometrico, OfertaBiometria } from "@/components/SesionSegura"
+import { VersionApp } from "@/components/VersionApp"
 import { loginSilencioso } from "@/hooks/useAuth"
 import { esNativo } from "@/lib/entorno"
 import { avisoLogin } from "@/lib/almacenSesion"
@@ -369,6 +370,7 @@ export default function App() {
       <BotonAtras />
       <BloqueoDeApertura />
       <OfertaBiometria />
+      <VersionApp />
       <Suspense fallback={<CargandoPagina />}>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

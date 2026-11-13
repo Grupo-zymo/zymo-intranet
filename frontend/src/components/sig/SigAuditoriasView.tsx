@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import ReactMarkdown from "react-markdown"
@@ -300,14 +301,7 @@ type Pestana = "informe" | "hallazgos" | "consultas" | "seguimiento" | "contexto
 
 /** Descarga un texto como archivo, sin pasar por el servidor: el informe ya viene en el detalle. */
 function descargar(nombre: string, contenido: string, tipo: string) {
-  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }))
-  const enlace = document.createElement("a")
-  enlace.href = url
-  enlace.download = nombre
-  document.body.appendChild(enlace)
-  enlace.click()
-  enlace.remove()
-  URL.revokeObjectURL(url)
+  void guardarArchivo(new Blob([contenido], { type: tipo }), nombre)
 }
 
 const BTN_ACCION =

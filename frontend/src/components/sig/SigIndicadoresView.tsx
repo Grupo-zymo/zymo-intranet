@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { sigApi } from "@/lib/sigApi"
@@ -187,12 +188,7 @@ export function SigIndicadoresView({ canEdit }: { canEdit: boolean }) {
   async function descargar(id: number, nombre: string) {
     try {
       const res = await sigApi.get(`/api/indicadores/${id}/archivo`, { responseType: "blob" })
-      const url = URL.createObjectURL(res.data)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = nombre
-      a.click()
-      URL.revokeObjectURL(url)
+      await guardarArchivo(res.data, nombre)
     } catch {
       setAviso("No se pudo descargar el Excel. Intenta de nuevo.")
     }

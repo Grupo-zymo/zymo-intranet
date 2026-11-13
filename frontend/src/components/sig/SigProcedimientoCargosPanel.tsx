@@ -1,3 +1,4 @@
+import { EnlaceDescarga } from "@/components/EnlaceDescarga"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { sigApi } from "@/lib/sigApi"
@@ -498,13 +499,13 @@ function CargoManualModal({ cargo, onClose }: { cargo: TcCargo; onClose: () => v
                         : "Este formato no puede mostrarse acá — descárgalo para verlo."}
                     </p>
                   </div>
-                  <a
+                  <EnlaceDescarga
                     href={url}
-                    download={cargo.manual_filename}
+                    download={cargo.manual_filename ?? "manual"}
                     className="flex items-center gap-1.5 text-xs px-3 py-2 rounded border border-zinc-300 text-zinc-700 hover:border-zinc-400 hover:text-zinc-900 transition-colors"
                   >
                     Descargar documento original
-                  </a>
+                  </EnlaceDescarga>
                 </div>
               )}
             </>

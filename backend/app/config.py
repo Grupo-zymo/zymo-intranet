@@ -66,6 +66,13 @@ class Settings(BaseSettings):
     # Cuando esté vacío el sistema sigue usando los SQLite individuales (fallback).
     zymo_database_url: str = ""
 
+    # ── Versión del APK Android (aviso de actualización; GET /api/app/version) ──
+    app_android_min_version_code: int = 1
+    app_android_latest_version_code: int = 2
+    app_android_latest_version_name: str = "1.1.0"
+    app_android_apk_url: str = ""
+    app_android_mensaje: str = ""
+
     # extra=ignore: un .env con variables ya retiradas (ej. OC_WEBHOOK_SECRET) no debe tumbar el arranque
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

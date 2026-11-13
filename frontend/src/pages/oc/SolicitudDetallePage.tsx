@@ -1,3 +1,4 @@
+import { abrirBlobEnNuevaVentana, guardarArchivo } from "@/lib/archivos"
 import { type ReactNode, useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { PageLayout } from "@/components/layout/PageLayout"
@@ -90,19 +91,9 @@ async function abrirCotizacionPdf(cotizacionId: string): Promise<void> {
   const { api: apiClient } = await import("@/lib/api")
   const res = await apiClient.get(`/api/oc/cotizaciones/${cotizacionId}/pdf`, { responseType: "blob" })
   const blob = res.data as Blob
-  const url = URL.createObjectURL(blob)
-  const win = window.open(url, "_blank")
-  // Revocar el blob URL una vez que la ventana haya cargado el archivo
-  setTimeout(() => URL.revokeObjectURL(url), 60_000)
-  if (!win) {
-    // Fallback si el browser bloqueó el popup: descarga directa
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `cotizacion_${cotizacionId}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
+  const nombre = `cotizacion_${cotizacionId}.pdf`
+  // Si el navegador bloqueó la pestaña nueva, descarga directa
+  if (!(await abrirBlobEnNuevaVentana(blob, nombre))) await guardarArchivo(blob, nombre)
 }
 
 export function SolicitudDetallePage() {
@@ -277,6 +268,13 @@ export function SolicitudDetallePage() {
     return URL.createObjectURL(blob)
   }
 
+  const abrirFotoBlob = async (filename: string): Promise<void> => {
+    const res = await fetch(buildFotoUrl(filename), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    await abrirBlobEnNuevaVentana(await res.blob(), filename)
+  }
+
 
   function handleGenerarOC(forzar = false) {
     if (!id) return
@@ -351,14 +349,7 @@ export function SolicitudDetallePage() {
       const mimeType = isPdf
         ? "application/pdf"
         : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      const blobUrl = URL.createObjectURL(new Blob([response.data], { type: mimeType }))
-      const a = document.createElement("a")
-      a.href = blobUrl
-      a.download = `${orden.numero_oc}.${ext}`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(blobUrl)
+      await guardarArchivo(new Blob([response.data], { type: mimeType }), `${orden.numero_oc}.${ext}`)
     } catch {
       setErrorOC("Error al descargar el documento.")
     }
@@ -1465,8 +1456,7 @@ export function SolicitudDetallePage() {
                                 `/api/oc/solicitudes/${solicitud.id}/proforma/descargar`,
                                 { responseType: "blob" }
                               )
-                              const url = URL.createObjectURL(resp.data as Blob)
-                              window.open(url, "_blank")
+                              await abrirBlobEnNuevaVentana(resp.data as Blob, "proforma")
                             } catch (err) {
                               setProformaMutationError(getApiError(err))
                             }
@@ -1584,7 +1574,7 @@ export function SolicitudDetallePage() {
                           ) : (
                             <a
                               href="#"
-                              onClick={async (e) => { e.preventDefault(); const url = await fetchFotoBlob(filename); window.open(url, "_blank") }}
+                              onClick={async (e) => { e.preventDefault(); await abrirFotoBlob(filename) }}
                               className="flex flex-col items-center justify-center h-24 gap-1 text-muted-foreground hover:text-primary transition-colors"
                             >
                               <svg className="w-7 h-7" viewBox="0 0 20 20" fill="currentColor">
@@ -1984,7 +1974,7 @@ export function SolicitudDetallePage() {
                         ) : (
                           <a
                             href="#"
-                            onClick={async (e) => { e.preventDefault(); const url = await fetchFotoBlob(filename); window.open(url, "_blank") }}
+                            onClick={async (e) => { e.preventDefault(); await abrirFotoBlob(filename) }}
                             className="flex flex-col items-center justify-center h-16 gap-1 text-muted-foreground hover:text-primary transition-colors"
                           >
                             <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">

@@ -1,3 +1,6 @@
+import { ArchivoNoVisible } from "@/components/ArchivoNoVisible"
+import { guardarArchivo } from "@/lib/archivos"
+import { esNativo } from "@/lib/entorno"
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { fileIcon, formatBytes } from "./AttachmentExplorerV2"
@@ -26,6 +29,9 @@ function StagedPreview({ file }: { file: File }) {
 
   if (file.type.startsWith("image/")) {
     return <img src={url} alt={file.name} className="max-w-full max-h-full object-contain" />
+  }
+  if (file.type === "application/pdf" && esNativo) {
+    return <ArchivoNoVisible nombre={file.name} detalle={`PDF · ${formatBytes(file.size)}`} onDescargar={() => void guardarArchivo(file, file.name)} />
   }
   if (file.type === "application/pdf") {
     return <iframe src={url} className="w-full h-full border-0" title={file.name} />

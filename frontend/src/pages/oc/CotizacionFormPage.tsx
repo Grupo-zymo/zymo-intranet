@@ -1,3 +1,4 @@
+import { abrirBlobEnNuevaVentana } from "@/lib/archivos"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { formatCOP } from "@/lib/formatters"
 import { FormFieldCOP, MoneyInputCOP } from "@/components/forms/FormFieldCOP"
@@ -534,9 +535,7 @@ export function CotizacionFormPage() {
                               const resp = await api.get(`/api/oc/solicitudes/${solicitud.id}/proforma/descargar`, {
                                 responseType: "blob",
                               })
-                              const url = URL.createObjectURL(resp.data as Blob)
-                              window.open(url, "_blank")
-                              setTimeout(() => URL.revokeObjectURL(url), 60_000)
+                              await abrirBlobEnNuevaVentana(resp.data as Blob, "proforma")
                             } catch (err) {
                               setProformaMutationError(getApiError(err))
                             }

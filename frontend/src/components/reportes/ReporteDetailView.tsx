@@ -2,6 +2,7 @@
 // Typora. Layout: documento principal a la izquierda + sidebar de acciones
 // (barra de % avance, descargar, editar, eliminar) a la derecha.
 
+import { guardarArchivo } from "@/lib/archivos"
 import { motion } from "motion/react"
 import { ReporteMarkdown } from "./ReporteMarkdown"
 import { Calendar, User, Clock, Tag, Download, Pencil, Trash2 } from "lucide-react"
@@ -44,14 +45,7 @@ export function ReporteDetailView({
         `/sig-api/api/reportes-desarrollo/${reporte.id}/archivo`,
         { responseType: "blob" },
       )
-      const url = URL.createObjectURL(data)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = reporte.nombreArchivo ?? `reporte-${reporte.id}.md`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      await guardarArchivo(data, reporte.nombreArchivo ?? `reporte-${reporte.id}.md`)
     } catch {
       alert("No se pudo descargar el archivo original")
     }

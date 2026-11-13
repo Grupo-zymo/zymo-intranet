@@ -1,3 +1,4 @@
+import { EnlaceDescarga } from "@/components/EnlaceDescarga"
 import { useEffect, useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { api } from "@/lib/api"
@@ -433,16 +434,14 @@ export function TyCManualesPage() {
                       {/* Acciones */}
                       <div className="flex items-center gap-1 shrink-0">
                         {tieneArchivo && (
-                          <a
+                          <EnlaceDescarga
                             href={urlRecurso(cargo.manual_url)}
-                            download={cargo.manual_filename}
-                            target="_blank"
-                            rel="noreferrer"
+                            download={cargo.manual_filename ?? "manual"}
                             className="flex items-center gap-1 h-7 px-2.5 text-[11px] font-medium border border-border/60 rounded-lg text-muted-foreground hover:text-foreground hover:border-border transition-colors"
                           >
                             <Download className="w-3 h-3" />
                             Ver
-                          </a>
+                          </EnlaceDescarga>
                         )}
 
                         {puedeEditar && tieneArchivo && (

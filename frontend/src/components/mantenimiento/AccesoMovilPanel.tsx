@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useRef, useState } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import { Button } from "@/components/ui/button"
@@ -68,10 +69,7 @@ export function AccesoMovilPanel({ solicitudId, consecutivo, estado }: Props) {
       ctx.fillStyle = "#ffffff"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(img, 0, 0)
-      const a = document.createElement("a")
-      a.download = `${consecutivo}-qr.png`
-      a.href = canvas.toDataURL("image/png")
-      a.click()
+      canvas.toBlob((b) => { if (b) void guardarArchivo(b, `${consecutivo}-qr.png`) }, "image/png")
     }
     img.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(xml)))}`
   }

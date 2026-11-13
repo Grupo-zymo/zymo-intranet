@@ -144,7 +144,9 @@ export function abrirStream(op: OpcionesStream): ControlStream {
       temporizador = setTimeout(() => ctl.abort(new Error("silencio")), silencioMax)
     }
     try {
-      const cabeceras: Record<string, string> = { Accept: "text/event-stream", "Cache-Control": "no-cache" }
+      // Solo cabeceras que el CORS del servidor admite (Authorization, Content-Type, Accept): una cabecera propia como
+      // Cache-Control rompe el preflight cuando la app corre empaquetada (origen https://localhost). `cache: "no-store"` ya evita el caché.
+      const cabeceras: Record<string, string> = { Accept: "text/event-stream" }
       const t = op.token()
       if (t) cabeceras.Authorization = `Bearer ${t}`
       const ultimo = op.ultimoId?.()

@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
+import { limpiarArchivosTemporales } from './lib/archivos'
+
+void limpiarArchivosTemporales()
 
 // Tras un despliegue, una pestaña abierta desde antes pide un archivo con el nombre viejo (ya no existe): se recarga una vez para tomar el nuevo.
 window.addEventListener("vite:preloadError", () => {

@@ -39,12 +39,12 @@ export function CentralCabecera({
   // Con el servicio nuevo el contador son los mensajes sin leer del cliente (la nota interna no cuenta); con el viejo, los casos que esperan.
   const pendientes = conContador ? (items ?? []).reduce((n, c) => n + (c.noLeidos ?? 0), 0) : esperan
   return (
-    <header className="mx-auto flex w-full max-w-2xl flex-none flex-wrap items-center gap-x-3 gap-y-3 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] lg:max-w-none lg:flex-nowrap lg:gap-x-5 lg:px-6 lg:pb-4 lg:pt-6 xl:px-8">
+    <header className="mx-auto flex w-full max-w-2xl flex-none flex-wrap items-center gap-x-3 gap-y-2.5 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] lg:max-w-none lg:flex-nowrap lg:gap-x-5 lg:px-6 lg:pb-4 lg:pt-6 xl:px-8">
       <Link to="/dashboard" className="ct-btn ct-btn-redondo" aria-label="Volver a la intranet">
         <ArrowLeft className="size-4" aria-hidden />
       </Link>
-      <div className="min-w-0 flex-1">
-        <h1 className="m-0 truncate text-[26px] font-bold leading-tight tracking-[-0.02em] lg:text-[32px]">
+      <div className="order-2 min-w-0 basis-full lg:order-none lg:flex-1 lg:basis-auto">
+        <h1 className="m-0 text-[24px] font-bold leading-tight tracking-[-0.02em] lg:truncate lg:text-[32px]">
           {director ? "Central de tickets" : "Mis casos asignados"}
         </h1>
         <p className="ct-muted m-0 truncate text-[13px] lg:text-[15px]">
@@ -54,11 +54,13 @@ export function CentralCabecera({
         </p>
       </div>
       {/* Avisos de la mesa de ayuda: quien pasa el día en la central también tiene que verlos */}
-      <div className="lg:order-3"><MesaCampana /></div>
-      <button type="button" className="ct-btn ct-btn-redondo lg:order-3 lg:!w-auto lg:!px-4" onClick={onActualizar} disabled={actualizando} aria-label="Actualizar ahora">
-        <RefreshCw className={`size-4 ${actualizando ? "animate-spin" : ""}`} aria-hidden />
-        <span className="max-lg:hidden">Actualizar</span>
-      </button>
+      <div className="order-1 ml-auto flex items-center gap-2 lg:order-3 lg:ml-0 lg:gap-3">
+        <MesaCampana />
+        <button type="button" className="ct-btn ct-btn-redondo lg:!w-auto lg:!px-4" onClick={onActualizar} disabled={actualizando} aria-label="Actualizar ahora">
+          <RefreshCw className={`size-4 ${actualizando ? "animate-spin" : ""}`} aria-hidden />
+          <span className="max-lg:hidden">Actualizar</span>
+        </button>
+      </div>
       <nav aria-label="Secciones de la central" className="ct-segmento order-last w-full lg:order-2 lg:w-[340px]">
         <NavLink to={RUTA_DASHBOARD} end className="ct-seg-enlace">
           Dashboard

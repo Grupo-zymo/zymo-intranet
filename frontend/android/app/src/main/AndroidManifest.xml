@@ -38,4 +38,10 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Los <input type=file capture> (fotos de evidencia/solicitud) abren la camara: sin CAMARA declarada el WebView de Capacitor no la lanza. required=false: no se excluye a equipos sin camara. -->
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>

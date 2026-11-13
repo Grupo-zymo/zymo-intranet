@@ -1,3 +1,4 @@
+import { esNativo } from "@/lib/entorno"
 import { useEffect } from "react"
 import { useParams } from "react-router-dom"
 import {
@@ -62,7 +63,7 @@ export function PrintFacturacionPage() {
 
   // Auto-dispara impresión cuando los datos estén listos
   useEffect(() => {
-    if (!solicitud) return
+    if (!solicitud || esNativo) return
     if (facturaId && !factura) return // esperar la factura si existe
     const timer = setTimeout(() => window.print(), 600)
     return () => clearTimeout(timer)
@@ -112,12 +113,14 @@ export function PrintFacturacionPage() {
         <span className="text-sm text-muted-foreground font-medium">
           Vista previa — {solicitud.consecutivo_os ?? solicitudId}
         </span>
-        <Button
-          type="button"
-          onClick={() => window.print()}
-        >
-          Imprimir / Guardar como PDF
-        </Button>
+        {!esNativo && (
+          <Button
+            type="button"
+            onClick={() => window.print()}
+          >
+            Imprimir / Guardar como PDF
+          </Button>
+        )}
       </div>
 
       {/* Contenido imprimible */}

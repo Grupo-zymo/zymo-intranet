@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Mail, ArrowRight } from "lucide-react"
@@ -26,14 +27,7 @@ async function descargarExcelPrueba(): Promise<string> {
   const disposition: string = res.headers["content-disposition"] ?? ""
   const match = disposition.match(/filename="(.+?)"/)
   const filename = match ? match[1] : "prueba.xlsx"
-  const url = URL.createObjectURL(res.data as Blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  await guardarArchivo(res.data as Blob, filename)
   return filename
 }
 
@@ -42,14 +36,7 @@ async function descargarParPrueba(): Promise<string> {
   const disposition: string = res.headers["content-disposition"] ?? ""
   const match = disposition.match(/filename="(.+?)"/)
   const filename = match ? match[1] : "par-prueba.zip"
-  const url = URL.createObjectURL(res.data as Blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  await guardarArchivo(res.data as Blob, filename)
   return filename
 }
 

@@ -1,3 +1,4 @@
+import { EnlaceDescarga } from "@/components/EnlaceDescarga"
 import { useEffect } from "react"
 
 interface ImageModalProps {
@@ -30,7 +31,7 @@ export function ImageModal({ isOpen, imageUrl, filename, onClose }: ImageModalPr
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
           <h3 className="text-sm font-medium text-gray-700 truncate max-w-[60vw]">{filename}</h3>
           <div className="flex items-center gap-2">
-            <a
+            <EnlaceDescarga
               href={imageUrl}
               download={filename}
               className="p-1.5 text-gray-500 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium"
@@ -40,7 +41,7 @@ export function ImageModal({ isOpen, imageUrl, filename, onClose }: ImageModalPr
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Descargar
-            </a>
+            </EnlaceDescarga>
             <button
               onClick={onClose}
               className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2"

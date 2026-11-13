@@ -23,6 +23,7 @@ import {
 import { useAuthStore } from "@/store/authStore"
 import { useLogout, verificarClaveLogin } from "@/hooks/useAuth"
 import { InterruptorBiometria } from "@/components/SesionSegura"
+import { useVersionInstalada } from "@/components/VersionApp"
 import { EXTERNAL_APPS, getAppsForRole } from "@/lib/roles"
 import { openExternalApp } from "@/lib/openApp"
 import {
@@ -105,6 +106,7 @@ export function Sidebar() {
     : user?.email?.[0]?.toUpperCase() ?? "U"
 
   const { state, isMobile, setOpenMobile } = useSidebar()
+  const versionApp = useVersionInstalada()
   const isCollapsed = state === "collapsed"
   const logout = useLogout()
 
@@ -400,6 +402,7 @@ export function Sidebar() {
             <LogOut className="size-5" aria-hidden />
             Cerrar sesión
           </button>
+          {versionApp && <p className="px-3 pt-1 text-xs text-[#71717A]">Versión {versionApp.name} ({versionApp.code})</p>}
           </>
         ) : (
         <div className="flex items-center gap-2.5 px-1">

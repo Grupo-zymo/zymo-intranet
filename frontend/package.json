@@ -9,7 +9,7 @@
     "build:android": "tsc -b && vite build --mode android",
     "verificar:android": "node scripts/verificar-android.mjs",
     "lint": "eslint .",
-    "selfcheck": "node scripts/botonAtras.selfcheck.ts && node scripts/sesion.selfcheck.ts && node scripts/sse.selfcheck.ts",
+    "selfcheck": "node scripts/botonAtras.selfcheck.ts && node scripts/sesion.selfcheck.ts && node scripts/archivos.selfcheck.ts && node scripts/sse.selfcheck.ts && node scripts/version.selfcheck.ts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -17,6 +17,8 @@
     "@capacitor/app": "^8.1.2",
     "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
     "@capgo/capacitor-native-biometric": "^8.9.3",
     "@dagrejs/dagre": "^3.0.0",
     "@dnd-kit/core": "^6.3.1",

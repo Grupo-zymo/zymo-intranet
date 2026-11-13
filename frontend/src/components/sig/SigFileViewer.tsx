@@ -1,3 +1,6 @@
+import { ArchivoNoVisible } from "@/components/ArchivoNoVisible"
+import { guardarArchivo } from "@/lib/archivos"
+import { esNativo } from "@/lib/entorno"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { sigApi } from "@/lib/sigApi"
 
@@ -16,7 +19,24 @@ export function PreviewFrame({ children }: { children: ReactNode }) {
   )
 }
 
+const MIME_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+/** En el APK los documentos del SIG no se previsualizan: solo se descargan. */
+function SoloDescarga({ nombre, obtener }: { nombre: string; obtener: () => Promise<Blob> }) {
+  const [cargando, setCargando] = useState(false)
+  const descargar = async () => {
+    setCargando(true)
+    try { await guardarArchivo(await obtener(), nombre) } finally { setCargando(false) }
+  }
+  return (
+    <PreviewFrame>
+      <ArchivoNoVisible nombre={nombre} onDescargar={() => void descargar()} etiqueta="Descargar" cargando={cargando} />
+    </PreviewFrame>
+  )
+}
+
 export function PdfFrame({ src, title }: { src: string; title: string }) {
+  if (esNativo) return <SoloDescarga nombre={title.toLowerCase().endsWith(".pdf") ? title : `${title}.pdf`} obtener={async () => (await fetch(src)).blob()} />
   return (
     <PreviewFrame>
       {/* #view=FitH: el visor nativo del PDF ajusta la página al ancho del marco */}
@@ -30,7 +50,12 @@ export function PdfFrame({ src, title }: { src: string; title: string }) {
  * (fit-to-width), centradas sobre fondo gris con sombra — igual que un visor
  * de PDF. Sin esto las páginas quedaban pegadas a la izquierda a 794px fijos.
  */
-export function DocxViewer({ data, onError }: { data: ArrayBuffer; onError: (msg: string) => void }) {
+export function DocxViewer({ data, onError, nombre = "documento.docx" }: { data: ArrayBuffer; onError: (msg: string) => void; nombre?: string }) {
+  if (esNativo) return <SoloDescarga nombre={nombre} obtener={async () => new Blob([data], { type: MIME_DOCX })} />
+  return <DocxViewerWeb data={data} onError={onError} />
+}
+
+function DocxViewerWeb({ data, onError }: { data: ArrayBuffer; onError: (msg: string) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const hostRef = useRef<HTMLDivElement>(null)
 
@@ -91,6 +116,7 @@ export function WordPreview({
   const [state, setState] = useState<{ status: "loading" } | { status: "pdf"; url: string } | { status: "fallback" }>({ status: "loading" })
 
   useEffect(() => {
+    if (esNativo) return
     let url: string | null = null
     let cancelled = false
     setState({ status: "loading" })
@@ -107,6 +133,7 @@ export function WordPreview({
     }
   }, [pdfPath])
 
+  if (esNativo) return <DocxViewer data={docxData} onError={onError} nombre={title} />
   if (state.status === "loading") {
     return (
       <div className="flex-1 flex items-center justify-center gap-2 text-zinc-600">

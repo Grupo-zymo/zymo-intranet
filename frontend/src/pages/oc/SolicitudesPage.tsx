@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { PageLayout } from "@/components/layout/PageLayout"
@@ -34,14 +35,7 @@ async function descargarExcelOc(): Promise<string> {
   const disposition: string = res.headers["content-disposition"] ?? ""
   const match = disposition.match(/filename="(.+?)"/)
   const filename = match ? match[1] : "solicitudes-oc.xlsx"
-  const url = URL.createObjectURL(res.data as Blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  await guardarArchivo(res.data as Blob, filename)
   return filename
 }
 

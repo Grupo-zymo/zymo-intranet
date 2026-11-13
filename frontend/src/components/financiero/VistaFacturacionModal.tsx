@@ -1,3 +1,4 @@
+import { esNativo } from "@/lib/entorno"
 import type { SolicitudConFactura, Factura, EstadoFactura } from "@/types/financiero"
 import { formatCOP } from "@/lib/formatters"
 import { Button } from "@/components/ui/button"
@@ -117,6 +118,7 @@ export function VistaFacturacionModal({ open, onClose, solicitud, factura }: Vis
             </div>
           </section>
 
+          {!esNativo && (
           <section className="rounded-xl border border-dashed border-border bg-muted/80 px-4 py-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
@@ -140,6 +142,7 @@ export function VistaFacturacionModal({ open, onClose, solicitud, factura }: Vis
               </Button>
             </div>
           </section>
+          )}
         </div>
 
         <footer className="shrink-0 px-6 py-3 border-t border-border bg-muted flex justify-end">

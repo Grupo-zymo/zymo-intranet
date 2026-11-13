@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -15,11 +16,7 @@ function exportCsv(rows: LibProspecto[]) {
   ])
   const csv = [headers, ...csvRows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n")
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = "GestionComercial_SKANDIA_CREA_2026.csv"
-  link.click()
-  URL.revokeObjectURL(link.href)
+  void guardarArchivo(blob, "GestionComercial_SKANDIA_CREA_2026.csv")
 }
 
 export function PartnerProspectosPanel() {

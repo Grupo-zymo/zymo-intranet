@@ -1,5 +1,6 @@
 import axios from "axios"
 import { useAuthStore } from "@/store/authStore"
+import { abrirBlobEnNuevaVentana, nombreDesdeDisposition } from "@/lib/archivos"
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8001",
@@ -51,13 +52,7 @@ api.interceptors.response.use(
  * `window.open` a una URL del API no adjunta Authorization — por eso 401 en PDFs/OC.
  */
 export async function openAuthenticatedApiBlob(apiPath: string): Promise<void> {
-  const { data } = await api.get(apiPath, { responseType: "blob" })
-  const url = URL.createObjectURL(data as Blob)
-  const win = window.open(url, "_blank", "noopener,noreferrer")
-  if (!win) {
-    URL.revokeObjectURL(url)
-    return
-  }
-  // Revocar tras un margen para no romper la carga del visor PDF en la pestaña nueva
-  window.setTimeout(() => URL.revokeObjectURL(url), 120_000)
+  const resp = await api.get(apiPath, { responseType: "blob" })
+  const nombre = nombreDesdeDisposition(resp.headers["content-disposition"] as string | undefined, "documento.pdf")
+  await abrirBlobEnNuevaVentana(resp.data as Blob, nombre)
 }

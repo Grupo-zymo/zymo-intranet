@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { useRef, useState } from "react"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { sigApi } from "@/lib/sigApi"
@@ -148,14 +149,7 @@ export function SigAnexoPanel({
     setDownloading(item.id)
     try {
       const res = await sigApi.get(`${archivoUrlBase}/${item.id}/archivo`, { responseType: "blob" })
-      const url = URL.createObjectURL(new Blob([res.data]))
-      const a = document.createElement("a")
-      a.href = url
-      a.download = item.nombreArchivo
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      await guardarArchivo(new Blob([res.data]), item.nombreArchivo)
     } catch {
       setError("No se pudo descargar el archivo.")
     } finally {

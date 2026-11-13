@@ -1,3 +1,4 @@
+import { abrirBlobEnNuevaVentana, guardarArchivo } from "@/lib/archivos"
 import { useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { PageLayout } from "@/components/layout/PageLayout"
@@ -72,14 +73,7 @@ export function MiSolicitudDetallePage() {
       const mimeType = isPdf
         ? "application/pdf"
         : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      const blobUrl = URL.createObjectURL(new Blob([response.data], { type: mimeType }))
-      const a = document.createElement("a")
-      a.href = blobUrl
-      a.download = `${orden.numero_oc}.${ext}`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(blobUrl)
+      await guardarArchivo(new Blob([response.data], { type: mimeType }), `${orden.numero_oc}.${ext}`)
     } catch {
       console.error("Error al descargar OC")
     }
@@ -343,14 +337,8 @@ export function MiSolicitudDetallePage() {
                           type="button"
                           onClick={async () => {
                             const res = await api.get(`/api/oc/cotizaciones/${cotizacionAprobada.id}/pdf`, { responseType: "blob" })
-                            const url = URL.createObjectURL(res.data as Blob)
-                            const win = window.open(url, "_blank")
-                            setTimeout(() => URL.revokeObjectURL(url), 60_000)
-                            if (!win) {
-                              const a = document.createElement("a")
-                              a.href = url; a.download = `cotizacion_${cotizacionAprobada.id}.pdf`
-                              document.body.appendChild(a); a.click(); document.body.removeChild(a)
-                            }
+                            const nombre = `cotizacion_${cotizacionAprobada.id}.pdf`
+                            if (!(await abrirBlobEnNuevaVentana(res.data as Blob, nombre))) await guardarArchivo(res.data as Blob, nombre)
                           }}
                           className="flex items-center justify-center w-full gap-2 rounded-lg bg-card border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors shadow-sm"
                         >

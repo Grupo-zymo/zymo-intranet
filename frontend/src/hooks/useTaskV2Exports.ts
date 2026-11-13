@@ -1,3 +1,4 @@
+import { guardarArchivo } from "@/lib/archivos"
 import { taskApi } from "@/lib/taskApi"
 
 interface ExportFilters {
@@ -27,12 +28,7 @@ function buildParams(filters: ExportFilters): URLSearchParams {
 
 async function downloadBlob(url: string, filename: string): Promise<void> {
   const { data } = await taskApi.get(url, { responseType: "blob" })
-  const blobUrl = URL.createObjectURL(data as Blob)
-  const a = document.createElement("a")
-  a.href = blobUrl
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(blobUrl)
+  await guardarArchivo(data as Blob, filename)
 }
 
 export async function exportTasksV2Excel(filters: ExportFilters): Promise<void> {

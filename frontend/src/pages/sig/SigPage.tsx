@@ -1,3 +1,5 @@
+import { EnlaceDescarga } from "@/components/EnlaceDescarga"
+import { guardarArchivo } from "@/lib/archivos"
 import { useState, useCallback, useEffect } from "react"
 import "./sig.css"
 import { SigColaCommit, type CommitPendiente } from "@/components/sig/SigColaCommit"
@@ -1310,14 +1312,14 @@ function ArchivoOriginalView({
         </p>
       </div>
       {objectUrl && (
-        <a
+        <EnlaceDescarga
           href={objectUrl}
           download={nombreArchivo ?? "archivo"}
           className="flex items-center gap-1.5 text-xs px-3 py-2 rounded border border-zinc-300 text-zinc-700 hover:border-zinc-400 hover:text-zinc-900 transition-colors font-mono"
         >
           <Download className="h-3.5 w-3.5" />
           Descargar {nombreArchivo}
-        </a>
+        </EnlaceDescarga>
       )}
     </div>
   )
@@ -1459,14 +1461,7 @@ function CommitHistoryRow({
     setPdfError(null)
     try {
       const res = await api.get(`/api/sig/pdf/commit/${commit.id}`, { responseType: "blob" })
-      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }))
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${procCodigo}_v${commit.versionDoc || "1"}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      await guardarArchivo(new Blob([res.data], { type: "application/pdf" }), `${procCodigo}_v${commit.versionDoc || "1"}.pdf`)
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status
       const msg =

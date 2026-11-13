@@ -1,3 +1,7 @@
+import { EnlaceDescarga } from "@/components/EnlaceDescarga"
+import { ArchivoNoVisible } from "@/components/ArchivoNoVisible"
+import { guardarDesdeBlobUrl } from "@/lib/archivos"
+import { esNativo } from "@/lib/entorno"
 import { useState, useRef, useCallback } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import type { TaskAttachment } from "@/types/task"
@@ -67,6 +71,15 @@ function AttachmentPreview({ attachment }: { attachment: TaskAttachment }) {
       />
     )
   }
+  if (isPdf && esNativo) {
+    return (
+      <ArchivoNoVisible
+        nombre={attachment.filename}
+        detalle={`PDF · ${formatBytes(attachment.sizeBytes)}`}
+        onDescargar={() => void guardarDesdeBlobUrl(blobUrl, attachment.filename)}
+      />
+    )
+  }
   if (isPdf) {
     return (
       <iframe
@@ -84,13 +97,9 @@ function AttachmentPreview({ attachment }: { attachment: TaskAttachment }) {
         <p className="font-medium text-zinc-900">{attachment.filename}</p>
         <p className="text-sm text-zinc-500 mt-0.5">{formatBytes(attachment.sizeBytes)}</p>
       </div>
-      <a
-        href={blobUrl}
-        download={attachment.filename}
-        className="text-sm text-primary hover:underline mt-1"
-      >
+      <EnlaceDescarga href={blobUrl} download={attachment.filename} className="text-sm text-primary hover:underline mt-1">
         Descargar archivo
-      </a>
+      </EnlaceDescarga>
     </div>
   )
 }
