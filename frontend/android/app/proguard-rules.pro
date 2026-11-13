@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# --- ZYMO Intranet: reglas para que R8 no rompa Capacitor ni sus plugins (el WebView invoca plugins por reflexión/anotaciones) ---
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod, SourceFile, LineNumberTable
+-keep class com.getcapacitor.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin public class * { @com.getcapacitor.annotation.PermissionCallback <methods>; @com.getcapacitor.annotation.ActivityCallback <methods>; @com.getcapacitor.PluginMethod public <methods>; }
+-keep public class * extends com.getcapacitor.Plugin { *; }
+-keep class com.capacitorjs.plugins.** { *; }
+-keep class ee.forgr.** { *; }
+-keep class com.capgo.** { *; }
+-keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
+-dontwarn com.getcapacitor.**

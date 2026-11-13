@@ -37,8 +37,16 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
-            minifyEnabled false
+            // Ofuscación y reducción: reglas para Capacitor y sus plugins en proguard-rules.pro (probar siempre el APK release en un teléfono real).
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    // Nombre del archivo con la versión: zymo-intranet-1.1.0-release.apk
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            outputFileName = "zymo-intranet-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 }

@@ -32,3 +32,14 @@ Si el mínimo queda por encima del último, el servidor lo iguala al último.
 Subir `APP_ANDROID_MIN_VERSION_CODE` al código del APK nuevo (y `LATEST_VERSION_CODE` a lo mismo o más), con `APP_ANDROID_APK_URL` apuntando al APK. Hacerlo solo cuando el APK nuevo ya esté disponible para descargar. Para revertir, bajar el mínimo.
 
 La versión instalada se ve al pie del menú lateral móvil ("Versión 1.1.0 (2)").
+
+## APK de producción (firmado)
+
+La llave de producción **ya existe** y es la que firmó el APK 1.0.0: `C:\Android\keys\zymo-intranet.jks` (alias `zymo`, huella SHA-256 `25:E4:86:76:1E:63:FD:D1:AE:CF:E1:CB:97:D8:BB:9E:D7:09:32:F4:29:2A:7C:E8:D1:8F:8C:47:A4:57:7E:5A`). Las contraseñas están en `frontend/android/keystore.properties` (ignorado por git; nunca se sube).
+
+- **Respaldo obligatorio:** copiar `C:\Android\keys\` y `frontend\android\keystore.properties` a un lugar privado fuera de este PC. Si se pierde la llave, ningún teléfono podrá actualizar el APK (habría que desinstalar y reinstalar en cada uno).
+- **Nunca generar otra llave** para el mismo `applicationId`: Android rechaza actualizar un APK firmado con otra llave.
+- **Compilar:** `cd frontend && npm run build:android && npx cap sync android && cd android && gradlew.bat assembleRelease -PzymoVersionCode=<n> -PzymoVersionName=<x.y.z>` → `app/build/outputs/apk/release/zymo-intranet-<x.y.z>-release.apk`.
+- **Verificar la firma:** `apksigner verify --print-certs <apk>` debe mostrar la huella de arriba.
+- El release usa R8 (ofuscación + reducción de recursos); las reglas están en `frontend/android/app/proguard-rules.pro`. Probar siempre el release en un teléfono real (login, Central, descarga de un archivo).
+- El release no es depurable; para depurar el WebView usar el APK de pruebas (`assembleDebug`, firma de depuración) — no se instala encima del release (otra firma): desinstalar primero.
