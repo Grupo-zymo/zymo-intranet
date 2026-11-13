@@ -48,7 +48,8 @@ export function categorizeMyWork(
   return { pendientes, vencidas, enCurso }
 }
 
-// Contador para el badge del sidebar (no necesita config de equipos).
-export function countPendingForMe(tasks: Task[], userId: number | null): number {
-  return tasks.reduce((n, t) => n + (isPendingForMe(t, userId) ? 1 : 0), 0)
+// Contador para el badge del sidebar. Debe dar lo mismo que la sección "Pendientes de aceptar":
+// una tarea ya terminada o cancelada que nadie aceptó no cuenta (antes dejaba el badge en 1 con la bandeja vacía).
+export function countPendingForMe(tasks: Task[], userId: number | null, isDone: (task: Task) => boolean): number {
+  return categorizeMyWork(tasks, userId, isDone).pendientes.length
 }

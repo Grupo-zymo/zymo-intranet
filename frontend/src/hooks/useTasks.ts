@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
 import { taskApi } from "@/lib/taskApi"
 import { useAuthStore } from "@/store/authStore"
-import type { Task, CreateTaskInput, UpdateTaskInput, ActivityLog } from "@/types/task"
+import { useMyTeams } from "@/hooks/useTaskTeams"
+import { countPendingForMe } from "@/lib/taskWork"
+import type { Task, CreateTaskInput, UpdateTaskInput, ActivityLog, ListsGrouped } from "@/types/task"
 
 export interface TaskListFilters {
   teamId?: number
@@ -69,6 +71,35 @@ export function useMyTasks() {
   const userId = useAuthStore((s) => s.user?.id ?? null)
   const query = useTasks({ responsableId: userId ?? undefined, limit: 200 })
   return { ...query, userId }
+}
+
+// Estados de cada equipo del usuario, para saber si una tarea ya terminó (estado final o cancelado).
+// Lo comparten la vista "Mi trabajo" y el contador del menú: así nunca cuentan distinto.
+export function useMyTaskLists() {
+  const { data: teams = [] } = useMyTeams()
+  const results = useQueries({
+    queries: teams.map((t) => ({
+      queryKey: ["taskLists", t.id],
+      queryFn: async () => (await taskApi.get<ListsGrouped>(`/api/teams/${t.id}/lists`)).data,
+    })),
+  })
+  const listsByTeam = new Map<number, ListsGrouped>()
+  teams.forEach((t, i) => {
+    const d = results[i]?.data
+    if (d) listsByTeam.set(t.id, d)
+  })
+  const isDone = (t: Task) => {
+    const c = listsByTeam.get(t.teamId)?.estado?.find((e) => e.value === t.estado)
+    return !!(c?.isFinal || c?.isCanceled)
+  }
+  return { teams, listsByTeam, isDone }
+}
+
+/** Contador del menú: tareas asignadas a mí, sin aceptar y que siguen abiertas. */
+export function useMyPendingCount(): number {
+  const { data, userId } = useMyTasks()
+  const { isDone } = useMyTaskLists()
+  return countPendingForMe(data?.tasks ?? [], userId, isDone)
 }
 
 // ─── Single task ──────────────────────────────────────────────────────────────

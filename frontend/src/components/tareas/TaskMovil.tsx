@@ -1,8 +1,6 @@
 import { CalendarDays, Inbox, Kanban, List, MoreHorizontal } from "lucide-react"
 import { useTask, type TaskView } from "@/context/TaskContext"
-import { useMyTasks } from "@/hooks/useTasks"
-import { countPendingForMe } from "@/lib/taskWork"
-import { useAuthStore } from "@/store/authStore"
+import { useMyPendingCount } from "@/hooks/useTasks"
 import { MovilBarraInferior, MovilBarraSuperior, MovilFab, type MovilNavItem } from "@/components/movil/Movil"
 import { VIEW_TITLES } from "./TaskTopbar"
 
@@ -21,9 +19,7 @@ const VISTAS: { view: TaskView; etiqueta: string; icono: MovilNavItem["icono"] }
 
 export function TaskBarraInferiorMovil({ onMas }: { onMas: () => void }) {
   const { activeView, setActiveView, onNewTask } = useTask()
-  const userId = useAuthStore((s) => s.user?.id ?? null)
-  const { data: myWork } = useMyTasks()
-  const pendientes = countPendingForMe(myWork?.tasks ?? [], userId)
+  const pendientes = useMyPendingCount()
   const enPrincipal = VISTAS.some((v) => v.view === activeView)
 
   const items: MovilNavItem[] = [

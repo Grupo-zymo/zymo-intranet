@@ -15,8 +15,7 @@ import {
 } from "lucide-react"
 import { useTask, type TaskView } from "@/context/TaskContext"
 import { useMyTeams, useCreateTeam } from "@/hooks/useTaskTeams"
-import { useMyTasks } from "@/hooks/useTasks"
-import { countPendingForMe } from "@/lib/taskWork"
+import { useMyPendingCount } from "@/hooks/useTasks"
 import { useAuthStore } from "@/store/authStore"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import "./tareas.css"
@@ -52,8 +51,7 @@ export function TaskSidebar() {
   const isManager = myRole === "owner" || myRole === "co_gestor"
 
   // Badge cross-team: tareas asignadas a mí, aún sin aceptar.
-  const { data: myWork } = useMyTasks()
-  const pendingCount = countPendingForMe(myWork?.tasks ?? [], user?.id ?? null)
+  const pendingCount = useMyPendingCount()
 
   useEffect(() => {
     setTeams(teams)

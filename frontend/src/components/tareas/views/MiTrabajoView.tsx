@@ -1,16 +1,13 @@
 import { useState } from "react"
 import type { ReactNode } from "react"
-import { useQueries } from "@tanstack/react-query"
 import { Inbox, Clock, AlertTriangle, ChevronRight } from "lucide-react"
-import { taskApi } from "@/lib/taskApi"
-import { useMyTasks } from "@/hooks/useTasks"
-import { useMyTeams } from "@/hooks/useTaskTeams"
+import { useMyTasks, useMyTaskLists } from "@/hooks/useTasks"
 import { TaskDrawer } from "@/components/tareas/TaskDrawer"
 import { TaskStatusPill } from "@/components/tareas/TaskStatusPill"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { categorizeMyWork, isOverdue } from "@/lib/taskWork"
-import type { Task, ListsGrouped, ListConfig } from "@/types/task"
+import type { Task, ListConfig } from "@/types/task"
 
 function fmtMin(min: number | null | undefined): string | null {
   if (!min) return null
@@ -135,30 +132,13 @@ function Section({ icon, title, accent, tasks, emptyLabel, children }: SectionPr
 
 export function MiTrabajoView() {
   const { data, isLoading, userId } = useMyTasks()
-  const { data: teams = [] } = useMyTeams()
+  const { teams, listsByTeam, isDone } = useMyTaskLists()
   const [selected, setSelected] = useState<Task | null>(null)
 
   const teamName = new Map(teams.map((t) => [t.id, t.name]))
-  const teamIds = teams.map((t) => t.id)
-
-  const listsResults = useQueries({
-    queries: teamIds.map((id) => ({
-      queryKey: ["taskLists", id],
-      queryFn: async () => (await taskApi.get<ListsGrouped>(`/api/teams/${id}/lists`)).data,
-    })),
-  })
-  const listsByTeam = new Map<number, ListsGrouped>()
-  teamIds.forEach((id, i) => {
-    const d = listsResults[i]?.data
-    if (d) listsByTeam.set(id, d)
-  })
 
   const estadoCfg = (t: Task) => listsByTeam.get(t.teamId)?.estado?.find((e) => e.value === t.estado)
   const prioCfg = (t: Task) => listsByTeam.get(t.teamId)?.prioridad?.find((p) => p.value === t.prioridad)
-  const isDone = (t: Task) => {
-    const c = estadoCfg(t)
-    return !!(c?.isFinal || c?.isCanceled)
-  }
 
   const tasks = data?.tasks ?? []
   const { pendientes, vencidas, enCurso } = categorizeMyWork(tasks, userId, isDone)
