@@ -235,6 +235,10 @@ services:
       # Central de tickets: API de la app de autogestión del cliente (servidor a servidor)
       - AUTOGESTION_API_URL=${AUTOGESTION_API_URL:-}
       - AUTOGESTION_SERVICE_KEY=${AUTOGESTION_SERVICE_KEY:-}
+      # Mesa de ayuda: notificaciones push del teléfono (sin claves queda apagado)
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:soporte@zymointranet.com}
     volumes:
       - zymoally_uploads:/app/uploads
     depends_on:

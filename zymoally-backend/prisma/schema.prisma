@@ -334,3 +334,15 @@ model MesaAviso {
   @@index([userId, leidoEn])
   @@index([ticketId])
 }
+
+// Dispositivos donde una persona activó las notificaciones del teléfono (Web Push).
+model MesaPushSub {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

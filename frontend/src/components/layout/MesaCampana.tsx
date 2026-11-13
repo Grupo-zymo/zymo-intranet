@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react"
+import { Bell, BellOff, BellRing } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { zymoallyApi } from "@/lib/zymoallyApi"
 import { formatFechaRelativa } from "@/lib/dates"
+import { useMesaPush } from "@/hooks/useMesaPush"
 
 interface Aviso {
   id: number
@@ -44,6 +45,8 @@ export function MesaCampana() {
     mutationFn: async (ids?: number[]) => (await zymoallyApi.post("/api/mesa/avisos/leer", ids ? { ids } : {})).data,
     onSettled: () => qc.invalidateQueries({ queryKey: CLAVE }),
   })
+
+  const push = useMesaPush()
 
   // Si el servicio no responde, la campana no estorba: simplemente no aparece
   if (!avisos.data) return null
@@ -106,6 +109,29 @@ export function MesaCampana() {
         <DropdownMenuItem className="cursor-pointer justify-center py-2.5 text-sm font-medium text-primary" onSelect={() => navigate("/mesa-ayuda/solicitudes?vista=area")}>
           Ver la bandeja de la mesa de ayuda
         </DropdownMenuItem>
+        {/* Notificaciones del teléfono: se activan por dispositivo */}
+        {push.estado !== "no_disponible" && (
+          <>
+            <DropdownMenuSeparator />
+            {push.estado === "bloqueado" ? (
+              <p className="flex items-start gap-2 px-3 py-2 text-xs text-muted-foreground">
+                <BellOff className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                Las notificaciones están bloqueadas para la intranet en este navegador. Actívalas en los permisos del sitio.
+              </p>
+            ) : (
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 py-2.5 text-sm"
+                disabled={push.ocupado}
+                // El menú no se cierra: así se ve el resultado (y el aviso de permiso del navegador)
+                onSelect={(e) => { e.preventDefault(); if (push.estado === "activo") void push.desactivar(); else void push.activar() }}
+              >
+                {push.estado === "activo" ? <BellOff className="h-4 w-4" aria-hidden="true" /> : <BellRing className="h-4 w-4" aria-hidden="true" />}
+                {push.ocupado ? "Un momento…" : push.estado === "activo" ? "Dejar de notificarme en este dispositivo" : "Notificarme en este dispositivo"}
+              </DropdownMenuItem>
+            )}
+            {push.error && <p className="px-3 pb-2 text-xs text-destructive" role="alert">{push.error}</p>}
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

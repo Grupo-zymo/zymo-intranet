@@ -22,6 +22,11 @@ export const env = {
   // servidor). Si falta la URL o la clave, el módulo responde 503 y no llama.
   AUTOGESTION_API_URL: (process.env.AUTOGESTION_API_URL ?? "").trim().replace(/\/+$/, ""),
   AUTOGESTION_SERVICE_KEY: (process.env.AUTOGESTION_SERVICE_KEY ?? "").trim(),
+  // Mesa de ayuda: notificaciones push (Web Push). Sin las dos claves VAPID el push queda apagado.
+  // Generarlas una vez con `npx web-push generate-vapid-keys`; la privada es un secreto.
+  VAPID_PUBLIC_KEY: (process.env.VAPID_PUBLIC_KEY ?? "").trim(),
+  VAPID_PRIVATE_KEY: (process.env.VAPID_PRIVATE_KEY ?? "").trim(),
+  VAPID_SUBJECT: (process.env.VAPID_SUBJECT ?? "mailto:soporte@zymointranet.com").trim(),
 } as const;
 
 export type Env = typeof env;

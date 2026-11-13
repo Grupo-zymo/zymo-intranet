@@ -12,6 +12,7 @@
 import { prisma } from "../config/prisma"
 import { horasLaboralesMesa } from "../utils/businessHours"
 import { cuentasDeArea } from "./mesaIntranet"
+import { enviarPush } from "./mesaPush"
 
 export type TipoAviso = "nuevo" | "asignacion" | "respuesta" | "nota" | "cierre" | "redireccion" | "fuera_de_meta"
 
@@ -59,6 +60,8 @@ export async function avisar(ticket: TicketAviso, tipo: TipoAviso, texto: string
     const ids = destinatarios({ responsables, miembrosArea, creadorId: ticket.creadorId, actorId: o.actorId, incluirCreador: o.incluirCreador ?? false, soloEstos: o.soloEstos })
     if (ids.length === 0) return 0
     await prisma.mesaAviso.createMany({ data: ids.map((userId) => ({ userId, ticketId: ticket.id, tipo, texto: texto.slice(0, 300) })) })
+    // Al teléfono también, sin esperar (no debe demorar la acción) y sin poder tumbarla
+    void enviarPush(ids, { titulo: `Mesa de ayuda · ${ticket.codigo}`, texto: texto.slice(0, 200), url: `/mesa-ayuda/solicitudes?ticket=${ticket.id}`, etiqueta: `mesa-${ticket.id}` })
     return ids.length
   } catch (err) {
     console.error(`[mesa] no se pudieron crear los avisos de ${ticket.codigo} (${tipo}): ${err instanceof Error ? err.message : "error"}`)
