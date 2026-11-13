@@ -65,8 +65,16 @@ export function MesaNueva({ abierto, onCerrar, onCreado, inicial }: Props) {
 
   const error = aviso || (accion.isError ? mensajeDeError(accion.error) : "")
 
+  // Con algo escrito, cerrar (Esc, clic afuera o Cancelar) pregunta antes de perderlo
+  const conBorrador = asunto.trim() !== (inicial?.asunto ?? "").trim() || descripcion.trim() !== (inicial?.descripcion ?? "").trim() || archivos.length > 0
+  function cerrar() {
+    if (conBorrador && !window.confirm("¿Descartar lo que escribiste? La solicitud no se ha enviado.")) return
+    limpiar()
+    onCerrar()
+  }
+
   return (
-    <Dialog open={abierto} onOpenChange={(o) => { if (!o && !accion.isPending) { limpiar(); onCerrar() } }}>
+    <Dialog open={abierto} onOpenChange={(o) => { if (!o && !accion.isPending) cerrar() }}>
       <DialogContent className="mesa-capa max-h-[92dvh] overflow-y-auto overscroll-contain sm:max-w-xl">
         <DialogTitle asChild><h2>{inicial ? "Pedir apoyo a otra área" : "Nueva solicitud"}</h2></DialogTitle>
         <DialogDescription className="mesa-ayuda">
@@ -120,7 +128,7 @@ export function MesaNueva({ abierto, onCerrar, onCreado, inicial }: Props) {
           {error && <p className="mesa-error" role="alert">{error}</p>}
 
           <div className="mesa-fila-acc" style={{ justifyContent: "flex-end" }}>
-            <button type="button" className="mesa-btn2" disabled={accion.isPending} onClick={() => { limpiar(); onCerrar() }}>Cancelar</button>
+            <button type="button" className="mesa-btn2" disabled={accion.isPending} onClick={cerrar}>Cancelar</button>
             <button type="submit" className="mesa-btn" disabled={accion.isPending}>{accion.isPending ? "Enviando…" : "Enviar solicitud"}</button>
           </div>
         </form>
