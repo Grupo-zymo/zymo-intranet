@@ -23,7 +23,7 @@ export function startReminderCron(): void {
   // Mesa de ayuda: tickets que pasaron la meta de su área. Cada 30 min dentro del horario laboral
   // (las metas se miden en horas laborales, así que fuera de él no cambia nada).
   cron.schedule(
-    "*/30 7-19 * * *",
+    "*/30 7-19 * * 1-6", // lunes a sábado: el horario de la mesa no incluye domingos
     () => {
       avisarFueraDeMeta()
         .then((n) => { if (n > 0) console.log(`[mesa] ${n} aviso(s) de tickets fuera de meta`) })

@@ -5,7 +5,7 @@
 // 7 p. m., sábados hasta mediodía, domingos no; hora Colombia): un ticket que
 // llega el viernes a las 6 p. m. no "lleva 60 horas sin respuesta" el lunes.
 
-import { businessHoursBetween } from "../utils/businessHours"
+import { horasLaboralesMesa } from "../utils/businessHours"
 
 export interface TicketTablero {
   estado: string
@@ -72,11 +72,11 @@ export function calcularTablero(tickets: TicketTablero[], metas: Metas, dias: nu
   const cerradosEnPeriodo = tickets.filter((t) => t.cerradoEn && t.cerradoEn >= desde)
 
   // Primera respuesta: tickets creados en el período que ya la tienen
-  const hRespuesta = creadosEnPeriodo.filter((t) => t.primeraRespuestaEn).map((t) => businessHoursBetween(t.createdAt, t.primeraRespuestaEn as Date))
+  const hRespuesta = creadosEnPeriodo.filter((t) => t.primeraRespuestaEn).map((t) => horasLaboralesMesa(t.createdAt, t.primeraRespuestaEn as Date))
   // Cierre: tickets cerrados en el período
-  const hCierre = cerradosEnPeriodo.map((t) => businessHoursBetween(t.createdAt, t.cerradoEn as Date))
+  const hCierre = cerradosEnPeriodo.map((t) => horasLaboralesMesa(t.createdAt, t.cerradoEn as Date))
 
-  const pasada = (t: TicketTablero, metaH: number | null) => metaH !== null && businessHoursBetween(t.createdAt, ahora) > metaH
+  const pasada = (t: TicketTablero, metaH: number | null) => metaH !== null && horasLaboralesMesa(t.createdAt, ahora) > metaH
   const sinRespuesta = activos.filter((t) => !t.primeraRespuestaEn)
 
   const categorias = new Map<string, number>()

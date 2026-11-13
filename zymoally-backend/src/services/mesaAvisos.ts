@@ -10,7 +10,7 @@
 //   · Nunca a quien hizo la acción.
 
 import { prisma } from "../config/prisma"
-import { businessHoursBetween } from "../utils/businessHours"
+import { horasLaboralesMesa } from "../utils/businessHours"
 import { cuentasDeArea } from "./mesaIntranet"
 
 export type TipoAviso = "nuevo" | "asignacion" | "respuesta" | "nota" | "cierre" | "redireccion" | "fuera_de_meta"
@@ -94,7 +94,7 @@ export async function avisarFueraDeMeta(ahora = new Date(), soloAreas?: number[]
   })
   let enviados = 0
   for (const t of candidatos) {
-    const llevan = businessHoursBetween(t.createdAt, ahora)
+    const llevan = horasLaboralesMesa(t.createdAt, ahora)
     const { metaPrimeraRespuestaH: mr, metaCierreH: mc } = t.area
     if (mr !== null && !t.primeraRespuestaEn && !t.avisoRespuestaEn && llevan > mr) {
       enviados += await avisar(t, "fuera_de_meta", `${t.codigo} pasó la meta de primera respuesta (${mr} h) y sigue sin respuesta`, { actorId: null })
