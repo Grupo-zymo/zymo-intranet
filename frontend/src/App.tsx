@@ -71,6 +71,7 @@ const GerencialPage = lazy(() => import("@/pages/gerencial/GerencialPage").then(
 const LibertadoraPage = lazy(() => import("@/pages/libertadora/LibertadoraPage").then((m) => ({ default: m.LibertadoraPage })))
 const LibertadoraPartnerPage = lazy(() => import("@/pages/libertadora/partner/LibertadoraPartnerPage").then((m) => ({ default: m.LibertadoraPartnerPage })))
 const TicketsPage = lazy(() => import("@/pages/tickets/TicketsPage").then((m) => ({ default: m.TicketsPage })))
+const MesaAyudaPage = lazy(() => import("@/pages/mesa/MesaAyudaPage").then((m) => ({ default: m.MesaAyudaPage })))
 const CentralTicketsPage = lazy(() => import("@/pages/central/CentralTicketsPage").then((m) => ({ default: m.CentralTicketsPage })))
 const SacPage = lazy(() => import("@/pages/sac/SacPage").then((m) => ({ default: m.SacPage })))
 const SurveyPage = lazy(() => import("@/pages/survey/SurveyPage").then((m) => ({ default: m.SurveyPage })))
@@ -707,6 +708,16 @@ export default function App() {
             <TicketsRoute>
               <TicketsPage />
             </TicketsRoute>
+          }
+        />
+
+        {/* Mesa de ayuda interna por áreas — abierta a toda cuenta activa (cualquiera crea solicitudes) */}
+        <Route
+          path="/mesa-ayuda/*"
+          element={
+            <PrivateRoute>
+              <MesaAyudaPage />
+            </PrivateRoute>
           }
         />
 

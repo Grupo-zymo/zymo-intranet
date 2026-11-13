@@ -15,6 +15,7 @@ import { crearTicketConCodigo } from "../../services/mesaCodigo"
 import { decidirMesa, filtroLista, relacionCon, type AccionMesa, type TicketParaAcceso } from "../../services/mesaAuth"
 import { MesaError, cuentasDeArea } from "../../services/mesaIntranet"
 import { avisar } from "../../services/mesaAvisos"
+import { horasLaboralesMesa } from "../../utils/businessHours"
 import { listarCuentas } from "../../utils/userNames"
 import { acceso, actorDe, exigir, idSchema, ruta, validar } from "./comun"
 
@@ -128,7 +129,12 @@ router.get("/tickets", ruta(async (req, res) => {
       },
     }),
   ])
-  res.json({ total, pagina: f.pagina, limite: f.limite, items })
+  const ahora = new Date()
+  // horasAbierto: horas laborales que lleva sin cerrarse; el dashboard las compara con la meta de cierre del área
+  res.json({
+    total, pagina: f.pagina, limite: f.limite,
+    items: items.map((t) => ({ ...t, horasAbierto: t.estado === "cerrado" || t.eliminadoEn ? null : horasLaboralesMesa(t.createdAt, ahora) })),
+  })
 }))
 
 // GET /resumen?vista= — contadores de las pestañas de la bandeja
@@ -143,6 +149,28 @@ router.get("/resumen", ruta(async (req, res) => {
   ])
   const n = (estado: string) => porEstado.find((g) => g.estado === estado)?._count._all ?? 0
   res.json({ abierto: n("abierto"), en_espera: n("en_espera"), cerrado: n("cerrado"), sinAsignar, asignadosAMi, sinRespuesta })
+}))
+
+// GET /serie?vista=&dias=7|14|30 — cuántos tickets llegaron y cuántos se cerraron cada día
+// (fecha de Colombia), entre los que quien llama puede ver en esa vista. Para la gráfica del dashboard.
+router.get("/serie", ruta(async (req, res) => {
+  const f = validar(z.object({ vista: vistaSchema, dias: z.coerce.number().refine((d) => [7, 14, 30].includes(d)).default(14) }), req.query)
+  const dia = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(d) // AAAA-MM-DD
+  const ahora = new Date()
+  const fechas = Array.from({ length: f.dias }, (_, i) => dia(new Date(ahora.getTime() - (f.dias - 1 - i) * 86_400_000)))
+  const desde = new Date(ahora.getTime() - f.dias * 86_400_000)
+  const tickets = await prisma.mesaTicket.findMany({
+    where: { AND: [whereDe(req, f.vista), { OR: [{ createdAt: { gte: desde } }, { cerradoEn: { gte: desde } }] }] },
+    select: { createdAt: true, cerradoEn: true },
+  })
+  const serie = new Map(fechas.map((fecha) => [fecha, { fecha, llegaron: 0, cerrados: 0 }]))
+  for (const t of tickets) {
+    const a = serie.get(dia(t.createdAt))
+    if (a) a.llegaron++
+    const c = t.cerradoEn ? serie.get(dia(t.cerradoEn)) : undefined
+    if (c) c.cerrados++
+  }
+  res.json([...serie.values()])
 }))
 
 // GET /panorama — tickets por área y estado, para la vista de administración (no son métricas:
