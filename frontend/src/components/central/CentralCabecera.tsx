@@ -57,7 +57,7 @@ export function CentralCabecera({
           {esperan > 0 && (
             <span className="ct-mono ml-1.5 rounded-full bg-[var(--ct-red-solid)] px-2 text-xs font-medium text-white">
               {esperan}
-              <span className="sr-only"> esperan respuesta</span>
+              <span className="sr-only"> {esperan === 1 ? "espera" : "esperan"} respuesta</span>
             </span>
           )}
         </NavLink>

@@ -158,7 +158,7 @@ export function CentralResumenPlegable({
       >
         <span className="text-[15px] font-bold">Resumen</span>
         <span className="ct-muted flex items-center gap-2 text-xs">
-          <span><span className="ct-mono">{resumen.abiertos}</span> abiertos · <span className="ct-mono">{resumen.total}</span> en total</span>
+          <span><span className="ct-mono">{resumen.abiertos}</span> {resumen.abiertos === 1 ? "abierto" : "abiertos"} · <span className="ct-mono">{resumen.total}</span> en total</span>
           <ChevronDown className={`size-4 transition-transform duration-200 ${abierto ? "rotate-180" : ""}`} aria-hidden />
         </span>
       </button>
@@ -205,7 +205,7 @@ function FilaLider({
         type="button"
         aria-pressed={activo}
         onClick={onClick}
-        aria-label={`${lider.nombre}: ${lider.abiertos} abiertos, ${lider.vencidos} vencidos, ${lider.escalados} escalados, ${lider.resueltos30d} resueltos en 30 días. ${activo ? "Quitar filtro" : "Filtrar por este líder"}`}
+        aria-label={`${lider.nombre}: ${lider.abiertos} ${lider.abiertos === 1 ? "abierto" : "abiertos"}, ${lider.vencidos} ${lider.vencidos === 1 ? "vencido" : "vencidos"}, ${lider.escalados} ${lider.escalados === 1 ? "escalado" : "escalados"}, ${lider.resueltos30d} ${lider.resueltos30d === 1 ? "resuelto" : "resueltos"} en 30 días. ${activo ? "Quitar filtro" : "Filtrar por este líder"}`}
         className="grid min-h-[48px] w-full cursor-pointer grid-cols-[minmax(0,1fr)_repeat(4,2.1rem)] items-center gap-x-2 rounded-xl px-2 py-2 text-left transition-colors duration-150 hover:bg-[var(--ct-hover)] aria-pressed:bg-[var(--ct-red-soft)]"
       >
         <span className="min-w-0">
@@ -311,7 +311,7 @@ export function CentralTendencia({ dias, alto = 170 }: { dias: CentralResumen["u
           </span>
         </p>
       </div>
-      <div className="mt-3 min-w-0" style={{ height: alto }} role="img" aria-label={`Casos de los últimos 14 días: ${creados} creados y ${resueltos} resueltos`}>
+      <div className="mt-3 min-w-0" style={{ height: alto }} role="img" aria-label={`Casos de los últimos 14 días: ${creados} ${creados === 1 ? "creado" : "creados"} y ${resueltos} ${resueltos === 1 ? "resuelto" : "resueltos"}`}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={dias} barGap={2} barCategoryGap="22%" margin={{ top: 4, right: 0, bottom: 0, left: -28 }}>
             <CartesianGrid vertical={false} stroke="var(--ct-line)" />

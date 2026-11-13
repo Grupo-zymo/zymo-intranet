@@ -1,6 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useAuthStore } from "@/store/authStore"
 import { api } from "@/lib/api"
+import { trasLoginManual, type ResultadoLogin } from "@/components/SesionSegura"
+import { desactivarBiometria } from "@/lib/biometria"
+import { recordarSesion } from "@/lib/almacenSesion"
 import type { TokenResponse, User } from "@/types/auth"
 
 // ── Login ─────────────────────────────────────────────────────────────────────
@@ -8,6 +11,7 @@ import type { TokenResponse, User } from "@/types/auth"
 interface LoginCredentials {
   email: string
   password: string
+  recordar?: boolean
 }
 
 async function loginRequest(credentials: LoginCredentials): Promise<TokenResponse> {
@@ -29,14 +33,49 @@ export function useLogin() {
   const setAuth = useAuthStore((s) => s.setAuth)
 
   return useMutation({
-    mutationFn: loginRequest,
-    onSuccess: async (tokenData) => {
+    mutationFn: async (c: LoginCredentials) => {
+      recordarSesion.fijar(c.recordar ?? true) // antes del login: decide en qué almacén se guarda el token
+      return loginRequest(c)
+    },
+    onSuccess: async (tokenData, c) => {
       // Guardamos el token primero para que el interceptor lo adjunte en /me
       useAuthStore.setState({ token: tokenData.access_token })
       const user = await fetchMe()
       setAuth(user, tokenData.access_token)
+      void trasLoginManual(c.email, c.password, c.recordar ?? true)
     },
   })
+}
+
+/** Login sin pantalla (desbloqueo biométrico): mismo endpoint, y distingue contraseña rechazada de falta de red. */
+export async function loginSilencioso(email: string, password: string): Promise<ResultadoLogin> {
+  try {
+    const t = await loginRequest({ email, password })
+    useAuthStore.setState({ token: t.access_token })
+    const user = await fetchMe()
+    useAuthStore.getState().setAuth(user, t.access_token)
+    return "ok"
+  } catch (e) {
+    if (!useAuthStore.getState().isAuthenticated) useAuthStore.setState({ token: null }) // no dejar un token persistido sin sesión
+    return clasificarError(e)
+  }
+}
+
+/** Solo 401/403 cuentan como "rechazada" (y habilitan borrar lo guardado); 400/429/5xx o sin respuesta no. */
+function clasificarError(e: unknown): ResultadoLogin {
+  const status = (e as { response?: { status?: number } }).response?.status
+  if (status === undefined) return "sin-conexion"
+  return status === 401 || status === 403 ? "rechazada" : "error"
+}
+
+/** Comprueba correo y contraseña sin tocar la sesión ni el token guardado (para activar la biometría). */
+export async function verificarClaveLogin(email: string, password: string): Promise<ResultadoLogin> {
+  try {
+    await loginRequest({ email, password })
+    return "ok"
+  } catch (e) {
+    return clasificarError(e)
+  }
 }
 
 // ── Usuario actual ─────────────────────────────────────────────────────────────
@@ -63,6 +102,7 @@ export function useLogout() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
   return () => {
     clearAuth()
-    window.location.href = "/login"
+    // cerrar sesión borra las credenciales del Keystore; se espera antes de recargar para no cortar el borrado
+    void desactivarBiometria().finally(() => { window.location.href = "/login" })
   }
 }

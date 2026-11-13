@@ -34,7 +34,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // El 401 de /auth/token es "credenciales malas", no sesión vencida: lo maneja quien llamó al login (pantalla, desbloqueo o activar biometría).
+    const esLogin = String(error.config?.url ?? "").endsWith("/auth/token")
+    if (error.response?.status === 401 && !esLogin) {
       if (!window.location.pathname.startsWith("/m/portal")) {
         useAuthStore.getState().clearAuth()
         window.location.href = "/login"

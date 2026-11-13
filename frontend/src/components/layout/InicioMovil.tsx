@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom"
-import { CheckSquare, Home, MoreHorizontal, ShoppingCart, Smile, Ticket, type LucideIcon } from "lucide-react"
+import { CheckSquare, Headset, Home, MoreHorizontal, ShoppingCart, Smile, Ticket, type LucideIcon } from "lucide-react"
 import { useSolicitudes } from "@/hooks/useOC"
 import { useTickets } from "@/hooks/useTickets"
 import { useTareas } from "@/components/layout/TareasVistaPrevia"
 import { useSidebar } from "@/components/ui/sidebar"
 import { MovilBarraInferior, type MovilNavItem } from "@/components/movil/Movil"
-import { canApproveOC, canManageDevTasks, canSeeOC, canSeeSAC, canSeeTickets, canSubmitDevTasks } from "@/lib/permissions"
+import { canApproveOC, canManageDevTasks, canSeeOC, canSeeSAC, canSeeTickets, canSubmitDevTasks, nivelTicketsCentral } from "@/lib/permissions"
 import { formatFechaRelativa } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
@@ -21,13 +21,15 @@ function useAccesos() {
     tareas: !!user && (user.role === "admin" || canSubmitDevTasks(tools) || canManageDevTasks(tools)),
     tickets: !!user && canSeeTickets(user.role, perms),
     sac: !!user && canSeeSAC(user.role, perms),
+    central: !!user && nivelTicketsCentral(user.role, perms) !== null,
   }
 }
 
-const MODULOS: { clave: "compras" | "tareas" | "tickets" | "sac"; titulo: string; detalle: string; a: string; icono: LucideIcon; tinte: string }[] = [
+const MODULOS: { clave: "compras" | "tareas" | "tickets" | "sac" | "central"; titulo: string; detalle: string; a: string; icono: LucideIcon; tinte: string }[] = [
   { clave: "compras", titulo: "Compras", detalle: "Solicitudes y OC", a: "/oc/solicitudes", icono: ShoppingCart, tinte: "bg-[#FDECEE] text-[#C3182A]" },
   { clave: "tareas", titulo: "Tareas", detalle: "Mi trabajo y tablero", a: "/tareas-v2", icono: CheckSquare, tinte: "bg-[#DBEAFE] text-[#1D4ED8]" },
   { clave: "tickets", titulo: "Tickets", detalle: "PQR de clientes", a: "/zymoally/tickets", icono: Ticket, tinte: "bg-[#FEF3C7] text-[#B45309]" },
+  { clave: "central", titulo: "Central", detalle: "Casos de clientes", a: "/servicio-cliente/central", icono: Headset, tinte: "bg-[#FDECEE] text-[#C3182A]" },
   { clave: "sac", titulo: "SAC", detalle: "Fidelización y visitas", a: "/zymoally/sac", icono: Smile, tinte: "bg-[#DCFCE7] text-[#15803D]" },
 ]
 

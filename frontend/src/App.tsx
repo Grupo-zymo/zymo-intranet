@@ -3,6 +3,11 @@ import { lazy, Suspense, useEffect } from "react"
 import { useAuthStore } from "@/store/authStore"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { CargandoPagina } from "@/components/layout/CargandoPagina"
+import { useBotonAtras } from "@/hooks/useBotonAtras"
+import { BloqueoBiometrico, OfertaBiometria } from "@/components/SesionSegura"
+import { loginSilencioso } from "@/hooks/useAuth"
+import { avisoLogin } from "@/lib/almacenSesion"
+import { jwtVigente } from "@/lib/sesionDecision"
 import {
   canAccessMantenimiento,
   canSeeOC,
@@ -101,15 +106,10 @@ const ReporteDetallePage = lazy(() => import("@/pages/reportes/ReporteDetallePag
 const ReporteEditorPageNew = lazy(() => import("@/pages/reportes/ReporteEditorPage").then((m) => ({ default: m.ReporteEditorPageNew })))
 const ReporteEditorPageEdit = lazy(() => import("@/pages/reportes/ReporteEditorPage").then((m) => ({ default: m.ReporteEditorPageEdit })))
 
-// Decodifica el claim `exp` del JWT sin verificar firma (solo para chequeo local de expiración)
+// Chequeo local de expiración por el claim exp (sin verificar firma). Antes usaba atob(payload) a secas: el payload del JWT es
+// base64url (con - y _), atob lanza y el catch lo daba por expirado, así que la app cerraba la sesión sola al recuperar el foco.
 function isTokenExpired(token: string): boolean {
-  try {
-    const [, payload] = token.split(".")
-    const { exp } = JSON.parse(atob(payload)) as { exp?: number }
-    return typeof exp === "number" && exp * 1000 < Date.now()
-  } catch {
-    return true // token malformado → tratar como expirado
-  }
+  return !jwtVigente(token, Date.now(), 0)
 }
 
 /**
@@ -321,6 +321,28 @@ function AprobacionesRoute({ children }: { children: React.ReactNode }) {
 }
 
 
+// Botón atrás del APK: inicio = /dashboard; sin sesión, /login es el inicio.
+const esInicioIntranet = (p: string) => p === "/dashboard" || p === "/login" || p === "/"
+function BotonAtras() {
+  useBotonAtras("/dashboard", esInicioIntranet)
+  return null
+}
+
+// Bloqueo con huella/rostro al abrir la app (solo nativo, solo si la persona lo activó).
+function BloqueoDeApertura() {
+  const token = useAuthStore((s) => s.token)
+  return (
+    <BloqueoBiometrico
+      token={token}
+      iniciarSesion={loginSilencioso}
+      usarClave={(aviso) => {
+        if (aviso) avisoLogin.poner(aviso)
+        useAuthStore.getState().clearAuth() // las rutas privadas llevan solas a /login
+      }}
+    />
+  )
+}
+
 export default function App() {
   useTokenGuard()
   useMe()
@@ -328,6 +350,9 @@ export default function App() {
   return (
     <ErrorBoundary>
     <BrowserRouter>
+      <BotonAtras />
+      <BloqueoDeApertura />
+      <OfertaBiometria />
       <Suspense fallback={<CargandoPagina />}>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

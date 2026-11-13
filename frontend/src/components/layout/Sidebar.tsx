@@ -21,7 +21,8 @@ import {
   Package,
 } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
-import { useLogout } from "@/hooks/useAuth"
+import { useLogout, verificarClaveLogin } from "@/hooks/useAuth"
+import { InterruptorBiometria } from "@/components/SesionSegura"
 import { EXTERNAL_APPS, getAppsForRole } from "@/lib/roles"
 import { openExternalApp } from "@/lib/openApp"
 import {
@@ -391,6 +392,8 @@ export function Sidebar() {
       <SidebarSeparator />
       <SidebarFooter className="px-3 py-3 max-md:pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         {isMobile ? (
+          <>
+          <InterruptorBiometria email={user?.email ?? ""} verificarClave={verificarClaveLogin} />
           <button
             type="button"
             onClick={logout}
@@ -399,6 +402,7 @@ export function Sidebar() {
             <LogOut className="size-5" aria-hidden />
             Cerrar sesión
           </button>
+          </>
         ) : (
         <div className="flex items-center gap-2.5 px-1">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">

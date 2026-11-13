@@ -1,5 +1,6 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { createJSONStorage, persist } from "zustand/middleware"
+import { almacenAuth } from "@/lib/almacenSesion"
 import type { User } from "@/types/auth"
 
 interface AuthState {
@@ -29,6 +30,6 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...partial } : null,
         })),
     }),
-    { name: "zymo-auth" }
+    { name: "zymo-auth", storage: createJSONStorage(() => almacenAuth) }
   )
 )

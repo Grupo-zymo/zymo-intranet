@@ -4,6 +4,7 @@ import { useLogin } from "@/hooks/useAuth"
 import { useAuthStore } from "@/store/authStore"
 import { api } from "@/lib/api"
 import { EXTERNAL_APPS } from "@/lib/roles"
+import { avisoLogin, recordarSesion } from "@/lib/almacenSesion"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff } from "lucide-react"
@@ -29,6 +30,8 @@ export function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [verClave, setVerClave] = useState(false)
+  const [recordar, setRecordar] = useState(recordarSesion.leer) // marcado por defecto
+  const [aviso] = useState(avisoLogin.tomar) // p. ej. «tu contraseña cambió» tras un login silencioso rechazado
 
   const ssoAppId = searchParams.get("app")
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -44,13 +47,13 @@ export function LoginPage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (ssoAppId) {
-      login({ email, password })
+      login({ email, password, recordar })
       return
     }
     const from = (location.state as { from?: Location } | null)?.from
     const dest = from ? `${from.pathname}${from.search}${from.hash}` : "/dashboard"
     login(
-      { email, password },
+      { email, password, recordar },
       { onSuccess: () => navigate(dest, { replace: true }) },
     )
   }
@@ -137,6 +140,22 @@ export function LoginPage() {
                 </button>
               </div>
             </div>
+
+            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-foreground max-md:text-[15px]">
+              <input
+                type="checkbox"
+                checked={recordar}
+                onChange={(e) => setRecordar(e.target.checked)}
+                className="size-5 shrink-0 accent-[#C3182A]"
+              />
+              Recordar sesión
+            </label>
+
+            {aviso && !error && (
+              <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+                {aviso}
+              </div>
+            )}
 
             {error && (
               <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2.5 text-sm text-destructive">

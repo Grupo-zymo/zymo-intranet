@@ -142,7 +142,7 @@ export function CentralFiltros({ filtros, nivel, lideres, cuenta, onCambiar, onL
             autoComplete="off"
             spellCheck={false}
             aria-label="Buscar por asunto, cliente, empresa o radicado"
-            placeholder="Buscar asunto, cliente o #radicado"
+            placeholder="Buscar caso, cliente o #"
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             className="ct-input !rounded-full !pl-10"
@@ -314,7 +314,7 @@ export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimp
             autoComplete="off"
             spellCheck={false}
             aria-label="Buscar por asunto, cliente, empresa o radicado"
-            placeholder="Buscar asunto, cliente o #radicado"
+            placeholder="Buscar caso, cliente o #"
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             className="ct-input !rounded-full !pl-10"

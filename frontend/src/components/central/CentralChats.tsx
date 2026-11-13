@@ -72,8 +72,8 @@ export function CentralChats({ nivel, miCorreo }: { nivel: CentralNivel; miCorre
   const esperan = useMemo(() => (casos ?? []).filter(esperaRespuesta), [casos])
 
   const filtros: { id: Vista; texto: string; cuenta: number; soloDirector?: boolean }[] = [
-    { id: "espera", texto: "Esperan respuesta", cuenta: esperan.length },
-    { id: "todos", texto: "Todos", cuenta: casos?.length ?? 0 },
+    { id: "espera", texto: esperan.length === 1 ? "Espera respuesta" : "Esperan respuesta", cuenta: esperan.length },
+    { id: "todos", texto: "Abiertos", cuenta: casos?.length ?? 0 },
     { id: "sin", texto: "Sin asignar", cuenta: (casos ?? []).filter(sinNombre).length, soloDirector: true },
     { id: "mios", texto: "Mis casos", cuenta: (casos ?? []).filter((c) => (c.asignado ?? c.asumidoPor)?.email.toLowerCase() === miCorreo).length, soloDirector: true },
   ]
@@ -125,7 +125,7 @@ export function CentralChats({ nivel, miCorreo }: { nivel: CentralNivel; miCorre
                   name="q"
                   autoComplete="off"
                   spellCheck={false}
-                  placeholder="Buscar cliente, asunto o #radicado"
+                  placeholder="Buscar caso, cliente o #"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   className="ct-input !rounded-full !pl-10"
