@@ -4,8 +4,10 @@
 import { Link, NavLink } from "react-router-dom"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 import { MesaCampana } from "@/components/layout/MesaCampana"
+import { useCentralCasos } from "@/hooks/useCentralTickets"
 import { FILTROS_VACIOS, consultaCasos, haceCuanto } from "@/lib/centralTickets"
 import type { CentralNivel } from "@/types/centralTickets"
+import { IndicadorConexion } from "./ChatPartes"
 import "./central.css"
 
 export const RUTA_DASHBOARD = "/servicio-cliente/central"
@@ -31,6 +33,11 @@ export function CentralCabecera({
   onActualizar: () => void
 }) {
   const director = nivel === "director"
+  // Misma consulta que usan las páginas: React Query la comparte, no hay petición extra.
+  const items = useCentralCasos(CONSULTA_ABIERTOS).data?.items
+  const conContador = !!items?.some((c) => typeof c.noLeidos === "number")
+  // Con el servicio nuevo el contador son los mensajes sin leer del cliente (la nota interna no cuenta); con el viejo, los casos que esperan.
+  const pendientes = conContador ? (items ?? []).reduce((n, c) => n + (c.noLeidos ?? 0), 0) : esperan
   return (
     <header className="mx-auto flex w-full max-w-2xl flex-none flex-wrap items-center gap-x-3 gap-y-3 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] lg:max-w-none lg:flex-nowrap lg:gap-x-5 lg:px-6 lg:pb-4 lg:pt-6 xl:px-8">
       <Link to="/dashboard" className="ct-btn ct-btn-redondo" aria-label="Volver a la intranet">
@@ -42,6 +49,7 @@ export function CentralCabecera({
         </h1>
         <p className="ct-muted m-0 truncate text-[13px] lg:text-[15px]">
           Servicio al cliente
+          <IndicadorConexion className="ml-2 align-middle" />
           {actualizadoEn ? <span className="max-sm:hidden">{` · actualizado ${haceCuanto(new Date(actualizadoEn).toISOString(), ahora)}`}</span> : null}
         </p>
       </div>
@@ -57,10 +65,12 @@ export function CentralCabecera({
         </NavLink>
         <NavLink to={RUTA_CHATS} className="ct-seg-enlace">
           Chats
-          {esperan > 0 && (
+          {pendientes > 0 && (
             <span className="ct-mono ml-1.5 rounded-full bg-[var(--ct-red-solid)] px-2 text-xs font-medium text-white">
-              {esperan}
-              <span className="sr-only"> {esperan === 1 ? "espera" : "esperan"} respuesta</span>
+              {pendientes > 99 ? "99+" : pendientes}
+              <span className="sr-only">
+                {conContador ? (pendientes === 1 ? " mensaje sin leer" : " mensajes sin leer") : pendientes === 1 ? " espera respuesta" : " esperan respuesta"}
+              </span>
             </span>
           )}
         </NavLink>

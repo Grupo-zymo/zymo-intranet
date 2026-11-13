@@ -42,6 +42,8 @@ export interface CentralCasoBase {
 export interface CentralCasoItem extends CentralCasoBase {
   ultimoMensaje: { creadoEn: string; deCliente: boolean } | null
   mensajes: number
+  /** Mensajes del cliente que el equipo aún no ha visto (la nota interna nunca cuenta). Ausente en un servicio viejo. */
+  noLeidos?: number
 }
 
 export interface CentralMensaje {
@@ -52,6 +54,9 @@ export interface CentralMensaje {
   creadoEn: string
   autor: string
   rol: string
+  /** Lo manda el servicio nuevo; si falta se deduce de `rol`. */
+  deCliente?: boolean
+  clienteMsgId?: string | null
 }
 
 export interface CentralAsignacion {
@@ -70,6 +75,9 @@ export interface CentralCasoDetalle extends CentralCasoBase {
   descripcion: string
   cerradoEn: string | null
   mensajes: CentralMensaje[]
+  /** Opcionales: solo los trae el servicio con chat en tiempo real. */
+  leidoPersonalHasta?: number
+  leidoClienteHasta?: number
   asignaciones: CentralAsignacion[]
 }
 

@@ -38,12 +38,13 @@ export interface RespuestaAutogestion<T> {
 }
 
 // Estados del servicio cuyo texto SÍ es para el usuario (regla de negocio o dato no encontrado).
-const ESTADOS_DE_NEGOCIO = new Set([400, 404, 409, 422])
+const ESTADOS_DE_NEGOCIO = new Set([400, 404, 409, 422, 429])
 const TEXTO_POR_DEFECTO: Record<number, string> = {
   400: "La solicitud no es válida",
   404: "No encontramos ese caso",
   409: "No se puede hacer esa acción en el estado actual del caso",
   422: "La solicitud no es válida",
+  429: "Estás enviando muy rápido, espera un momento.",
 }
 
 function textoDeError(cuerpo: unknown, status: number, serviceKey: string): string {
@@ -52,7 +53,8 @@ function textoDeError(cuerpo: unknown, status: number, serviceKey: string): stri
       ? ((cuerpo as { error: string }).error).trim()
       : ""
   // Defensa extra: si por lo que sea el servicio devolviera la clave en el texto, no se propaga.
-  if (!crudo || crudo.includes(serviceKey)) return TEXTO_POR_DEFECTO[status]
+  // 429: texto fijo (puede venir del límite por IP de la clave, que no debe llegar al usuario).
+  if (status === 429 || !crudo || crudo.includes(serviceKey)) return TEXTO_POR_DEFECTO[status]
   return crudo.slice(0, 300)
 }
 
@@ -97,7 +99,31 @@ export function crearClienteAutogestion(config: ConfigAutogestion) {
     throw new CentralError(502, ERROR_SERVICIO)
   }
 
+  /**
+   * Abre el firehose SSE de la API de casos. SIN timeout (la conexión vive horas);
+   * el llamador la corta con `signal`. Devuelve el Response tal cual: el cuerpo es el stream.
+   * No se loguea el cuerpo ni la clave.
+   */
+  async function stream(lastId: number | null, signal: AbortSignal): Promise<Response> {
+    if (!baseUrl || !serviceKey) throw new CentralError(503, ERROR_NO_CONFIGURADA)
+    try {
+      return await fetch(`${baseUrl}/api/central/stream`, {
+        method: "GET",
+        headers: {
+          "X-Service-Key": serviceKey,
+          Accept: "text/event-stream",
+          ...(lastId !== null ? { "Last-Event-ID": String(lastId) } : {}),
+        },
+        signal,
+      })
+    } catch (err) {
+      throw new CentralError(502, `${ERROR_SERVICIO} (${err instanceof Error ? err.name : "error"})`)
+    }
+  }
+
   return {
+    configurada: Boolean(baseUrl && serviceKey),
+    stream,
     get: <T>(ruta: string, query?: Consulta) => pedir<T>("GET", ruta, { query }),
     post: <T>(ruta: string, body: unknown) => pedir<T>("POST", ruta, { body }),
     patch: <T>(ruta: string, body: unknown) => pedir<T>("PATCH", ruta, { body }),

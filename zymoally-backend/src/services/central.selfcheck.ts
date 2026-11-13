@@ -100,6 +100,7 @@ const servidorFalso = http.createServer((req, res) => {
       const caso = CASOS[decodeURIComponent(m[1])]
       if (!caso) return responder(404, { error: "Caso no encontrado" })
       if (!m[2] && req.method === "GET") return responder(200, { ...itemDe(caso), mensajes: [], asignaciones: [] })
+      if (m[2] === "/mensajes" && body?.texto === "limite") return responder(429, { error: "Too many requests" })
       if (m[2] === "/mensajes") return responder(201, { ok: true, id: 1 })
       if (m[2] === "/asignar" && body?.asignado?.email === caso.asignado?.email) {
         return responder(409, { error: "El caso ya está asignado a esa persona" })
@@ -262,10 +263,14 @@ async function probarCliente(base: string) {
   assert.strictEqual(noExiste.status, 404)
   assert.strictEqual(noExiste.message, "Caso no encontrado")
 
-  // 401 / 429 / 500 / caído → 502 genérico, sin detalles ni clave
+  // 429 → pasa como 429 con texto fijo en español (límite de envío), nunca el texto del servicio
+  const limite = await fallo(cliente.get("/bloqueado"))
+  assert.strictEqual(limite.status, 429)
+  assert.strictEqual(limite.message, "Estás enviando muy rápido, espera un momento.")
+
+  // 401 / 500 / caído → 502 genérico, sin detalles ni clave
   const errores = [
     await fallo(crearClienteAutogestion({ baseUrl: base, serviceKey: "clave-equivocada" }).get("/casos")),
-    await fallo(cliente.get("/bloqueado")),
     await fallo(cliente.get("/roto")),
     await fallo(crearClienteAutogestion({ baseUrl: "http://127.0.0.1:1", serviceKey: CLAVE, timeoutMs: 1500 }).get("/casos")),
   ]
@@ -276,7 +281,7 @@ async function probarCliente(base: string) {
   // Ni siquiera si el servicio devolviera la clave en su texto de error
   const eco = await fallo(cliente.get("/eco-clave"))
   assert.strictEqual(eco.status, 409)
-  for (const err of [...errores, eco, conflicto]) {
+  for (const err of [...errores, eco, conflicto, limite]) {
     assert.ok(!JSON.stringify({ m: err.message, s: err.stack }).includes(CLAVE), "la clave no puede aparecer en un error")
     assert.ok(!err.message.includes("clave-equivocada"))
   }
@@ -407,6 +412,8 @@ async function probarRouter(base: string) {
     assert.strictEqual((await pedir("director", "GET", "/casos?estado=inventado")).status, 400)
     assert.strictEqual((await pedir("director", "GET", "/casos?limite=500")).status, 400)
     assert.strictEqual((await pedir("director", "GET", "/casos/..%2Fresumen")).status, 400)
+    const limiteMsg = await pedir("director", "POST", "/casos/101/mensajes", { texto: "limite" })
+    assert.strictEqual(limiteMsg.status, 429, "el límite de envío llega como 429, no 502")
     assert.strictEqual((await pedir("director", "POST", "/casos/101/mensajes", { texto: "   " })).status, 400)
     assert.strictEqual((await pedir("director", "POST", "/casos/101/mensajes", { texto: "x".repeat(4001) })).status, 400)
     assert.strictEqual((await pedir("director", "PATCH", "/casos/101", {})).status, 400)

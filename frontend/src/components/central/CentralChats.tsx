@@ -22,6 +22,7 @@ const sinTildes = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLo
 
 function Fila({ c, ahora, activa, onAbrir }: { c: CentralCasoItem; ahora: number; activa: boolean; onAbrir: (r: string) => void }) {
   const espera = esperaRespuesta(c)
+  const sinLeer = c.noLeidos ?? 0
   return (
     <li className="border-t first:border-t-0">
       <button
@@ -33,9 +34,17 @@ function Fila({ c, ahora, activa, onAbrir }: { c: CentralCasoItem; ahora: number
         {espera && <span className="ct-latido absolute left-2 top-1/2 size-2 -translate-y-1/2 rounded-full bg-[var(--ct-red)]" aria-hidden />}
         <span className="flex items-center justify-between gap-2">
           <span className="ct-mono text-[15px] font-medium" translate="no">#{c.radicado}</span>
-          <span className="ct-faint text-xs">{haceCuanto(c.ultimoMensaje?.creadoEn ?? c.creadoEn, ahora)}</span>
+          <span className="flex items-center gap-2">
+            {sinLeer > 0 && (
+              <span className="ct-insignia ct-mono" translate="no">
+                {sinLeer > 99 ? "99+" : sinLeer}
+                <span className="sr-only"> {sinLeer === 1 ? "mensaje sin leer" : "mensajes sin leer"}</span>
+              </span>
+            )}
+            <span className={`text-xs ${sinLeer > 0 ? "font-bold text-[color:var(--ct-red)]" : "ct-faint"}`}>{haceCuanto(c.ultimoMensaje?.creadoEn ?? c.creadoEn, ahora)}</span>
+          </span>
         </span>
-        <span className="mt-0.5 block truncate text-base font-bold">
+        <span className={`mt-0.5 block truncate text-base ${sinLeer > 0 ? "font-extrabold" : "font-bold"}`}>
           {c.cliente.nombre}
           {c.cliente.empresa && <span className="ct-muted font-normal"> · {c.cliente.empresa}</span>}
         </span>

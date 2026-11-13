@@ -3,10 +3,13 @@
 // acciones, clasificación, plazos e historial de asignaciones).
 
 import { CentralApoyoInterno } from "./CentralApoyoInterno"
-import { useEffect, useId, useRef, useState } from "react"
-import { AlertTriangle, ArrowLeft, ArrowUpCircle, Lock, RefreshCw, SearchX, Send, X } from "lucide-react"
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { AlertTriangle, ArrowLeft, ArrowUpCircle, ChevronDown, Lock, RefreshCw, SearchX, Send, X } from "lucide-react"
 import { useTicketToast } from "@/components/tickets/TicketToast"
+import { useCentralChat } from "@/hooks/useCentralChat"
+import type { Pendiente } from "@/hooks/useCentralChat"
 import { useCentralAccion, useCentralCaso } from "@/hooks/useCentralTickets"
+import { claveDia, esDelCliente, etiquetaDia, hora, idMaximo } from "@/lib/centralChat"
 import {
   AREAS,
   AREA_TEXTO,
@@ -29,40 +32,78 @@ import type {
   CentralNivel,
 } from "@/types/centralTickets"
 import { DialogoAsignar, DialogoConfirmar } from "./CentralDialogos"
+import { DivisorNuevos, Escribiendo, EstadoEnvioIcono, SeparadorDia } from "./ChatPartes"
+import type { EstadoEnvio } from "./ChatPartes"
 import { Aviso, Avatar, BarraSla, EstadoChip, Responsable, SeveridadChip, SlaResumen, colorSla } from "./partes"
 
 const LIMITE_MENSAJE = 4000
+const CERCA_DEL_FONDO_PX = 80
 
 /** Borradores por caso: sobreviven al cambio de móvil a escritorio (que vuelve a montar el detalle). */
 const borradores = new Map<string, { texto: string; interno: boolean }>()
-const NOTA = "rounded-[1.25rem] rounded-tr-md border border-dashed border-[color:var(--ct-amber)] bg-[rgba(245,158,11,0.1)]"
+const NOTA = "ct-nota rounded-[1.25rem] rounded-tr-md"
 
 // ─── Conversación ───────────────────────────────────────────────────────────
 
-function esDelCliente(m: CentralMensaje, caso: CentralCasoDetalle): boolean {
-  if (m.origen === "intranet" || m.interno) return false
-  return m.rol.toLowerCase().includes("cliente") || m.autor === caso.cliente.nombre
-}
+const numero = (id: number | string) => Number(id)
 
-function Burbuja({ mensaje, delCliente, nuevo }: { mensaje: CentralMensaje; delCliente: boolean; nuevo: boolean }) {
+function Burbuja({
+  mensaje,
+  delCliente,
+  nuevo,
+  estado,
+  error,
+  onReintentar,
+  onDescartar,
+}: {
+  mensaje: CentralMensaje
+  delCliente: boolean
+  nuevo: boolean
+  estado: EstadoEnvio | null
+  error?: string
+  onReintentar?: () => void
+  onDescartar?: () => void
+}) {
+  const pie = (
+    <p className={`ct-faint m-0 mt-1 flex items-center gap-1.5 text-[11px] ${delCliente ? "" : "justify-end"}`}>
+      <span>
+        {mensaje.interno
+          ? mensaje.autor
+          : delCliente
+            ? `${mensaje.autor} · Cliente`
+            : `${mensaje.autor} · ${mensaje.origen === "intranet" ? "Intranet" : "App"}`}
+        {" · "}
+        <time className="whitespace-nowrap" dateTime={mensaje.creadoEn} title={fechaHora(mensaje.creadoEn)}>{hora(mensaje.creadoEn)}</time>
+      </span>
+      {estado && <EstadoEnvioIcono estado={estado} />}
+    </p>
+  )
+  const falla =
+    estado === "error" ? (
+      <p role="alert" className="m-0 mt-1 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[12px] font-semibold text-[color:var(--ct-red)]">
+        <span>{error || "No se envió."}</span>
+        <button type="button" className="ct-btn ct-btn-sm" onClick={onReintentar}>Reintentar</button>
+        <button type="button" className="ct-btn ct-btn-sm ct-btn-ghost" onClick={onDescartar}>Descartar</button>
+      </p>
+    ) : null
+
   if (mensaje.interno) {
     return (
-      <li className={`ml-auto w-full max-w-[90%] ${nuevo ? "ct-burbuja-nueva" : ""}`}>
+      <li className={`ml-auto w-full max-w-[90%] ${nuevo ? "ct-burbuja-nueva" : ""} ${estado === "enviando" ? "opacity-70" : ""}`}>
         <div className={`${NOTA} px-4 py-3`}>
           <p className="m-0 mb-1 flex items-center gap-1.5 text-xs font-bold text-[color:var(--ct-amber)]">
             <Lock className="size-3" aria-hidden />
-            Nota interna · solo equipo
+            Nota interna · el cliente no la ve
           </p>
           <p className="m-0 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{mensaje.texto}</p>
         </div>
-        <p className="ct-faint m-0 mt-1 text-right text-[11px]">
-          {mensaje.autor} · <time className="whitespace-nowrap" dateTime={mensaje.creadoEn}>{fechaHora(mensaje.creadoEn)}</time>
-        </p>
+        {pie}
+        {falla}
       </li>
     )
   }
   return (
-    <li className={`flex max-w-[90%] gap-2 ${delCliente ? "" : "ml-auto flex-row-reverse"} ${nuevo ? "ct-burbuja-nueva" : ""}`}>
+    <li className={`flex max-w-[90%] gap-2 ${delCliente ? "" : "ml-auto flex-row-reverse"} ${nuevo ? "ct-burbuja-nueva" : ""} ${estado === "enviando" ? "opacity-70" : ""}`}>
       <Avatar nombre={mensaje.autor} className="mt-0.5" />
       <div className="min-w-0">
         <div
@@ -74,69 +115,174 @@ function Burbuja({ mensaje, delCliente, nuevo }: { mensaje: CentralMensaje; delC
         >
           <p className="m-0 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{mensaje.texto}</p>
         </div>
-        <p className={`ct-faint m-0 mt-1 text-[11px] ${delCliente ? "" : "text-right"}`}>
-          {delCliente ? `${mensaje.autor} · Cliente` : `${mensaje.autor} · ${mensaje.origen === "intranet" ? "Intranet" : "App"}`}
-          {" · "}
-          <time className="whitespace-nowrap" dateTime={mensaje.creadoEn}>{fechaHora(mensaje.creadoEn)}</time>
-        </p>
+        {pie}
+        {falla}
       </div>
     </li>
   )
 }
 
+type Fila =
+  | { k: "dia"; clave: string; texto: string }
+  | { k: "nuevos" }
+  | { k: "msg"; m: CentralMensaje; estado: EstadoEnvio | null }
+  | { k: "pend"; p: Pendiente }
+
 function Conversacion({
   caso,
-  enviando,
+  chat,
   ahora,
 }: {
   caso: CentralCasoDetalle
-  enviando: { texto: string; interno: boolean } | null
+  chat: ReturnType<typeof useCentralChat>
   ahora: number
 }) {
   const caja = useRef<HTMLDivElement>(null)
-  // Los que ya estaban al abrir no se animan; los que llegan después, sí.
-  const [vistos] = useState(() => new Set(caso.mensajes.map((m) => String(m.id))))
-  const cantidad = caso.mensajes.length
+  const cerca = useRef(true)
+  const propios = useRef(new Set<string>())
+  const [sinVer, setSinVer] = useState(0)
+  const { mensajes, pendientes, leidoCliente } = chat
   const abierto = estaAbierto(caso.estado)
 
-  useEffect(() => {
-    caja.current?.scrollTo({ top: caja.current.scrollHeight })
-  }, [cantidad, enviando])
+  // Al abrir: los que ya estaban no se animan, y el divisor «Mensajes nuevos» marca lo que no se había leído.
+  const [inicial] = useState(() => ({
+    ids: new Set(caso.mensajes.map((m) => String(m.id))),
+    cursor: caso.leidoPersonalHasta ?? idMaximo(caso.mensajes),
+  }))
+  const ultimoVisto = useRef(idMaximo(caso.mensajes))
+
+  const filas = useMemo<Fila[]>(() => {
+    const out: Fila[] = []
+    let dia = ""
+    let divisorPuesto = false
+    for (const m of mensajes) {
+      const d = claveDia(m.creadoEn)
+      if (d !== dia) {
+        dia = d
+        out.push({ k: "dia", clave: `${d}-${m.id}`, texto: etiquetaDia(m.creadoEn, ahora) })
+      }
+      const delCliente = esDelCliente(m, caso.cliente.nombre)
+      if (!divisorPuesto && delCliente && numero(m.id) > inicial.cursor) {
+        divisorPuesto = true
+        out.push({ k: "nuevos" })
+      }
+      out.push({ k: "msg", m, estado: delCliente || m.interno ? null : numero(m.id) <= leidoCliente ? "leido" : "enviado" })
+    }
+    for (const p of pendientes) out.push({ k: "pend", p })
+    return out
+  }, [mensajes, pendientes, leidoCliente, caso.cliente.nombre, inicial.cursor, ahora])
+
+  const alFondo = useCallback((suave: boolean) => {
+    const el = caja.current
+    if (!el) return
+    const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    el.scrollTo({ top: el.scrollHeight, behavior: suave && !reducido ? "smooth" : "auto" })
+    cerca.current = true
+    setSinVer(0)
+  }, [])
+
+  // Al montar: al fondo.
+  useLayoutEffect(() => alFondo(false), [alFondo])
+
+  // Lo que yo envío siempre me lleva al fondo.
+  useLayoutEffect(() => {
+    let nuevo = false
+    for (const p of pendientes) {
+      if (!propios.current.has(p.clienteMsgId)) {
+        propios.current.add(p.clienteMsgId)
+        nuevo = true
+      }
+    }
+    if (nuevo) alFondo(true)
+  }, [pendientes, alFondo])
+
+  // Lo que llega: si estaba cerca del fondo, sigue; si no, avisa sin mover nada.
+  useLayoutEffect(() => {
+    const llegados = mensajes.filter((m) => numero(m.id) > ultimoVisto.current)
+    if (llegados.length === 0) return
+    ultimoVisto.current = idMaximo(mensajes)
+    const ajenos = llegados.filter((m) => !(m.clienteMsgId && propios.current.has(m.clienteMsgId)))
+    if (cerca.current) alFondo(true)
+    else if (ajenos.length > 0) setSinVer((n) => n + ajenos.length)
+  }, [mensajes, alFondo])
+
+  // «Escribiendo» aparece abajo: si se estaba al fondo, que siga a la vista.
+  useLayoutEffect(() => {
+    if (chat.escribiendo && cerca.current) alFondo(true)
+  }, [chat.escribiendo, alFondo])
+
+  function alDesplazar() {
+    const el = caja.current
+    if (!el) return
+    cerca.current = el.scrollHeight - el.scrollTop - el.clientHeight < CERCA_DEL_FONDO_PX
+    if (cerca.current) setSinVer(0)
+  }
+
+  const vacio = mensajes.length === 0 && pendientes.length === 0
 
   return (
-    <div ref={caja} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4" role="log" aria-label="Conversación del caso" aria-live="polite">
-      <div className="ct-card flex items-center justify-between gap-4 p-4">
-        <Responsable asignado={caso.asignado} asumidoPor={caso.asumidoPor} compacto />
-        <div className="w-[42%] max-w-[190px] flex-none">
-          <SlaResumen sla={caso.sla} abierto={abierto} ahora={ahora} />
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div ref={caja} onScroll={alDesplazar} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4" role="log" aria-label="Conversación del caso">
+        <div className="ct-card flex items-center justify-between gap-4 p-4">
+          <Responsable asignado={caso.asignado} asumidoPor={caso.asumidoPor} compacto />
+          <div className="w-[42%] max-w-[190px] flex-none">
+            <SlaResumen sla={caso.sla} abierto={abierto} ahora={ahora} />
+          </div>
         </div>
-      </div>
 
-      <div className="ct-card mt-3 p-4">
-        <p className="ct-faint m-0 text-xs font-semibold">
-          Lo que radicó {caso.cliente.nombre} · {fechaHora(caso.creadoEn)}
-        </p>
-        <p className="m-0 mt-1.5 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{caso.descripcion}</p>
-      </div>
+        <div className="ct-card mt-3 p-4">
+          <p className="ct-faint m-0 text-xs font-semibold">
+            Lo que radicó {caso.cliente.nombre} · {fechaHora(caso.creadoEn)}
+          </p>
+          <p className="m-0 mt-1.5 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{caso.descripcion}</p>
+        </div>
 
-      {cantidad === 0 && !enviando ? (
-        <p className="ct-muted m-0 px-2 py-8 text-center text-sm">
-          Todavía nadie le ha respondido al cliente. La primera respuesta detiene el plazo de respuesta inicial.
-        </p>
-      ) : (
-        <ol className="m-0 mt-4 flex list-none flex-col gap-4 p-0">
-          {caso.mensajes.map((m) => (
-            <Burbuja key={m.id} mensaje={m} delCliente={esDelCliente(m, caso)} nuevo={!vistos.has(String(m.id))} />
-          ))}
-          {enviando && (
-            <li className="ct-burbuja-nueva ml-auto max-w-[90%] opacity-70" aria-label="Enviando mensaje">
-              <div className={`px-4 py-3 ${enviando.interno ? NOTA : "rounded-[1.25rem] rounded-tr-md bg-[var(--ct-red-soft)]"}`}>
-                <p className="m-0 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{enviando.texto}</p>
-              </div>
-              <p className="ct-faint ct-latido m-0 mt-1 text-right text-[11px]">Enviando…</p>
-            </li>
-          )}
-        </ol>
+        {vacio ? (
+          <p className="ct-muted m-0 px-2 py-8 text-center text-sm">
+            Todavía nadie le ha respondido al cliente. La primera respuesta detiene el plazo de respuesta inicial.
+          </p>
+        ) : (
+          <ol className="m-0 mt-4 flex list-none flex-col gap-4 p-0">
+            {filas.map((f) => {
+              switch (f.k) {
+                case "dia":
+                  return <SeparadorDia key={`d-${f.clave}`} texto={f.texto} />
+                case "nuevos":
+                  return <DivisorNuevos key="nuevos" />
+                case "msg":
+                  return (
+                    <Burbuja
+                      key={f.m.id}
+                      mensaje={f.m}
+                      delCliente={esDelCliente(f.m, caso.cliente.nombre)}
+                      nuevo={!inicial.ids.has(String(f.m.id))}
+                      estado={f.estado}
+                    />
+                  )
+                case "pend":
+                  return (
+                    <Burbuja
+                      key={`p-${f.p.clienteMsgId}`}
+                      mensaje={{ id: f.p.clienteMsgId, texto: f.p.texto, interno: f.p.interno, origen: "intranet", creadoEn: f.p.creadoEn, autor: "Tú", rol: "equipo" }}
+                      delCliente={false}
+                      nuevo
+                      estado={f.p.estado}
+                      error={f.p.error}
+                      onReintentar={() => chat.reintentar(f.p.clienteMsgId)}
+                      onDescartar={() => chat.descartar(f.p.clienteMsgId)}
+                    />
+                  )
+              }
+            })}
+          </ol>
+        )}
+        <Escribiendo nombre={chat.escribiendo} />
+      </div>
+      {sinVer > 0 && (
+        <button type="button" className="ct-btn ct-btn-primary ct-flotante" onClick={() => alFondo(true)}>
+          <ChevronDown className="size-4" aria-hidden />
+          {sinVer === 1 ? "1 mensaje nuevo" : `${sinVer} mensajes nuevos`}
+        </button>
       )}
     </div>
   )
@@ -146,13 +292,13 @@ function Conversacion({
 function Redactor({
   radicado,
   cerrado,
-  enviando,
   onEnviar,
+  onEscribiendo,
 }: {
   radicado: string
   cerrado: boolean
-  enviando: boolean
-  onEnviar: (texto: string, interno: boolean, alTerminar: () => void) => void
+  onEnviar: (texto: string, interno: boolean) => void
+  onEscribiendo: (interno: boolean) => void
 }) {
   const [interno, setInterno] = useState(() => borradores.get(radicado)?.interno ?? false)
   const [texto, setTexto] = useState(() => borradores.get(radicado)?.texto ?? "")
@@ -163,7 +309,7 @@ function Redactor({
   const caja = useRef<HTMLTextAreaElement>(null)
   const id = useId()
   const limpio = texto.trim()
-  const puede = !cerrado && !enviando && limpio.length > 0 && texto.length <= LIMITE_MENSAJE
+  const puede = !cerrado && limpio.length > 0 && texto.length <= LIMITE_MENSAJE
 
   // La caja crece con lo escrito (hasta ~5 líneas).
   useEffect(() => {
@@ -174,8 +320,12 @@ function Redactor({
     el.style.overflowY = el.scrollHeight > 132 ? "auto" : "hidden"
   }, [texto])
 
+  // Enviar vacía la caja al instante (como en cualquier chat); si falla, el mensaje queda en la conversación con «Reintentar».
   function enviar() {
-    if (puede) onEnviar(limpio, interno, () => setTexto(""))
+    if (!puede) return
+    onEnviar(limpio, interno)
+    setTexto("")
+    caja.current?.focus()
   }
 
   if (cerrado) {
@@ -219,6 +369,12 @@ function Redactor({
           )}
         </span>
       </div>
+      {interno && (
+        <p className="ct-nota m-0 mb-2 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-[color:var(--ct-amber)]">
+          <Lock className="size-3" aria-hidden />
+          Nota interna · el cliente no la ve
+        </p>
+      )}
       <div className="flex items-end gap-2">
         <label htmlFor={id} className="sr-only">{interno ? "Nota interna" : "Respuesta al cliente"}</label>
         <textarea
@@ -228,7 +384,10 @@ function Redactor({
           rows={1}
           value={texto}
           maxLength={LIMITE_MENSAJE}
-          onChange={(e) => setTexto(e.target.value)}
+          onChange={(e) => {
+            setTexto(e.target.value)
+            if (e.target.value) onEscribiendo(interno)
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
               e.preventDefault()
@@ -243,7 +402,7 @@ function Redactor({
           type="submit"
           className="ct-btn ct-btn-primary ct-btn-redondo !min-h-[44px] !w-11"
           disabled={!puede}
-          aria-label={enviando ? "Enviando…" : interno ? "Guardar nota interna" : "Enviar respuesta"}
+          aria-label={interno ? "Guardar nota interna" : "Enviar respuesta"}
         >
           <Send className="size-4" aria-hidden />
         </button>
@@ -531,6 +690,7 @@ export function CentralDetalle({
 }) {
   const { data: caso, isLoading, error, refetch } = useCentralCaso(radicado)
   const accion = useCentralAccion()
+  const chat = useCentralChat(radicado, caso)
   const { showToast } = useTicketToast()
   const [dialogo, setDialogo] = useState<Dialogo>(null)
   const [pestana, setPestana] = useState<"chat" | "gestion">("chat")
@@ -588,10 +748,6 @@ export function CentralDetalle({
     })
   }
 
-  const enviando =
-    accion.isPending && accion.variables?.tipo === "mensaje"
-      ? { texto: accion.variables.texto, interno: accion.variables.interno }
-      : null
   const ocupado = accion.isPending
   const r = radicado
   const noExiste = estadoDeError(error) === 404
@@ -679,15 +835,13 @@ export function CentralDetalle({
         <>
           <div className="ct-d-cuerpo">
             <div className="ct-d-chat">
-              <Conversacion key={r} caso={caso} enviando={enviando} ahora={ahora} />
+              <Conversacion key={r} caso={caso} chat={chat} ahora={ahora} />
               <Redactor
                 key={`redactor-${r}`}
                 radicado={r}
                 cerrado={caso.estado === "cerrado"}
-                enviando={enviando !== null}
-                onEnviar={(texto, interno, limpiar) =>
-                  ejecutar({ tipo: "mensaje", radicado: r, texto, interno }, interno ? "Nota interna guardada" : "Respuesta enviada al cliente", limpiar)
-                }
+                onEnviar={chat.enviar}
+                onEscribiendo={chat.avisarEscribiendo}
               />
             </div>
             <div className="ct-d-gestion pb-[env(safe-area-inset-bottom)]">

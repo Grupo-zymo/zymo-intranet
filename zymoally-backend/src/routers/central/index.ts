@@ -8,7 +8,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod"
 import { getUserId } from "../../middleware/auth"
-import { autogestion, CentralError } from "../../services/autogestionClient"
+import { autogestion, CentralError, ERROR_NO_CONFIGURADA } from "../../services/autogestionClient"
 import {
   decidirAccion,
   filtrosParaNivel,
@@ -20,6 +20,7 @@ import {
   type CasoResumible,
 } from "../../services/centralAuth"
 import { listarLideres } from "../../services/centralLideres"
+import { crearRelay } from "../../services/centralStream"
 import { listarCuentas, resolveActorName } from "../../utils/userNames"
 
 const router = Router()
@@ -51,7 +52,15 @@ const notaSchema = z.string().trim().min(1).max(500).optional()
 
 const asignarSchema = z.object({ asignadoId: z.coerce.number().int().positive(), nota: notaSchema })
 const liberarSchema = z.object({ nota: notaSchema })
-const mensajeSchema = z.object({ texto: z.string().trim().min(1).max(4000), interno: z.boolean().optional() })
+const mensajeSchema = z.object({
+  texto: z.string().trim().min(1).max(4000),
+  interno: z.boolean().optional(),
+  // Idempotencia del envío: el mismo id reenviado no duplica el mensaje.
+  clienteMsgId: z.string().regex(/^[A-Za-z0-9-]{8,64}$/).optional(),
+})
+const desdeSchema = z.object({ desde: z.coerce.number().int().min(0).optional() })
+const leidoSchema = z.object({ hasta: z.coerce.number().int().min(0) })
+const escribiendoSchema = z.object({ interno: z.boolean().optional() })
 const actualizarSchema = z
   .object({
     severidad: z.enum(["critica", "alta", "media", "baja"]).optional(),
@@ -152,6 +161,66 @@ router.get("/lideres", async (req, res) => {
   res.json(await listarLideres())
 })
 
+// ─── Tiempo real (SSE) ──────────────────────────────────────────────────────
+
+const LATIDO_MS = 25_000 // Cloudflare corta conexiones inactivas a ~100 s
+const MAX_TIMER_MS = 2 ** 31 - 1
+
+const relay = crearRelay({
+  abrir: async (lastId, signal) => {
+    const res = await autogestion.stream(lastId, signal)
+    return { ok: res.ok, status: res.status, body: res.body as unknown as AsyncIterable<Uint8Array> | null }
+  },
+})
+
+// Declarada ANTES de /casos/:radicado.
+router.get("/stream", (req, res) => {
+  if (!autogestion.configurada) throw new CentralError(503, ERROR_NO_CONFIGURADA)
+  const quien = acceso(req)
+  if (relay.motivoDeRechazo(quien.email)) throw new CentralError(429, "Demasiadas conexiones en tiempo real abiertas")
+
+  res.status(200).set({
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  })
+  res.flushHeaders()
+  req.socket.setTimeout(0)
+  req.socket.setNoDelay(true)
+  res.write("retry: 3000\n\n")
+
+  // Tras las cabeceras: suscribir escribe el `hello` inicial.
+  const sub = relay.suscribir({
+    nivel: quien.nivel,
+    email: quien.email,
+    escribir: (texto) => void res.write(texto),
+    bufferado: () => res.writableLength,
+    cerrar: () => res.destroy(), // buffer desbordado: el navegador reconecta y recarga
+  })
+  if ("error" in sub) {
+    res.end()
+    return
+  }
+
+  const latido = setInterval(() => res.write(": ping\n\n"), LATIDO_MS)
+  // Se cierra al vencer el JWT: el cliente reconecta y, sin sesión vigente, recibe 401.
+  const exp = (req.user as { exp?: number } | undefined)?.exp
+  const vence =
+    typeof exp === "number" ? setTimeout(() => res.end(), Math.min(MAX_TIMER_MS, Math.max(0, exp * 1000 - Date.now()))) : null
+
+  let cerrado = false
+  const limpiar = (): void => {
+    if (cerrado) return
+    cerrado = true
+    clearInterval(latido)
+    if (vence) clearTimeout(vence)
+    sub.baja()
+  }
+  req.on("close", limpiar)
+  res.on("close", limpiar)
+})
+
 router.get("/casos/:radicado", async (req, res) => {
   const radicado = validar(radicadoSchema, req.params.radicado)
   const { data } = await autogestion.get<CasoAsignado>(rutaCaso(radicado))
@@ -194,16 +263,42 @@ router.post("/casos/:radicado/liberar", async (req, res) => {
   res.json(data ?? { ok: true })
 })
 
+router.get("/casos/:radicado/mensajes", async (req, res) => {
+  const radicado = validar(radicadoSchema, req.params.radicado)
+  const { desde } = validar(desdeSchema, req.query)
+  await exigir(req, "mensaje", radicado)
+  const { data } = await autogestion.get(`${rutaCaso(radicado)}/mensajes`, { desde })
+  res.json(data)
+})
+
 router.post("/casos/:radicado/mensajes", async (req, res) => {
   const radicado = validar(radicadoSchema, req.params.radicado)
-  const { texto, interno } = validar(mensajeSchema, req.body)
+  const { texto, interno, clienteMsgId } = validar(mensajeSchema, req.body)
   await exigir(req, "mensaje", radicado)
-  const { data } = await autogestion.post(`${rutaCaso(radicado)}/mensajes`, {
+  const { status, data } = await autogestion.post(`${rutaCaso(radicado)}/mensajes`, {
     actor: await actorDe(req),
     texto,
     interno: interno === true,
+    ...(clienteMsgId ? { clienteMsgId } : {}),
   })
-  res.status(201).json(data ?? { ok: true })
+  // 201 al crear, 200 si el clienteMsgId ya existía; si el servicio solo devuelve {ok:true}, se reenvía eso.
+  res.status(status === 200 ? 200 : 201).json(data ?? { ok: true })
+})
+
+router.post("/casos/:radicado/leido", async (req, res) => {
+  const radicado = validar(radicadoSchema, req.params.radicado)
+  const { hasta } = validar(leidoSchema, req.body)
+  await exigir(req, "mensaje", radicado)
+  await autogestion.post(`${rutaCaso(radicado)}/leido`, { actor: await actorDe(req), hasta })
+  res.status(204).end()
+})
+
+router.post("/casos/:radicado/escribiendo", async (req, res) => {
+  const radicado = validar(radicadoSchema, req.params.radicado)
+  const { interno } = validar(escribiendoSchema, req.body ?? {})
+  await exigir(req, "mensaje", radicado)
+  await autogestion.post(`${rutaCaso(radicado)}/escribiendo`, { actor: await actorDe(req), interno: interno === true })
+  res.status(204).end()
 })
 
 router.patch("/casos/:radicado", async (req, res) => {

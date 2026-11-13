@@ -360,3 +360,66 @@ select.ct-input { padding-right: 1.6rem; cursor: pointer; }
 /* Pantallas muy anchas: la conversación no se estira de lado a lado. */
 .ct-d-chat [role="log"] > *,
 .ct-d-chat form > * { max-width: 960px; margin-inline: auto; }
+
+/* ── Chat en tiempo real ─────────────────────────────────────────────────── */
+/* Nota interna: ámbar con puntos, para que no se confunda nunca con lo que ve el cliente. */
+.ct-nota {
+  border: 1px dashed var(--ct-amber);
+  background-color: rgba(245, 158, 11, 0.1);
+  background-image: radial-gradient(rgba(138, 82, 6, 0.16) 1px, transparent 1.2px);
+  background-size: 9px 9px;
+}
+.ct-divisor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ct-red);
+}
+.ct-divisor::before,
+.ct-divisor::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: 0.35; }
+.ct-divisor-dia { color: var(--ct-faint); font-weight: 600; }
+.ct-divisor-dia::before,
+.ct-divisor-dia::after { background: var(--ct-line-strong); opacity: 1; }
+.ct-puntos { display: inline-flex; gap: 3px; align-items: center; }
+.ct-puntos i {
+  width: 5px; height: 5px; border-radius: 999px; background: var(--ct-faint);
+  animation: ct-salto 1.1s ease-in-out infinite;
+}
+.ct-puntos i:nth-child(2) { animation-delay: 0.15s; }
+.ct-puntos i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes ct-salto { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-3px); opacity: 1; } }
+.ct-insignia {
+  display: inline-grid;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--ct-red-solid);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.ct-aviso-conexion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(138, 82, 6, 0.1);
+  color: var(--ct-amber);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.ct-flotante {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75rem;
+  transform: translateX(-50%);
+  z-index: 2;
+  box-shadow: 0 6px 18px rgba(9, 9, 11, 0.18);
+  animation: ct-enviado 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}

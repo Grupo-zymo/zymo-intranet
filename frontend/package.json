@@ -9,7 +9,7 @@
     "build:android": "tsc -b && vite build --mode android",
     "verificar:android": "node scripts/verificar-android.mjs",
     "lint": "eslint .",
-    "selfcheck": "node scripts/botonAtras.selfcheck.ts && node scripts/sesion.selfcheck.ts",
+    "selfcheck": "node scripts/botonAtras.selfcheck.ts && node scripts/sesion.selfcheck.ts && node scripts/sse.selfcheck.ts",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,5 +1,6 @@
 import { CentralChats } from "@/components/central/CentralChats"
 import { CentralDashboard } from "@/components/central/CentralDashboard"
+import { CentralStreamProvider } from "@/hooks/useCentralStream"
 import { nivelTicketsCentral } from "@/lib/permissions"
 import { useAuthStore } from "@/store/authStore"
 
@@ -12,5 +13,9 @@ export function CentralTicketsPage({ vista }: { vista: "dashboard" | "chats" }) 
   const nivel = user ? nivelTicketsCentral(user.role, user.app_permissions) : null
   if (!user || !nivel) return null
   const miCorreo = user.email.trim().toLowerCase()
-  return vista === "chats" ? <CentralChats nivel={nivel} miCorreo={miCorreo} /> : <CentralDashboard nivel={nivel} miCorreo={miCorreo} />
+  return (
+    <CentralStreamProvider>
+      {vista === "chats" ? <CentralChats nivel={nivel} miCorreo={miCorreo} /> : <CentralDashboard nivel={nivel} miCorreo={miCorreo} />}
+    </CentralStreamProvider>
+  )
 }
