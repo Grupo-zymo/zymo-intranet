@@ -72,11 +72,13 @@ export function requireTicketsAccess(req: Request, res: Response, next: NextFunc
   // mod_operativo_tickets es un permiso más angosto ("Gestionar mis tickets" en
   // Operativo) — solo ve/gestiona lo suyo vía ?asignadoAMi=true + canManageTicket()
   // en pqr.ts, pero necesita el mismo acceso de lectura a la API que mod_tickets.
-  if (hasAccess(req.user, "mod_tickets") || hasAccess(req.user, "mod_operativo_tickets")) {
+  // Archivado 2026-11-12: lo reemplazó la mesa de ayuda (/api/mesa). Sus tickets quedan de solo
+  // consulta para el admin; mod_tickets, mod_operativo_tickets y el rol gerente ya no abren esta API.
+  if (req.user?.role === "admin") {
     next()
     return
   }
-  res.status(403).json({ error: "Sin acceso al módulo Tickets" })
+  res.status(403).json({ error: "El módulo de tickets anterior está archivado. Usa la Mesa de ayuda." })
 }
 
 /** Edición de maestros (Listas PQR) — más estricto que el acceso de lectura/escritura */
