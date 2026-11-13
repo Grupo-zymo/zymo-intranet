@@ -21,7 +21,7 @@ const CONSULTA: Record<Filtro, Record<string, string>> = {
   sinAsignar: { estado: "activos", sinAsignar: "true" },
   mios: { estado: "activos", asignadoAMi: "true" },
 }
-const VISTA_TEXTO: Record<MesaVista, string> = { mias: "Mis solicitudes", area: "Mi área", todas: "Todas las áreas", eliminados: "Eliminados" }
+const VISTA_TEXTO: Record<MesaVista, string> = { mias: "Mis solicitudes", area: "Mi área", todas: "Todas", eliminados: "Eliminados" }
 const VACIO: Record<MesaVista, string> = {
   mias: "No tienes solicitudes con ese filtro. Si necesitas algo de otra área, crea una.",
   area: "Tu área no tiene tickets con ese filtro.",

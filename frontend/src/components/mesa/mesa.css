@@ -27,29 +27,29 @@
 .mesa-vacio {
   max-width: 40rem;
   border-left: 3px solid var(--mesa-rojo);
-  padding: 0.25rem 0 0.25rem 1.25rem;
+  padding: 0.25rem 0 0.25rem 0.95rem;
   animation: mesa-aparece 220ms ease-out both;
 }
 @media (prefers-reduced-motion: reduce) { .mesa-vacio { animation: none; } }
 @keyframes mesa-aparece { from { opacity: 0; } to { opacity: 1; } }
 
-.mesa-vacio h2 { font-weight: 800; font-size: 1.35rem; line-height: 1.25; text-wrap: balance; }
-.mesa-vacio p { margin-top: 0.5rem; color: var(--mesa-texto-2); line-height: 1.6; }
+.mesa-vacio h2 { font-weight: 800; font-size: 1.19rem; line-height: 1.25; text-wrap: balance; }
+.mesa-vacio p { margin-top: 0.4rem; color: var(--mesa-texto-2); line-height: 1.6; }
 
-.mesa-acciones { margin-top: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.mesa-acciones { margin-top: 1.1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.75rem; }
 
 /* Botón principal (uno por pantalla) */
 .mesa-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  min-height: 44px;
-  padding: 0 1.25rem;
+  gap: 0.3rem;
+  min-height:36px;
+  padding: 0 0.95rem;
   background: var(--mesa-rojo);
   color: #fff;
   font-weight: 800;          /* blanco sobre rojo ≈3.9:1: va en negrita grande */
-  font-size: 1rem;
+  font-size: 0.88rem;
   border-radius: 6px;
   cursor: pointer;
   transition: transform 120ms ease, background-color 150ms ease;
@@ -58,3 +58,13 @@
 .mesa-btn:active:not(:disabled) { transform: scale(0.97); }
 .mesa-btn:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: 3px; }
 .mesa-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Densidad (compactado 2026-11-13): Montserrat es ancha, así que el módulo usa una escala de texto
+   corta y controles de 30–36 px. Las etiquetas de pestañas y botones nunca se parten en dos líneas. */
+.mesa-segmento button, .mesa-t-tabs button, .mesa-cab button, .mesa-cab a { white-space: nowrap; }
+.mesa-segmento { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.mesa-segmento button { flex: 1 0 auto; }
+/* En pantallas táctiles los controles conservan el alto mínimo cómodo para el dedo. */
+@media (pointer: coarse) {
+  .mesa button, .mesa input, .mesa select, .mesa-capa button, .mesa-capa input, .mesa-capa select { min-height: 44px; }
+}

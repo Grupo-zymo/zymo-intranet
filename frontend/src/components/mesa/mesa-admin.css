@@ -1,61 +1,61 @@
 /* Mesa de ayuda — vista de administración (panorama entre áreas) y configuración. Tokens en mesa.css. */
 
-.mesa-scroll { overflow-x: auto; margin-bottom: 2rem; }
+.mesa-scroll { overflow-x: auto; margin-bottom: 1.5rem; }
 .mesa-tabla-fija { display: table; min-width: 40rem; }
 @media (max-width: 767px) { .mesa-tabla.mesa-tabla-fija { display: table; } }
 .mesa-der { text-align: right; }
 .mesa-tabla th.mesa-der { text-align: right; }
-.mesa-tabla tbody th { padding: 0.5rem 1rem; text-align: left; font-weight: 500; font-size: 0.9rem; color: var(--mesa-texto); border-bottom: 1px solid #efefef; white-space: normal; }
+.mesa-tabla tbody th { padding: 0.4rem 0.75rem; text-align: left; font-weight: 500; font-size: 0.81rem; color: var(--mesa-texto); border-bottom: 1px solid #efefef; white-space: normal; }
 .mesa-tabla tbody tr:last-child th { border-bottom: 0; }
 .mesa-tabla-fija td { vertical-align: middle; font-weight: 600; }
 .mesa-tabla-fija td[data-cero] { color: #9a9a9a; font-weight: 400; }
 .mesa-tabla-fija tr[data-elegida] { background: #f1f1f1; }
 .mesa-tabla-fija tr[data-elegida] th { box-shadow: inset 3px 0 0 var(--mesa-rojo); }
 
-.mesa-area-btn { min-height: 36px; text-align: left; font-weight: 600; cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; transition: text-decoration-color 150ms ease; }
+.mesa-area-btn { min-height:30px; text-align: left; font-weight: 600; cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; transition: text-decoration-color 150ms ease; }
 .mesa-area-btn:hover { text-decoration-color: currentColor; }
 .mesa-area-btn[aria-pressed="true"] { font-weight: 800; }
 .mesa-area-btn:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: 2px; }
 
-.mesa-subtitulo { margin-bottom: 1rem; font-weight: 800; font-size: 1.15rem; text-wrap: balance; }
+.mesa-subtitulo { margin-bottom: 0.75rem; font-weight: 800; font-size: 1.01rem; text-wrap: balance; }
 
 /* ── Configuración ───────────────────────────────────────────────────────── */
-.mesa-conf-lista { display: grid; gap: 0.75rem; }
-.mesa-conf { padding: 1.1rem 1.25rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
-.mesa-conf h3 { font-weight: 800; font-size: 1.05rem; }
-.mesa-conf-cab .mesa-fila-acc { margin-top: 0.6rem; align-items: flex-end; gap: 0.75rem 1.25rem; }
+.mesa-conf-lista { display: grid; gap: 0.55rem; }
+.mesa-conf { padding: 0.8rem 0.95rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
+.mesa-conf h3 { font-weight: 800; font-size: 0.92rem; }
+.mesa-conf-cab .mesa-fila-acc { margin-top: 0.45rem; align-items: flex-end; gap: 0.55rem 0.95rem; }
 .mesa-conf-campo { width: 7.5rem; }
-.mesa-check { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 44px; font-weight: 600; font-size: 0.875rem; cursor: pointer; }
-.mesa-conf-cats { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--mesa-gris); }
+.mesa-check { display: inline-flex; align-items: center; gap: 0.35rem; min-height:36px; font-weight: 600; font-size: 0.79rem; cursor: pointer; }
+.mesa-conf-cats { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--mesa-gris); }
 .mesa-conf-cats .mesa-chip:not([aria-pressed="true"]) { text-decoration: line-through; }
 .mesa-conf-cats .mesa-chip:disabled { cursor: progress; }
 
 /* ── Tablero del líder ───────────────────────────────────────────────────── */
-.mesa-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 0.75rem; }
-.mesa-kpi, .mesa-desglose { padding: 1.1rem 1.25rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
-.mesa-kpi h3, .mesa-desglose h3 { font-weight: 600; font-size: 0.9rem; color: var(--mesa-texto-2); }
-.mesa-kpi-cifra { margin-top: 0.35rem; font-weight: 800; font-size: clamp(2.25rem, 5vw, 3rem); line-height: 1.05; letter-spacing: -0.02em; }
-.mesa-kpi-vacio { margin: 0.75rem 0; font-size: 0.9rem; color: var(--mesa-texto-2); }
-.mesa-kpi-meta { margin-top: 0.6rem; font-size: 0.9rem; }
-.mesa-kpi-alerta { margin-top: 0.35rem; font-size: 0.85rem; font-weight: 600; padding-left: 0.6rem; border-left: 3px solid var(--mesa-rojo); }
-.mesa-fuera { margin-left: 0.4rem; padding: 0.05rem 0.45rem; border: 1px solid var(--mesa-rojo); border-radius: 3px; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+.mesa-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 0.55rem; }
+.mesa-kpi, .mesa-desglose { padding: 0.8rem 0.95rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
+.mesa-kpi h3, .mesa-desglose h3 { font-weight: 600; font-size: 0.81rem; color: var(--mesa-texto-2); }
+.mesa-kpi-cifra { margin-top: 0.35rem; font-weight: 800; font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1.05; letter-spacing: -0.02em; }
+.mesa-kpi-vacio { margin: 0.55rem 0; font-size: 0.81rem; color: var(--mesa-texto-2); }
+.mesa-kpi-meta { margin-top: 0.45rem; font-size: 0.81rem; }
+.mesa-kpi-alerta { margin-top: 0.35rem; font-size: 0.76rem; font-weight: 600; padding-left: 0.45rem; border-left: 3px solid var(--mesa-rojo); }
+.mesa-fuera { margin-left: 0.3rem; padding: 0.05rem 0.35rem; border: 1px solid var(--mesa-rojo); border-radius: 3px; font-weight: 600; font-size: 0.72rem; white-space: nowrap; }
 
 /* Medidor: relleno = mediana; la línea vertical = meta */
-.mesa-medidor { position: relative; height: 8px; margin: 0.9rem 0 0.2rem; background: var(--mesa-gris); border-radius: 4px; }
+.mesa-medidor { position: relative; height: 8px; margin: 0.7rem 0 0.2rem; background: var(--mesa-gris); border-radius: 4px; }
 .mesa-medidor-relleno { height: 100%; background: var(--mesa-negro); border-radius: 4px; }
 .mesa-medidor-relleno[data-fuera] { background: var(--mesa-rojo); }
 .mesa-medidor-meta { position: absolute; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; background: var(--mesa-texto); box-shadow: 0 0 0 2px #fff; }
 
-.mesa-cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.75rem; margin: 0.75rem 0; }
-.mesa-cifras > div { padding: 0.8rem 1rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
-.mesa-cifras dt { font-size: 0.8rem; font-weight: 600; color: var(--mesa-texto-2); }
-.mesa-cifras dd { margin-top: 0.15rem; font-weight: 800; font-size: 1.6rem; line-height: 1.1; }
+.mesa-cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.55rem; margin: 0.55rem 0; }
+.mesa-cifras > div { padding: 0.6rem 0.75rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
+.mesa-cifras dt { font-size: 0.72rem; font-weight: 600; color: var(--mesa-texto-2); }
+.mesa-cifras dd { margin-top: 0.15rem; font-weight: 800; font-size: 1.28rem; line-height: 1.1; }
 
-.mesa-desglose table { width: 100%; margin-top: 0.6rem; border-collapse: collapse; font-size: 0.875rem; }
-.mesa-desglose thead th { padding-bottom: 0.4rem; text-align: left; font-weight: 600; font-size: 0.75rem; color: var(--mesa-texto-2); }
+.mesa-desglose table { width: 100%; margin-top: 0.45rem; border-collapse: collapse; font-size: 0.79rem; }
+.mesa-desglose thead th { padding-bottom: 0.3rem; text-align: left; font-weight: 600; font-size: 0.72rem; color: var(--mesa-texto-2); }
 .mesa-desglose thead th.mesa-der { text-align: right; }
-.mesa-desglose tbody th { padding: 0.4rem 0.75rem 0.4rem 0; text-align: left; font-weight: 500; }
-.mesa-desglose td { padding: 0.4rem 0 0.4rem 0.75rem; font-weight: 600; vertical-align: top; white-space: nowrap; }
+.mesa-desglose tbody th { padding: 0.3rem 0.55rem 0.3rem 0; text-align: left; font-weight: 500; }
+.mesa-desglose td { padding: 0.3rem 0 0.3rem 0.55rem; font-weight: 600; vertical-align: top; white-space: nowrap; }
 .mesa-desglose-nombre { display: block; overflow-wrap: anywhere; }
 .mesa-barra-h { display: block; height: 6px; margin-top: 0.3rem; }
 .mesa-barra-h i { display: block; height: 100%; min-width: 4px; background: var(--mesa-negro); border-radius: 0 4px 4px 0; }

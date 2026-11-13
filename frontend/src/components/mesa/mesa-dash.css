@@ -4,47 +4,47 @@
 
 /* ── Franja de cifras: una sola tarjeta, celdas separadas por una línea ── */
 .mesa-franja { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); overflow: hidden; }
-.mesa-franja-celda { display: block; padding: 1.1rem 1.25rem; color: inherit; text-decoration: none; box-shadow: -1px 0 0 var(--mesa-gris), 0 -1px 0 var(--mesa-gris); transition: background-color 150ms ease; }
+.mesa-franja-celda { display: block; padding: 0.8rem 0.95rem; color: inherit; text-decoration: none; box-shadow: -1px 0 0 var(--mesa-gris), 0 -1px 0 var(--mesa-gris); transition: background-color 150ms ease; }
 a.mesa-franja-celda:hover { background: #fafafa; }
 a.mesa-franja-celda:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: -2px; }
-.mesa-franja-titulo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; color: var(--mesa-texto-2); }
+.mesa-franja-titulo { display: flex; align-items: center; gap: 0.4rem; font-size: 0.81rem; font-weight: 600; color: var(--mesa-texto-2); }
 .mesa-franja-titulo svg { width: 1rem; height: 1rem; flex: none; }
-.mesa-franja-cifra { margin-top: 0.5rem; font-weight: 800; font-size: 2.25rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.mesa-franja-pie { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.6rem; font-size: 0.8rem; color: var(--mesa-texto-2); }
+.mesa-franja-cifra { margin-top: 0.4rem; font-weight: 800; font-size: 1.8rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.mesa-franja-pie { display: flex; justify-content: space-between; gap: 0.4rem; margin-top: 0.45rem; font-size: 0.72rem; color: var(--mesa-texto-2); }
 .mesa-franja-pie b { font-weight: 600; color: var(--mesa-texto); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .mesa-franja-celda[data-alerta] .mesa-franja-cifra { color: #b3121d; }
 
 /* ── Dos columnas: tabla y gráfica a la izquierda, cola de acciones a la derecha ── */
-.mesa-dash { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+.mesa-dash { display: grid; gap: 0.95rem; margin-top: 0.95rem; }
 @media (min-width: 1100px) { .mesa-dash { grid-template-columns: minmax(0, 1fr) 22rem; align-items: start; } }
-.mesa-dash-col { display: grid; gap: 1.25rem; min-width: 0; }
+.mesa-dash-col { display: grid; gap: 0.95rem; min-width: 0; }
 
 .mesa-panel { overflow: hidden; }
-.mesa-panel-cab { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem; }
-.mesa-panel-cab h2 { font-weight: 800; font-size: 1.05rem; }
-.mesa-panel-cab p { margin-top: 0.1rem; font-size: 0.85rem; color: var(--mesa-texto-2); }
-.mesa-etiqueta-n { flex: none; padding: 0.2rem 0.6rem; border-radius: 0.5rem; background: #ececec; font-size: 0.8rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.mesa-panel-pie { display: flex; justify-content: space-between; gap: 1rem; padding: 0.85rem 1.25rem; border-top: 1px solid var(--mesa-gris); font-size: 0.85rem; color: var(--mesa-texto-2); }
+.mesa-panel-cab { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.8rem 0.95rem; }
+.mesa-panel-cab h2 { font-weight: 800; font-size: 0.92rem; }
+.mesa-panel-cab p { margin-top: 0.1rem; font-size: 0.76rem; color: var(--mesa-texto-2); }
+.mesa-etiqueta-n { flex: none; padding: 0.2rem 0.45rem; border-radius: 0.5rem; background: #ececec; font-size: 0.72rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mesa-panel-pie { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.65rem 0.95rem; border-top: 1px solid var(--mesa-gris); font-size: 0.76rem; color: var(--mesa-texto-2); }
 
 /* ── Tabla de pendientes ── */
 .mesa-pend { width: 100%; border-collapse: collapse; }
-.mesa-pend th { padding: 0.6rem 0.75rem; border-top: 1px solid var(--mesa-gris); border-bottom: 1px solid var(--mesa-gris); text-align: left; font-size: 0.78rem; font-weight: 600; color: var(--mesa-texto-2); white-space: nowrap; }
-.mesa-pend td { padding: 0.8rem 0.75rem; border-bottom: 1px solid #efefef; font-size: 0.9rem; vertical-align: middle; }
-.mesa-pend th:first-child, .mesa-pend td:first-child { padding-left: 1.25rem; }
-.mesa-pend th:last-child, .mesa-pend td:last-child { padding-right: 1.25rem; }
+.mesa-pend th { padding: 0.45rem 0.55rem; border-top: 1px solid var(--mesa-gris); border-bottom: 1px solid var(--mesa-gris); text-align: left; font-size: 0.72rem; font-weight: 600; color: var(--mesa-texto-2); white-space: nowrap; }
+.mesa-pend td { padding: 0.6rem 0.55rem; border-bottom: 1px solid #efefef; font-size: 0.81rem; vertical-align: middle; }
+.mesa-pend th:first-child, .mesa-pend td:first-child { padding-left: 0.95rem; }
+.mesa-pend th:last-child, .mesa-pend td:last-child { padding-right: 0.95rem; }
 .mesa-pend tr:last-child td { border-bottom: 0; }
 .mesa-pend tbody tr { cursor: pointer; transition: background-color 120ms ease; }
 .mesa-pend tbody tr:hover { background: #fafafa; }
-.mesa-pend-quien { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-.mesa-avatar { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; flex: none; border: 1px solid var(--mesa-gris); border-radius: 50%; font-size: 0.75rem; font-weight: 600; }
+.mesa-pend-quien { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.mesa-avatar { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; flex: none; border: 1px solid var(--mesa-gris); border-radius: 50%; font-size: 0.72rem; font-weight: 600; }
 .mesa-pend-asunto { display: block; font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 a.mesa-pend-asunto:hover { text-decoration: underline; text-underline-offset: 3px; }
 a.mesa-pend-asunto:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: 2px; }
-.mesa-pend-sub { font-size: 0.8rem; color: var(--mesa-texto-2); }
+.mesa-pend-sub { font-size: 0.72rem; color: var(--mesa-texto-2); }
 .mesa-avance { min-width: 11rem; }
-.mesa-avance-cab { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.85rem; }
+.mesa-avance-cab { display: flex; justify-content: space-between; gap: 0.55rem; font-size: 0.76rem; }
 .mesa-avance-cab b { font-weight: 600; font-variant-numeric: tabular-nums; }
-.mesa-avance-cab span { color: var(--mesa-texto-2); font-size: 0.8rem; text-align: right; }
+.mesa-avance-cab span { color: var(--mesa-texto-2); font-size: 0.72rem; text-align: right; }
 .mesa-avance-barra { height: 4px; margin-top: 0.35rem; background: var(--mesa-gris); border-radius: 2px; overflow: hidden; }
 .mesa-avance-barra i { display: block; height: 100%; background: var(--mesa-negro); border-radius: 2px; }
 .mesa-avance-barra[data-fuera] i { background: var(--mesa-rojo); }
@@ -54,21 +54,21 @@ a.mesa-pend-asunto:focus-visible { outline: 2px solid var(--mesa-negro); outline
 
 /* ── Cola de acciones ── */
 .mesa-cola { list-style: none; }
-.mesa-cola li { display: flex; align-items: center; gap: 0.9rem; padding: 0.85rem 1.25rem; border-top: 1px solid var(--mesa-gris); }
+.mesa-cola li { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.95rem; border-top: 1px solid var(--mesa-gris); }
 .mesa-cola svg { width: 1.15rem; height: 1.15rem; flex: none; color: var(--mesa-texto-2); }
 .mesa-cola-texto { flex: 1; min-width: 0; }
-.mesa-cola-texto b { display: block; font-weight: 600; font-size: 0.95rem; }
-.mesa-cola-texto span { display: block; font-size: 0.82rem; color: var(--mesa-texto-2); }
-.mesa-cola .mesa-btn2 { min-height: 36px; padding: 0 0.9rem; text-decoration: none; }
+.mesa-cola-texto b { display: block; font-weight: 600; font-size: 0.86rem; }
+.mesa-cola-texto span { display: block; font-size: 0.74rem; color: var(--mesa-texto-2); }
+.mesa-cola .mesa-btn2 { min-height:30px; padding: 0 0.7rem; text-decoration: none; }
 
 /* ── Gráfica: llegaron frente a se cerraron ── */
-.mesa-graf { padding: 0 1.25rem 1.25rem; }
-.mesa-graf-leyenda { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1.5rem; }
-.mesa-graf-serie { display: flex; align-items: baseline; gap: 0.5rem; font-size: 0.85rem; color: var(--mesa-texto-2); }
+.mesa-graf { padding: 0 0.95rem 0.95rem; }
+.mesa-graf-leyenda { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 1.1rem; }
+.mesa-graf-serie { display: flex; align-items: baseline; gap: 0.4rem; font-size: 0.76rem; color: var(--mesa-texto-2); }
 .mesa-graf-serie i { width: 0.6rem; height: 0.6rem; border-radius: 2px; flex: none; align-self: center; }
-.mesa-graf-serie b { font-weight: 800; font-size: 1.35rem; color: var(--mesa-texto); font-variant-numeric: tabular-nums; }
-.mesa-graf-nota { margin-left: auto; font-size: 0.85rem; color: var(--mesa-texto-2); font-variant-numeric: tabular-nums; }
-.mesa-graf-area { display: flex; align-items: flex-end; gap: 2px; height: 9rem; margin-top: 1rem; border-bottom: 1px solid var(--mesa-gris); }
+.mesa-graf-serie b { font-weight: 800; font-size: 1.19rem; color: var(--mesa-texto); font-variant-numeric: tabular-nums; }
+.mesa-graf-nota { margin-left: auto; font-size: 0.76rem; color: var(--mesa-texto-2); font-variant-numeric: tabular-nums; }
+.mesa-graf-area { display: flex; align-items: flex-end; gap: 2px; height: 9rem; margin-top: 0.75rem; border-bottom: 1px solid var(--mesa-gris); }
 .mesa-graf-dia { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 100%; min-width: 0; padding: 0 1px; cursor: default; border-radius: 4px 4px 0 0; }
 .mesa-graf-dia:hover, .mesa-graf-dia:focus-visible { background: #f1f1f1; outline: none; }
 .mesa-graf-dia i { display: block; width: 45%; max-width: 14px; border-radius: 4px 4px 0 0; }
@@ -81,7 +81,7 @@ a.mesa-pend-asunto:focus-visible { outline: 2px solid var(--mesa-negro); outline
 /* Tablas informativas (equipo, qué piden): mismas filas, pero no son enlaces */
 .mesa-pend-quieta tbody tr { cursor: default; }
 .mesa-pend-quieta tbody tr:hover { background: transparent; }
-.mesa-franja + .mesa-dash, .mesa-seccion + .mesa-dash { margin-top: 1.25rem; }
+.mesa-franja + .mesa-dash, .mesa-seccion + .mesa-dash { margin-top: 0.95rem; }
 .mesa-pend th.mesa-der { text-align: right; }
 .mesa-franja-pie { flex-wrap: wrap; }
 .mesa-franja-pie > span { white-space: nowrap; }

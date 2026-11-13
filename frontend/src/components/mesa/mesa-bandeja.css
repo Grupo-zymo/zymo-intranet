@@ -1,13 +1,13 @@
 /* Mesa de ayuda — bandeja, panel de detalle y formularios. Los tokens están en mesa.css. */
 
 /* ── Barra de filtros ────────────────────────────────────────────────────── */
-.mesa-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-bottom: 1.25rem; }
-.mesa-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.mesa-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.75rem; margin-bottom: 0.95rem; }
+.mesa-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .mesa-chip {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  min-height: 40px; padding: 0 0.9rem;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height:32px; padding: 0 0.7rem;
   background: #fff; border: 1px solid var(--mesa-gris); border-radius: 999px;
-  font-weight: 600; font-size: 0.85rem; color: var(--mesa-texto-2);
+  font-weight: 600; font-size: 0.76rem; color: var(--mesa-texto-2);
   cursor: pointer; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
 }
 .mesa-chip:hover { border-color: #9a9a9a; color: var(--mesa-texto); }
@@ -24,22 +24,22 @@
 
 /* ── Campos y botones secundarios ────────────────────────────────────────── */
 .mesa-campo {
-  width: 100%; min-height: 44px; padding: 0.55rem 0.8rem;
+  width: 100%; min-height:36px; padding: 0.4rem 0.6rem;
   background: #fff; border: 1px solid #bdbdbd; border-radius: 6px;
-  font: inherit; font-size: 0.95rem; color: var(--mesa-texto);
+  font: inherit; font-size: 0.86rem; color: var(--mesa-texto);
 }
 .mesa-campo::placeholder { color: #767676; }
 textarea.mesa-campo { min-height: 6.5rem; resize: vertical; line-height: 1.5; }
-.mesa-etiqueta { display: block; margin-bottom: 0.35rem; font-weight: 600; font-size: 0.875rem; }
-.mesa-ayuda { margin-top: 0.3rem; font-size: 0.8rem; color: var(--mesa-texto-2); }
-.mesa-error { margin-top: 0.75rem; padding: 0.6rem 0.8rem; border-left: 3px solid var(--mesa-rojo); background: #fff; font-size: 0.9rem; font-weight: 500; }
-.mesa-form { display: grid; gap: 1rem; }
+.mesa-etiqueta { display: block; margin-bottom: 0.35rem; font-weight: 600; font-size: 0.79rem; }
+.mesa-ayuda { margin-top: 0.3rem; font-size: 0.72rem; color: var(--mesa-texto-2); }
+.mesa-error { margin-top: 0.55rem; padding: 0.45rem 0.6rem; border-left: 3px solid var(--mesa-rojo); background: #fff; font-size: 0.81rem; font-weight: 500; }
+.mesa-form { display: grid; gap: 0.75rem; }
 
 .mesa-btn2 {
-  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-  min-height: 40px; padding: 0 0.9rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
+  min-height:32px; padding: 0 0.7rem;
   background: #fff; border: 1px solid #bdbdbd; border-radius: 6px;
-  font-weight: 600; font-size: 0.875rem; color: var(--mesa-texto); cursor: pointer;
+  font-weight: 600; font-size: 0.79rem; color: var(--mesa-texto); cursor: pointer;
   transition: border-color 150ms ease;
 }
 .mesa-btn2:hover:not(:disabled) { border-color: var(--mesa-negro); }
@@ -49,71 +49,71 @@ textarea.mesa-campo { min-height: 6.5rem; resize: vertical; line-height: 1.5; }
 /* ── Lista ───────────────────────────────────────────────────────────────── */
 .mesa-tabla { width: 100%; background: #fff; border: 1px solid var(--mesa-gris); border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; }
 .mesa-tabla th {
-  padding: 0.7rem 1rem; text-align: left; font-weight: 600; font-size: 0.8rem; color: var(--mesa-texto-2);
+  padding: 0.5rem 0.75rem; text-align: left; font-weight: 600; font-size: 0.72rem; color: var(--mesa-texto-2);
   border-bottom: 1px solid var(--mesa-gris); white-space: nowrap;
 }
-.mesa-tabla td { padding: 0.85rem 1rem; border-bottom: 1px solid #efefef; font-size: 0.9rem; vertical-align: top; }
+.mesa-tabla td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #efefef; font-size: 0.81rem; vertical-align: top; }
 .mesa-tabla tr:last-child td { border-bottom: 0; }
 .mesa-fila { cursor: pointer; transition: background-color 120ms ease; }
 .mesa-fila:hover { background: #fafafa; }
 .mesa-asunto { display: block; font-weight: 600; overflow-wrap: anywhere; }
 a.mesa-asunto:hover { text-decoration: underline; text-underline-offset: 3px; }
 a.mesa-asunto:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: 2px; }
-.mesa-sub { margin-top: 0.15rem; font-size: 0.8rem; color: var(--mesa-texto-2); }
+.mesa-sub { margin-top: 0.15rem; font-size: 0.72rem; color: var(--mesa-texto-2); }
 .mesa-cod { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-.mesa-tarjetas { display: grid; gap: 0.6rem; }
-.mesa-tarjeta { display: block; width: 100%; text-align: left; padding: 0.9rem 1rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; cursor: pointer; }
-.mesa-tarjeta-cab { display: flex; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.35rem; }
+.mesa-tarjetas { display: grid; gap: 0.45rem; }
+.mesa-tarjeta { display: block; width: 100%; text-align: left; padding: 0.7rem 0.75rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; cursor: pointer; }
+.mesa-tarjeta-cab { display: flex; justify-content: space-between; gap: 0.55rem; margin-bottom: 0.35rem; }
 @media (min-width: 768px) { .mesa-tarjetas { display: none; } }
 @media (max-width: 767px) { .mesa-tabla { display: none; } }
 
 /* Estado: forma + texto, nunca solo color */
-.mesa-estado { display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+.mesa-estado { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.76rem; white-space: nowrap; }
 .mesa-estado i { width: 0.6rem; height: 0.6rem; flex: none; }
 .mesa-estado[data-estado="abierto"] i { background: var(--mesa-rojo); border-radius: 50%; }
 .mesa-estado[data-estado="en_espera"] i { border: 2px solid #767676; border-radius: 50%; }
 .mesa-estado[data-estado="cerrado"] i { background: var(--mesa-negro); }
 .mesa-estado[data-estado="eliminado"] i { background: #767676; transform: rotate(45deg); }
 
-.mesa-pie { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; font-size: 0.85rem; color: var(--mesa-texto-2); }
-.mesa-esqueleto { height: 3.4rem; margin-bottom: 0.5rem; background: linear-gradient(90deg, #ececec, #f7f7f7, #ececec); background-size: 200% 100%; border-radius: 8px; animation: mesa-brillo 1.4s linear infinite; }
+.mesa-pie { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; font-size: 0.76rem; color: var(--mesa-texto-2); }
+.mesa-esqueleto { height: 3.4rem; margin-bottom: 0.4rem; background: linear-gradient(90deg, #ececec, #f7f7f7, #ececec); background-size: 200% 100%; border-radius: 8px; animation: mesa-brillo 1.4s linear infinite; }
 @keyframes mesa-brillo { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .mesa-esqueleto { animation: none; } }
 
 /* ── Panel de detalle y diálogos ─────────────────────────────────────────── */
-.mesa-capa h2 { font-weight: 800; font-size: 1.3rem; line-height: 1.25; overflow-wrap: anywhere; text-wrap: balance; }
+.mesa-capa h2 { font-weight: 800; font-size: 1.14rem; line-height: 1.25; overflow-wrap: anywhere; text-wrap: balance; }
 .mesa button, .mesa a, .mesa-capa button, .mesa-capa label { touch-action: manipulation; }
-.mesa-capa h3 { font-weight: 800; font-size: 0.95rem; margin-bottom: 0.6rem; }
-.mesa-bloque { padding: 1.1rem 0; border-top: 1px solid var(--mesa-gris); }
-.mesa-datos { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1rem; font-size: 0.875rem; }
+.mesa-capa h3 { font-weight: 800; font-size: 0.86rem; margin-bottom: 0.45rem; }
+.mesa-bloque { padding: 0.8rem 0; border-top: 1px solid var(--mesa-gris); }
+.mesa-datos { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 0.75rem; font-size: 0.79rem; }
 .mesa-datos dt { color: var(--mesa-texto-2); }
 .mesa-datos dd { font-weight: 500; overflow-wrap: anywhere; }
-.mesa-texto-largo { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font-size: 0.925rem; max-width: 70ch; }
+.mesa-texto-largo { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font-size: 0.83rem; max-width: 70ch; }
 
-.mesa-msj { padding: 0.75rem 0.9rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
-.mesa-msj + .mesa-msj { margin-top: 0.6rem; }
+.mesa-msj { padding: 0.55rem 0.7rem; background: #fff; border: 1px solid var(--mesa-gris); border-radius: 8px; }
+.mesa-msj + .mesa-msj { margin-top: 0.45rem; }
 /* Quien pide a la izquierda; el equipo que atiende, a la derecha (igual que la Central) */
 .mesa-msj { max-width: 88%; margin-right: auto; }
 .mesa-msj[data-equipo] { margin-right: 0; margin-left: auto; border-color: #c9c9c9; }
 .mesa-msj[data-interno] { background: #f1f1f1; border-style: dashed; border-color: #9a9a9a; }
-.mesa-msj-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--mesa-texto-2); }
-.mesa-msj-cab strong { font-weight: 600; font-size: 0.875rem; color: var(--mesa-texto); }
-.mesa-marca { padding: 0.05rem 0.45rem; background: var(--mesa-negro); color: #fff; font-weight: 600; font-size: 0.72rem; border-radius: 3px; }
+.mesa-msj-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.45rem; margin-bottom: 0.35rem; font-size: 0.72rem; color: var(--mesa-texto-2); }
+.mesa-msj-cab strong { font-weight: 600; font-size: 0.79rem; color: var(--mesa-texto); }
+.mesa-marca { padding: 0.05rem 0.35rem; background: var(--mesa-negro); color: #fff; font-weight: 600; font-size: 0.72rem; border-radius: 3px; }
 
-.mesa-adjunto { display: inline-flex; align-items: center; gap: 0.4rem; max-width: 100%; margin: 0.4rem 0.4rem 0 0; padding: 0.3rem 0.6rem; background: #fff; border: 1px solid #bdbdbd; border-radius: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
+.mesa-adjunto { display: inline-flex; align-items: center; gap: 0.3rem; max-width: 100%; margin: 0.3rem 0.3rem 0 0; padding: 0.3rem 0.45rem; background: #fff; border: 1px solid #bdbdbd; border-radius: 6px; font-size: 0.72rem; font-weight: 500; cursor: pointer; }
 .mesa-adjunto span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mesa-adjunto:hover { border-color: var(--mesa-negro); }
 
-.mesa-persona { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0; font-size: 0.9rem; font-weight: 500; }
+.mesa-persona { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; padding: 0.35rem 0; font-size: 0.81rem; font-weight: 500; }
 .mesa-segmento { display: inline-flex; border: 1px solid #bdbdbd; border-radius: 6px; overflow: hidden; }
-.mesa-segmento button { min-height: 40px; padding: 0 0.85rem; background: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+.mesa-segmento button { min-height:32px; padding: 0 0.55rem; background: #fff; font-weight: 600; font-size: 0.76rem; cursor: pointer; }
 .mesa-segmento button + button { border-left: 1px solid #bdbdbd; }
 .mesa-segmento button[aria-pressed="true"] { background: var(--mesa-negro); color: #fff; }
 .mesa-segmento button:disabled { cursor: default; }
 .mesa-segmento button:disabled:not([aria-pressed="true"]) { opacity: 0.6; cursor: not-allowed; }
-.mesa-fila-acc { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.mesa-fila-acc { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .mesa-enlace { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .mesa-enlace:focus-visible { outline: 2px solid var(--mesa-negro); outline-offset: 2px; }
-.mesa-historial { font-size: 0.82rem; color: var(--mesa-texto-2); line-height: 1.7; }
+.mesa-historial { font-size: 0.74rem; color: var(--mesa-texto-2); line-height: 1.7; }
 .mesa-historial summary { cursor: pointer; font-weight: 600; color: var(--mesa-texto); }
