@@ -21,6 +21,7 @@ import {
 } from "../../services/centralAuth"
 import { listarLideres } from "../../services/centralLideres"
 import { crearRelay } from "../../services/centralStream"
+import { enlazarAsignacion, soltarAsignacion } from "../../services/centralMesa"
 import { listarCuentas, resolveActorName } from "../../utils/userNames"
 
 const router = Router()
@@ -82,6 +83,18 @@ function validar<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>, dato: unknown):
 interface CasoAsignado {
   estado?: string | null
   asignado?: { email?: string | null } | null
+}
+
+/** Datos del caso para el ticket de la Mesa (solo asunto, cliente, tipo y severidad; nunca la conversación). */
+async function datosParaMesa(radicado: string) {
+  const texto = (v: unknown) => (typeof v === "string" && v.trim() !== "" ? v.trim() : null)
+  try {
+    const { data } = await autogestion.get<Record<string, unknown>>(rutaCaso(radicado))
+    const cliente = data?.cliente as { nombre?: unknown } | undefined
+    return { radicado, asunto: texto(data?.asunto) ?? "Sin asunto", cliente: texto(cliente?.nombre), tipo: texto(data?.tipo), severidad: texto(data?.severidad) }
+  } catch {
+    return { radicado, asunto: "Caso de la Central", cliente: null, tipo: null, severidad: null }
+  }
 }
 
 const rutaCaso = (radicado: string): string => `/casos/${encodeURIComponent(radicado)}`
@@ -244,22 +257,29 @@ router.post("/casos/:radicado/asignar", async (req, res) => {
   const lideres = await listarLideres()
   const asignado = resolverAsignado(quien, asignadoId, lideres, quien.esAdmin ? await listarCuentas() : [])
   if (!asignado) throw new CentralError(400, "Esa persona no está en la lista de líderes de operaciones")
+  const actor = await actorDe(req)
+  const caso = await datosParaMesa(radicado)
   const { data } = await autogestion.post(`${rutaCaso(radicado)}/asignar`, {
-    actor: await actorDe(req),
+    actor,
     asignado: { ...asignado, nombre: asignado.nombre.slice(0, 120) },
     ...(nota ? { nota } : {}),
   })
-  res.json(data ?? { ok: true })
+  // Los operativos no entran a la Central: el caso también queda en la Mesa de ayuda de su área, con la persona como responsable.
+  const area = lideres.find((l) => l.id === asignado.id)?.area ?? null
+  const mesa = await enlazarAsignacion({ caso, asignado: { ...asignado, area }, actor, nota })
+  res.json({ ...(data ?? { ok: true }), mesa })
 })
 
 router.post("/casos/:radicado/liberar", async (req, res) => {
   const radicado = validar(radicadoSchema, req.params.radicado)
   await exigir(req, "liberar")
   const { nota } = validar(liberarSchema, req.body ?? {})
+  const actor = await actorDe(req)
   const { data } = await autogestion.post(`${rutaCaso(radicado)}/liberar`, {
-    actor: await actorDe(req),
+    actor,
     ...(nota ? { nota } : {}),
   })
+  await soltarAsignacion(radicado, actor)
   res.json(data ?? { ok: true })
 })
 

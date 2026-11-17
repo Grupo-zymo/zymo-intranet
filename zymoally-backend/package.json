@@ -11,7 +11,8 @@
     "selfcheck": "ts-node src/services/central.selfcheck.ts && ts-node src/services/mesaAuth.selfcheck.ts && ts-node src/services/mesaTablero.selfcheck.ts && ts-node src/services/mesaAvisos.selfcheck.ts",
     "selfcheck:pqr": "ts-node src/services/pqrCode.selfcheck.ts",
     "selfcheck:mesa": "ts-node src/services/mesaCodigo.selfcheck.ts && ts-node src/services/mesaApi.selfcheck.ts",
-    "selfcheck:stream": "ts-node src/services/centralStream.selfcheck.ts"
+    "selfcheck:stream": "ts-node src/services/centralStream.selfcheck.ts",
+    "selfcheck:centralmesa": "ts-node src/services/centralMesa.selfcheck.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

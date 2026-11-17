@@ -8,6 +8,7 @@ import type {
   CentralCasoDetalle,
   CentralLider,
   CentralListaRespuesta,
+  CentralMesaEnlace,
   CentralResumen,
 } from "@/types/centralTickets"
 
@@ -78,15 +79,14 @@ export function useCentralLideres(activo: boolean) {
   })
 }
 
-async function ejecutar(accion: CentralAccion): Promise<void> {
+async function ejecutar(accion: CentralAccion): Promise<{ mesa?: CentralMesaEnlace } | void> {
   const caso = `${BASE}/casos/${encodeURIComponent(accion.radicado)}`
   switch (accion.tipo) {
     case "asumir":
       await zymoallyApi.post(`${caso}/asumir`, {})
       return
     case "asignar":
-      await zymoallyApi.post(`${caso}/asignar`, { asignadoId: accion.asignadoId, ...(accion.nota ? { nota: accion.nota } : {}) })
-      return
+      return (await zymoallyApi.post<{ mesa?: CentralMesaEnlace }>(`${caso}/asignar`, { asignadoId: accion.asignadoId, ...(accion.nota ? { nota: accion.nota } : {}) })).data
     case "liberar":
       await zymoallyApi.post(`${caso}/liberar`, accion.nota ? { nota: accion.nota } : {})
       return

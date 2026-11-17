@@ -153,7 +153,7 @@ export function DialogoAsignar({
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="ct-muted m-0 min-w-0 truncate text-xs" aria-live="polite">
-              {elegido ? <>Se asignará a <strong className="text-[color:var(--ct-text)]">{elegido.nombre}</strong></> : "Elige a una persona de la lista"}
+              {elegido ? <>Se asignará a <strong className="text-[color:var(--ct-text)]">{elegido.nombre}</strong> y le quedará en su Mesa de ayuda</> : "Elige a una persona de la lista"}
             </p>
             <div className="flex flex-none gap-2">
               <button type="button" className="ct-btn flex-1 sm:flex-none" onClick={onCerrar}>Cancelar</button>

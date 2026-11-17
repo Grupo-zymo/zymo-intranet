@@ -29,6 +29,7 @@ import type {
   CentralAsignacion,
   CentralCasoDetalle,
   CentralMensaje,
+  CentralMesaEnlace,
   CentralNivel,
 } from "@/types/centralTickets"
 import { DialogoAsignar, DialogoConfirmar } from "./CentralDialogos"
@@ -515,6 +516,13 @@ function Historial({ asignaciones }: { asignaciones: CentralAsignacion[] }) {
 
 type Dialogo = "asignar" | "liberar" | "cerrar" | null
 
+/** Aviso al asignar: dice si el caso quedó también en la Mesa de ayuda de la persona (los operativos solo ven la Mesa). */
+function textoAsignado(nombre: string, resp: unknown): string {
+  const mesa = (resp as { mesa?: CentralMesaEnlace } | undefined)?.mesa
+  if (!mesa) return `Caso asignado a ${nombre}`
+  return mesa.ok ? `Caso asignado a ${nombre}. Le quedó en su Mesa de ayuda (${mesa.codigo}).` : `Caso asignado a ${nombre}. ${mesa.motivo}`
+}
+
 const BOTON_GRANDE = "ct-btn !min-h-[48px] w-full"
 
 function Gestion({
@@ -732,15 +740,15 @@ export function CentralDetalle({
     return () => clearTimeout(t)
   }, [dialogo])
 
-  function ejecutar(a: CentralAccion, exito: string, alTerminar?: () => void) {
+  function ejecutar(a: CentralAccion, exito: string | ((respuesta: unknown) => string), alTerminar?: () => void) {
     if (enCurso.current) return
     enCurso.current = true
     accion.mutate(a, {
       onSettled: () => {
         enCurso.current = false
       },
-      onSuccess: () => {
-        showToast(exito)
+      onSuccess: (respuesta) => {
+        showToast(typeof exito === "function" ? exito(respuesta) : exito)
         setDialogo(null)
         alTerminar?.()
       },
@@ -856,7 +864,7 @@ export function CentralDetalle({
             enviando={ocupado}
             onCerrar={() => setDialogo(null)}
             onAsignar={(lider, nota) =>
-              ejecutar({ tipo: "asignar", radicado: r, asignadoId: lider.id, nota: nota || undefined }, `Caso asignado a ${lider.nombre}`)
+              ejecutar({ tipo: "asignar", radicado: r, asignadoId: lider.id, nota: nota || undefined }, (resp) => textoAsignado(lider.nombre, resp))
             }
           />
           <DialogoConfirmar

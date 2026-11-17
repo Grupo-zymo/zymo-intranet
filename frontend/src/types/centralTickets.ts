@@ -143,6 +143,11 @@ export interface CentralFiltros {
   pagina: number
 }
 
+/** Lo que responde el servidor al asignar: si el caso quedó también en la Mesa de ayuda de la persona. */
+export type CentralMesaEnlace =
+  | { ok: true; id: number; codigo: string; accion: "creado" | "reasignado" | "sin_cambios" }
+  | { ok: false; motivo: string }
+
 export type CentralAccion =
   | { tipo: "asumir"; radicado: string }
   | { tipo: "asignar"; radicado: string; asignadoId: number; nota?: string }
