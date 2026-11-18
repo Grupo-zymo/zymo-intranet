@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Clave interna para llamadas service-to-service (task-backend, etc.)
     internal_key: str = ""
 
+    # URL interna de zymoally-backend (push FCM)
+    zymoally_internal_url: str = "http://zymoally-backend:3005"
+
     # Correo — SMTP Office 365
     smtp_host: str = "smtp.office365.com"
     smtp_port: int = 587

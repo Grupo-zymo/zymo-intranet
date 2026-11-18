@@ -248,6 +248,103 @@ def _parse_date(value: Optional[str]):
         return None
 
 
+# ── Mi perfil (usuario actual) ────────────────────────────────────────────────
+
+_CUMPLE_VENTANA_DIAS = 45
+_CUMPLE_MAX = 8
+
+
+def _hoy_bogota():
+    from datetime import timedelta, timezone
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/Bogota")).date()
+    except Exception:  # sin tzdata (Windows): Bogotá es UTC-5 fijo
+        return datetime.now(timezone(timedelta(hours=-5))).date()
+
+
+def _dias_hasta_cumple(fecha_nac, hoy) -> int:
+    """Días desde `hoy` hasta el próximo cumpleaños (0 = hoy). El 29-feb se celebra el 28-feb en años no bisiestos."""
+    from calendar import isleap
+    from datetime import date
+
+    def _en(anio: int) -> date:
+        if fecha_nac.month == 2 and fecha_nac.day == 29 and not isleap(anio):
+            return date(anio, 2, 28)
+        return date(anio, fecha_nac.month, fecha_nac.day)
+
+    prox = _en(hoy.year)
+    if prox < hoy:
+        prox = _en(hoy.year + 1)
+    return (prox - hoy).days
+
+
+@router.get("/mi-perfil")
+def mi_perfil(
+    db: Session = Depends(get_personal_db),
+    main_db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    yo = db.exec(select(PtcPersona).where(PtcPersona.user_id == current_user.id)).first()
+    if not yo:
+        return {"vinculado": False, "persona": None, "jefe": None, "es_lider": False, "liderados": [], "cumpleanos": []}
+
+    def _cargo(p: PtcPersona) -> str:
+        c = db.get(PtcCargo, p.cargo_id) if p.cargo_id else None
+        return c.nombre if c else ""
+
+    def _iso(p: PtcPersona):
+        return p.fecha_nacimiento.isoformat() if p.fecha_nacimiento else None
+
+    sede = main_db.get(Sede, yo.sede_id) if yo.sede_id else None
+    area = main_db.get(GlobalArea, yo.area_id) if yo.area_id else None
+    jefe = db.get(PtcPersona, yo.jefe_directo_id) if yo.jefe_directo_id else None
+
+    liderados = sorted(
+        db.exec(select(PtcPersona).where(
+            PtcPersona.jefe_directo_id == yo.id, PtcPersona.estado == _ACTIVO)).all(),
+        key=lambda p: p.nombre.casefold(),
+    )
+
+    candidatos = [(p, "equipo") for p in liderados]
+    if yo.area_id:
+        ids_equipo = {p.id for p in liderados}
+        mismos = db.exec(select(PtcPersona).where(
+            PtcPersona.area_id == yo.area_id, PtcPersona.estado == _ACTIVO)).all()
+        candidatos += [(p, "area") for p in mismos if p.id != yo.id and p.id not in ids_equipo]
+
+    hoy = _hoy_bogota()
+    cumples = []
+    for p, origen in candidatos:
+        if not p.fecha_nacimiento:
+            continue
+        en_dias = _dias_hasta_cumple(p.fecha_nacimiento, hoy)
+        if en_dias <= _CUMPLE_VENTANA_DIAS:
+            cumples.append({
+                "id": p.id, "nombre": p.nombre,
+                "dia": p.fecha_nacimiento.day, "mes": p.fecha_nacimiento.month,
+                "en_dias": en_dias, "es_hoy": en_dias == 0, "origen": origen,
+            })
+    cumples.sort(key=lambda c: c["en_dias"])
+
+    return {
+        "vinculado": True,
+        "persona": {
+            "id": yo.id, "nombre": yo.nombre, "cargo": _cargo(yo),
+            "area": area.name if area else "", "sede": sede.name if sede else "",
+            "correo": _email_corporativo_efectivo(yo, main_db) or yo.email,
+            "fecha_nacimiento": _iso(yo),
+        },
+        "jefe": {"id": jefe.id, "nombre": jefe.nombre, "cargo": _cargo(jefe)} if jefe else None,
+        "es_lider": bool(liderados),
+        "liderados": [
+            {"id": p.id, "nombre": p.nombre, "cargo": _cargo(p), "fecha_nacimiento": _iso(p)}
+            for p in liderados
+        ],
+        "cumpleanos": cumples[:_CUMPLE_MAX],
+    }
+
+
 # ── Stats ─────────────────────────────────────────────────────────────────────
 
 @router.get("/stats")

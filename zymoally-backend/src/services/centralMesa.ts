@@ -68,7 +68,7 @@ export async function enlazarAsignacion(p: { caso: CasoParaMesa; asignado: Asign
   try {
     const areas = await prisma.mesaArea.findMany({ select: { areaId: true, nombre: true, recibeTickets: true } })
     const area = elegirArea(areas, p.asignado.area)
-    if (!area) return { ok: false, motivo: `No hay Mesa de ayuda para el área «${p.asignado.area ?? "sin área"}»; ${p.asignado.nombre} no verá el caso allí.` }
+    if (!area) return { ok: false, motivo: `El área «${p.asignado.area ?? "sin área"}» no está activa en la Mesa de ayuda, así que ${p.asignado.nombre} no verá el caso allí. Actívala en Mesa de ayuda → Configuración.` }
 
     const abiertos = await prisma.mesaTicket.findMany({
       where: { radicadoOrigen: p.caso.radicado, eliminadoEn: null, estado: { not: "cerrado" } },

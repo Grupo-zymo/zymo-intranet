@@ -27,6 +27,11 @@ export const env = {
   VAPID_PUBLIC_KEY: (process.env.VAPID_PUBLIC_KEY ?? "").trim(),
   VAPID_PRIVATE_KEY: (process.env.VAPID_PRIVATE_KEY ?? "").trim(),
   VAPID_SUBJECT: (process.env.VAPID_SUBJECT ?? "mailto:soporte@zymointranet.com").trim(),
+  // Push nativo de Android (FCM). Credencial de cuenta de servicio de Firebase, de una de dos formas:
+  // FCM_SERVICE_ACCOUNT_FILE = ruta al JSON, o FCM_SERVICE_ACCOUNT_JSON = el contenido del JSON (secreto).
+  // Sin ninguna de las dos el push nativo queda apagado y todo lo demas sigue igual.
+  FCM_SERVICE_ACCOUNT_FILE: (process.env.FCM_SERVICE_ACCOUNT_FILE ?? "").trim(),
+  FCM_SERVICE_ACCOUNT_JSON: (process.env.FCM_SERVICE_ACCOUNT_JSON ?? "").trim(),
 } as const;
 
 export type Env = typeof env;

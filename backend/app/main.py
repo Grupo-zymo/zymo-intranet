@@ -40,6 +40,7 @@ from app.personal_database import create_personal_tables
 from app.routers.personal import router as personal_router
 from app.routers.tc_agenda import router as tc_agenda_router
 from app.routers.app_version import router as app_version_router
+from app.routers.push_destinatarios import router as push_destinatarios_router
 from app.routers.tc_cap_coordinador import router as tc_cap_coordinador_router
 from app.routers.tc_formatos import router as tc_formatos_router
 from app.routers.tc_evaluaciones import router as tc_evaluaciones_router
@@ -419,6 +420,7 @@ app.include_router(sig_pdf_router)
 app.include_router(personal_router)
 app.include_router(tc_agenda_router)
 app.include_router(app_version_router)
+app.include_router(push_destinatarios_router)
 app.include_router(tc_cap_coordinador_router)
 app.include_router(tc_formatos_router)
 app.include_router(tc_evaluaciones_router)

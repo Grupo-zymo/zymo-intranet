@@ -22,6 +22,9 @@ import {
 import { listarLideres } from "../../services/centralLideres"
 import { crearRelay } from "../../services/centralStream"
 import { enlazarAsignacion, soltarAsignacion } from "../../services/centralMesa"
+import { crearAvisosCentral } from "../../services/centralPush"
+import { destinatariosDelPermiso } from "../../services/destinatarios"
+import { enviarFcmPorCorreo } from "../../services/fcm"
 import { listarCuentas, resolveActorName } from "../../utils/userNames"
 
 const router = Router()
@@ -179,7 +182,10 @@ router.get("/lideres", async (req, res) => {
 const LATIDO_MS = 25_000 // Cloudflare corta conexiones inactivas a ~100 s
 const MAX_TIMER_MS = 2 ** 31 - 1
 
+const avisos = crearAvisosCentral({ destinatarios: destinatariosDelPermiso, enviar: enviarFcmPorCorreo })
+
 const relay = crearRelay({
+  alEvento: (evento, ev) => void avisos(evento, ev),
   abrir: async (lastId, signal) => {
     const res = await autogestion.stream(lastId, signal)
     return { ok: res.ok, status: res.status, body: res.body as unknown as AsyncIterable<Uint8Array> | null }

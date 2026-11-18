@@ -346,3 +346,19 @@ model MesaPushSub {
 
   @@index([userId])
 }
+
+// Push nativo de Android (FCM): un registro por token de dispositivo. El correo va
+// siempre en minúscula; sirve para avisar a una persona aunque llegue por la app de autogestión.
+model PushDispositivo {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  email      String
+  token      String   @unique
+  plataforma String
+  version    String?
+  creadoEn   DateTime @default(now())
+  vistoEn    DateTime @default(now()) @updatedAt
+
+  @@index([email])
+  @@index([userId])
+}

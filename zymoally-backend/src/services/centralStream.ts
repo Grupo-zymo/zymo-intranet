@@ -47,6 +47,8 @@ export interface OpcionesRelay {
   backoffMaxMs?: number
   /** Sin bytes del upstream durante este tiempo se da por colgado y se reconecta. */
   silencioMs?: number
+  /** Gancho para avisos push: recibe cada evento real del upstream (con correos de asignación), una sola vez por id. */
+  alEvento?: (evento: string, ev: Record<string, unknown>) => void
 }
 
 const DATOS_SOLO_SERVICIO = ["asignadoEmail", "asignadoAntesEmail"] as const
@@ -98,6 +100,8 @@ export function crearRelay(opciones: OpcionesRelay) {
       aTodos(bloque("resync", b.data || "{}"))
       return
     }
+    // Tras reconectar el upstream puede repetir ids ya vistos: el push solo sale por ids nuevos.
+    const idNuevo = !(b.id !== undefined && /^\d+$/.test(b.id)) || lastId === null || Number(b.id) > lastId
     if (b.id !== undefined && /^\d+$/.test(b.id)) lastId = Math.max(lastId ?? 0, Number(b.id))
     let ev: Record<string, unknown>
     try {
@@ -106,6 +110,9 @@ export function crearRelay(opciones: OpcionesRelay) {
       ev = parseado as Record<string, unknown>
     } catch {
       return // data no parseable: se descarta
+    }
+    if (idNuevo) {
+      try { opciones.alEvento?.(b.event, ev) } catch { /* un aviso fallido no frena el relay */ }
     }
     const limpio = { ...ev }
     for (const campo of DATOS_SOLO_SERVICIO) delete limpio[campo]

@@ -23,6 +23,7 @@ from app.models.oc import CotizacionProveedor, EliminacionOC, EstadoOC, Historia
 from app.models.user import User
 from app.services.consecutivos import liberar_consecutivo, siguiente_consecutivo
 from app.services.historial import registrar_cambio_estado
+from app.services.oc_push import avisar_solicitud_nueva
 from app.services.oc_proforma import (
     cotizaciones_count,
     DETALLE_PROFORMA_DESCARGA_OC_CERRADA,
@@ -333,6 +334,7 @@ async def crear_solicitud_interna(
         )
 
     background_tasks.add_task(send_nueva_solicitud_interna, solicitud)
+    avisar_solicitud_nueva(solicitud)
 
     return solicitud
 

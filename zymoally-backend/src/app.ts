@@ -22,6 +22,7 @@ import centralRouter from "./routers/central"
 import mesaTicketsRouter from "./routers/mesa/tickets"
 import mesaConfigRouter from "./routers/mesa/config"
 import mesaAvisosRouter from "./routers/mesa/avisos"
+import { dispositivoRouter as pushDispositivoRouter, internoRouter as pushInternoRouter } from "./routers/push"
 import { requireMesaAccess } from "./middleware/mesa"
 import publicSurveyRouter from "./routers/public/survey"
 import publicShortLinkRouter from "./routers/public/shortlink"
@@ -57,8 +58,14 @@ app.use("/public/survey", publicSurveyRouter)
 // --- Links cortos (ej. "Enviar encuesta") — redirect público, sin login ---
 app.use("/s", publicShortLinkRouter)
 
+// --- Push nativo, servicio a servicio (X-Internal-Key propia, sin JWT) ---
+app.use(pushInternoRouter)
+
 // --- Auth ---
 app.use("/api", authenticate)
+
+// --- Push nativo: el teléfono registra su token (cualquier cuenta autenticada) ---
+app.use("/api/push", pushDispositivoRouter)
 
 // --- Tickets (dominio PQR) ---
 app.use("/api/tickets/pqr", requireTicketsAccess, pqrRouter)

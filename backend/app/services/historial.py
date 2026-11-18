@@ -29,3 +29,8 @@ def registrar_cambio_estado(
         tipo_accion=tipo_accion,
     )
     db.add(entrada)
+
+    # Aviso push (no bloquea ni cambia el comportamiento; nunca lanza)
+    from app.services.oc_push import avisar_cambio_estado
+
+    avisar_cambio_estado(db, solicitud_id, estado_nuevo, usuario_id)

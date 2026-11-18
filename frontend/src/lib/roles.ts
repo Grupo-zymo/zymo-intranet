@@ -251,7 +251,7 @@ export const INTERNAL_MODULE_GROUPS: ModulePermissionGroup[] = [
   },
   {
     title: "Mesa de ayuda — Solicitudes entre áreas",
-    subtitle: "Al inicio solo la ven los administradores: aquí se habilita a cada persona",
+    subtitle: "Se habilita asignando a la persona un rol que tenga este permiso (Organización → Editar cuenta → Rol)",
     modules: [
       {
         id: "mod_tickets_mesa",

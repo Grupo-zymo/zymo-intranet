@@ -6,6 +6,7 @@
 import webpush from "web-push"
 import { prisma } from "../config/prisma"
 import { env } from "../config/env"
+import { enviarFcmPorUserId } from "./fcm"
 
 const activo = env.VAPID_PUBLIC_KEY !== "" && env.VAPID_PRIVATE_KEY !== ""
 if (activo) webpush.setVapidDetails(env.VAPID_SUBJECT, env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY)
@@ -30,7 +31,10 @@ export interface MensajePush {
  * cualquier otro error solo se registra.
  */
 export async function enviarPush(userIds: number[], mensaje: MensajePush): Promise<number> {
-  if (!activo || userIds.length === 0) return 0
+  if (userIds.length === 0) return 0
+  // Android nativo (FCM): independiente de Web Push; nunca lanza.
+  const fcm = enviarFcmPorUserId(userIds, mensaje)
+  if (!activo) return fcm
   const subs = await prisma.mesaPushSub.findMany({ where: { userId: { in: userIds } } })
   let enviados = 0
   await Promise.all(subs.map(async (s) => {
@@ -46,5 +50,5 @@ export async function enviarPush(userIds: number[], mensaje: MensajePush): Promi
       }
     }
   }))
-  return enviados
+  return enviados + (await fcm)
 }
