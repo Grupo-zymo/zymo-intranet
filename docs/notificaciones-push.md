@@ -1,6 +1,6 @@
 # Notificaciones push en el APK
 
-La app Android (`com.zymo.intranet`) recibe avisos reales con Firebase Cloud Messaging (FCM), también con la app cerrada. Sin el archivo `google-services.json` el APK compila y funciona igual: el registro falla, el estado queda "no disponible" y no se muestra ni el interruptor ni la oferta.
+La app Android (`com.zymo.intranet`) recibe avisos reales con Firebase Cloud Messaging (FCM), también con la app cerrada. Sin el archivo `google-services.json` (y sin `VITE_PUSH_FCM=1`) el APK compila y funciona igual: el registro falla, el estado queda "no disponible" y no se muestra ni el interruptor ni la oferta.
 
 ## Cómo se conecta
 
@@ -12,7 +12,7 @@ La app Android (`com.zymo.intranet`) recibe avisos reales con Firebase Cloud Mes
 
 1. En la consola de Firebase, crear el proyecto (sin Analytics si no se necesita).
 2. Registrar una app Android con el paquete `com.zymo.intranet`.
-3. Descargar `google-services.json` y copiarlo a `frontend/android/app/google-services.json`. El plugin de Google Services se aplica solo si el archivo existe (`app/build.gradle`).
+3. Descargar `google-services.json` y copiarlo a `frontend/android/app/google-services.json`. El plugin de Google Services se aplica solo si el archivo existe (`app/build.gradle`). Además, activar `VITE_PUSH_FCM=1` en `frontend/.env.android`: sin esa variable el APK no llama a FCM (sin el JSON, el plugin cerraría la app).
 4. Compilar el APK de nuevo (`npm run build:android`, `npx cap sync android`, `gradlew assembleRelease`) y distribuirlo. Los teléfonos con el APK anterior no reciben push.
 5. Generar una clave de cuenta de servicio (Configuración del proyecto > Cuentas de servicio > Generar clave privada) y ponerla **solo en el servidor** como `FCM_SERVICE_ACCOUNT_FILE` (ruta al JSON) o `FCM_SERVICE_ACCOUNT_JSON`. Nunca en el repo ni en el frontend. `google-services.json` identifica la app pero no es una credencial de envío.
 
