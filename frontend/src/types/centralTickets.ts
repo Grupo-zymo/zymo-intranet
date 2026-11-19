@@ -126,7 +126,8 @@ export interface CentralLider {
 
 /** Filtros del panel. Todos viven en la URL. */
 export interface CentralFiltros {
-  estado: "" | CentralEstado | "abierto"
+  /** "" = vista predeterminada de cada pantalla; "todos" = sin filtrar por estado (historial incluido). */
+  estado: "" | CentralEstado | "abierto" | "todos"
   severidad: "" | CentralSeveridad
   area: "" | CentralArea
   tipo: "" | CentralTipo

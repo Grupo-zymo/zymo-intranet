@@ -36,16 +36,20 @@ interface Vista {
   /** Clave del filtro que esta vista ya explica (no se repite como chip). */
   clave: keyof Filtros | null
   soloDirector?: boolean
+  /** Solo en escritorio: su pantalla arranca en «Requieren acción»; el teléfono arranca en «Abiertos». */
+  soloWeb?: boolean
 }
 
 const SIN_EXTRAS = (f: Filtros) => !f.escalado && !f.vencido && !f.sinRespuesta && !f.severidad && !f.area && !f.tipo && !f.desde && !f.hasta
+const SIN_ESTADO = (f: Filtros) => !f.estado || f.estado === "abierto"
 
 const VISTAS: Vista[] = [
+  { id: "accion", texto: "Requieren acción", filtro: {}, clave: null, soloWeb: true, activa: (f) => !f.estado && !f.asignado && SIN_EXTRAS(f) },
   { id: "abiertos", texto: "Abiertos", filtro: { estado: "abierto" }, clave: "estado", activa: (f) => f.estado === "abierto" && !f.asignado && SIN_EXTRAS(f) },
-  { id: "escalados", texto: "Escalados", filtro: { escalado: true }, clave: "escalado", activa: (f) => f.escalado && !f.estado && !f.asignado && !f.vencido && !f.sinRespuesta },
+  { id: "escalados", texto: "Escalados", filtro: { escalado: true }, clave: "escalado", activa: (f) => f.escalado && SIN_ESTADO(f) && !f.asignado && !f.vencido && !f.sinRespuesta },
   { id: "sin", texto: "Sin asignar", filtro: { estado: "abierto", asignado: "sin" }, clave: "asignado", soloDirector: true, activa: (f) => f.asignado === "sin" && SIN_EXTRAS(f) },
-  { id: "mios", texto: "Mis casos", filtro: { asignado: "mios" }, clave: "asignado", soloDirector: true, activa: (f) => f.asignado === "mios" && !f.estado && SIN_EXTRAS(f) },
-  { id: "todos", texto: "Todos", filtro: {}, clave: null, activa: (f) => !f.estado && !f.asignado && SIN_EXTRAS(f) },
+  { id: "mios", texto: "Mis casos", filtro: { asignado: "mios" }, clave: "asignado", soloDirector: true, activa: (f) => f.asignado === "mios" && SIN_ESTADO(f) && SIN_EXTRAS(f) },
+  { id: "todos", texto: "Todos", filtro: { estado: "todos" }, clave: "estado", activa: (f) => f.estado === "todos" && !f.asignado && SIN_EXTRAS(f) },
 ]
 
 function Campo({ etiqueta, children, className = "" }: { etiqueta: string; children: (id: string) => React.ReactNode; className?: string }) {
@@ -81,7 +85,7 @@ interface ChipActivo {
 /** Etiquetas de los filtros activos, cada una con su forma de quitarla. */
 function chipsActivos(f: Filtros, lideres: CentralCargaLider[], nivel: CentralNivel): ChipActivo[] {
   const chips: ChipActivo[] = []
-  if (f.estado) chips.push({ clave: "estado", texto: ESTADO_TEXTO[f.estado], quitar: { estado: "" } })
+  if (f.estado && f.estado !== "todos") chips.push({ clave: "estado", texto: ESTADO_TEXTO[f.estado], quitar: { estado: "" } })
   if (f.severidad) chips.push({ clave: "severidad", texto: `Severidad ${SEVERIDAD_TEXTO[f.severidad].toLowerCase()}`, quitar: { severidad: "" } })
   if (f.area) chips.push({ clave: "area", texto: AREA_TEXTO[f.area], quitar: { area: "" } })
   if (f.tipo) chips.push({ clave: "tipo", texto: TIPO_TEXTO[f.tipo], quitar: { tipo: "" } })
@@ -115,9 +119,9 @@ export function CentralFiltros({ filtros, nivel, lideres, cuenta, onCambiar, onL
 
   const [hoja, setHoja] = useState(false)
   const director = nivel === "director"
-  const vistas = VISTAS.filter((v) => director || !v.soloDirector)
+  const vistas = VISTAS.filter((v) => !v.soloWeb && (director || !v.soloDirector))
   const vistaActiva = vistas.find((v) => v.activa(filtros)) ?? null
-  const chips = chipsActivos(filtros, lideres, nivel).filter((c) => c.clave !== vistaActiva?.clave || vistaActiva.id === "todos")
+  const chips = chipsActivos(filtros, lideres, nivel).filter((c) => c.clave !== vistaActiva?.clave)
   const lideresOrdenados = [...lideres].sort((a, b) => a.nombre.localeCompare(b.nombre))
   const asignadoFuera =
     filtros.asignado && !["sin", "mios"].includes(filtros.asignado) && !lideres.some((l) => l.email.toLowerCase() === filtros.asignado)
@@ -195,8 +199,8 @@ export function CentralFiltros({ filtros, nivel, lideres, cuenta, onCambiar, onL
               <Campo etiqueta="Estado">
                 {(id) => (
                   <select id={id} name="estado" className="ct-input" value={filtros.estado} onChange={(e) => onCambiar({ estado: e.target.value as Filtros["estado"] })}>
-                    <option value="">Todos</option>
                     <option value="abierto">Abiertos</option>
+                    <option value="todos">Todos (con historial)</option>
                     {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_TEXTO[e]}</option>)}
                   </select>
                 )}
@@ -290,7 +294,7 @@ export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimp
   const director = nivel === "director"
   const vistas = VISTAS.filter((v) => director || !v.soloDirector)
   const vistaActiva = vistas.find((v) => v.activa(filtros)) ?? null
-  const chips = chipsActivos(filtros, lideres, nivel).filter((c) => c.clave !== vistaActiva?.clave || vistaActiva.id === "todos")
+  const chips = chipsActivos(filtros, lideres, nivel).filter((c) => c.clave !== vistaActiva?.clave)
   const lideresOrdenados = [...lideres].sort((a, b) => a.nombre.localeCompare(b.nombre))
   const asignadoFuera =
     filtros.asignado && !["sin", "mios"].includes(filtros.asignado) && !lideres.some((l) => l.email.toLowerCase() === filtros.asignado)
@@ -339,8 +343,9 @@ export function CentralBarraFiltros({ filtros, nivel, lideres, onCambiar, onLimp
         <Campo etiqueta="Estado">
           {(id) => (
             <select id={id} name="estado" className="ct-input" value={filtros.estado} onChange={(e) => onCambiar({ estado: e.target.value as Filtros["estado"] })}>
-              <option value="">Todos</option>
+              <option value="">Requieren acción</option>
               <option value="abierto">Abiertos</option>
+              <option value="todos">Todos (con historial)</option>
               {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_TEXTO[e]}</option>)}
             </select>
           )}

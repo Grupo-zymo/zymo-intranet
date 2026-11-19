@@ -1,7 +1,7 @@
 // Piezas pequeñas que comparten la lista, el detalle y los filtros.
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react"
-import { PlugZap, RefreshCw, ShieldAlert, Unplug } from "lucide-react"
+import { ChevronLeft, ChevronRight, PlugZap, RefreshCw, ShieldAlert, Unplug } from "lucide-react"
 import { ESTADO_TEXTO, SEVERIDAD_TEXTO, TONO_ESTADO, estadoDeError, iniciales, mensajeDeError, vencimiento } from "@/lib/centralTickets"
 import type { CentralEstado, CentralSeveridad, CentralSla } from "@/types/centralTickets"
 
@@ -13,6 +13,24 @@ const TONO_SEVERIDAD: Record<CentralSeveridad, string> = {
 }
 
 const tono = (color: string): CSSProperties => ({ "--tono": color }) as CSSProperties
+
+/** Anterior / «Página N de M» / siguiente. No se pinta si todo cabe en una página. */
+export function CentralPaginas({ pagina, paginas, onIr, className = "" }: { pagina: number; paginas: number; onIr: (pagina: number) => void; className?: string }) {
+  if (paginas <= 1) return null
+  return (
+    <nav aria-label="Páginas de casos" className={`flex items-center justify-between gap-3 ${className}`}>
+      <button type="button" className="ct-btn ct-btn-redondo" aria-label="Página anterior" disabled={pagina <= 1} onClick={() => onIr(pagina - 1)}>
+        <ChevronLeft className="size-4" aria-hidden />
+      </button>
+      <p className="ct-muted m-0 text-[13px]">
+        Página <span className="ct-mono text-[color:var(--ct-text)]">{pagina}</span> de <span className="ct-mono">{paginas}</span>
+      </p>
+      <button type="button" className="ct-btn ct-btn-redondo" aria-label="Página siguiente" disabled={pagina >= paginas} onClick={() => onIr(pagina + 1)}>
+        <ChevronRight className="size-4" aria-hidden />
+      </button>
+    </nav>
+  )
+}
 
 export function SeveridadChip({ severidad }: { severidad: CentralSeveridad }) {
   return (

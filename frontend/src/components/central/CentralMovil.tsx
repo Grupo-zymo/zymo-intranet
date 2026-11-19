@@ -2,7 +2,7 @@
 // plegable, buscador, vistas rápidas y tarjetas de casos. Tocar un caso abre su conversación en la página de Chats.
 
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { ChevronLeft, ChevronRight, Inbox } from "lucide-react"
+import { Inbox } from "lucide-react"
 import { TicketToastContainer } from "@/components/tickets/TicketToast"
 import { useCentralCasos, useCentralResumen } from "@/hooks/useCentralTickets"
 import {
@@ -22,7 +22,7 @@ import { CONSULTA_ABIERTOS, CentralCabecera, RUTA_CHATS } from "./CentralCabecer
 import { CentralFiltros } from "./CentralFiltros"
 import { CentralLista, CentralListaCargando } from "./CentralLista"
 import { CentralIndicadores, CentralResumenPlegable } from "./CentralPulso"
-import { Aviso, AvisoServicio, useAhora } from "./partes"
+import { Aviso, AvisoServicio, CentralPaginas, useAhora } from "./partes"
 import "./central.css"
 
 export function CentralMovil({ nivel }: { nivel: CentralNivel; miCorreo: string }) {
@@ -31,7 +31,11 @@ export function CentralMovil({ nivel }: { nivel: CentralNivel; miCorreo: string 
   const ahora = useAhora()
   const director = nivel === "director"
 
-  const filtros = filtrosDesdeUrl(params)
+  // Sin elegir estado, el dashboard muestra lo abierto; el historial se pide con «Todos».
+  const delUrl = filtrosDesdeUrl(params)
+  const filtros: Filtros = { ...delUrl, estado: delUrl.estado || "abierto" }
+  // «Abiertos» y «Todos» son vistas, no filtros que el usuario puso: no cuentan como «con estos filtros».
+  const conFiltros = hayFiltros({ ...filtros, estado: filtros.estado === "abierto" || filtros.estado === "todos" ? "" : filtros.estado })
   const amplio = usaFiltroLocal(filtros)
   const resumen = useCentralResumen()
   const lista = useCentralCasos(consultaCasos(filtros, amplio))
@@ -39,11 +43,14 @@ export function CentralMovil({ nivel }: { nivel: CentralNivel; miCorreo: string 
   const abiertos = useCentralCasos(CONSULTA_ABIERTOS)
   const esperan = (abiertos.data?.items ?? []).filter(esperaRespuesta).length
 
-  const casos = lista.data ? (amplio ? aplicarFiltroLocal(lista.data.items, filtros) : lista.data.items) : []
+  const todos = lista.data ? (amplio ? aplicarFiltroLocal(lista.data.items, filtros) : lista.data.items) : []
   const total = lista.data?.total ?? 0
-  const paginas = Math.max(1, Math.ceil(total / LIMITE_LISTA))
+  const cuenta = lista.data ? (amplio ? todos.length : total) : null
+  // Con filtro local el servicio entrega hasta 100 de golpe: se parten en páginas aquí; si no, ya viene una página.
+  const paginas = Math.max(1, Math.ceil((amplio ? todos.length : total) / LIMITE_LISTA))
+  const pagina = Math.min(filtros.pagina, paginas)
+  const casos = amplio ? todos.slice((pagina - 1) * LIMITE_LISTA, pagina * LIMITE_LISTA) : todos
   const incompleto = amplio && total > LIMITE_AMPLIO
-  const cuenta = lista.data ? (amplio ? casos.length : total) : null
 
   function escribir(mutar: (p: URLSearchParams) => URLSearchParams) {
     setParams((actual) => mutar(new URLSearchParams(actual)), { replace: true })
@@ -99,7 +106,8 @@ export function CentralMovil({ nivel }: { nivel: CentralNivel; miCorreo: string 
               {cuenta !== null ? (
                 <>
                   <span className="ct-mono">{cuenta}</span> {cuenta === 1 ? "caso" : "casos"}
-                  {hayFiltros(filtros) && <span className="ct-muted font-normal"> con estos filtros</span>}
+                  {conFiltros && <span className="ct-muted font-normal"> con estos filtros</span>}
+                  {!conFiltros && filtros.estado === "abierto" && <span className="ct-muted font-normal"> abiertos</span>}
                 </>
               ) : (
                 "Casos"
@@ -134,33 +142,31 @@ export function CentralMovil({ nivel }: { nivel: CentralNivel; miCorreo: string 
               <div className="ct-card">
                 <Aviso
                   icono={<Inbox className="size-6" aria-hidden />}
-                  titulo={hayFiltros(filtros) ? "Ningún caso coincide con estos filtros" : director ? "No hay casos todavía" : "No tienes casos asignados"}
-                  accion={hayFiltros(filtros) ? <button type="button" className="ct-btn" onClick={limpiar}>Limpiar filtros</button> : undefined}
+                  titulo={conFiltros ? "Ningún caso coincide con estos filtros" : filtros.estado === "abierto" ? "No hay casos abiertos" : director ? "No hay casos todavía" : "No tienes casos asignados"}
+                  accion={conFiltros ? <button type="button" className="ct-btn" onClick={limpiar}>Limpiar filtros</button> : undefined}
                 >
-                  {hayFiltros(filtros)
+                  {conFiltros
                     ? "Quita alguno o limpia todo para ver más casos."
-                    : director
-                      ? "Cuando un cliente radique un caso en su app aparecerá aquí, listo para asumirlo o asignarlo."
-                      : "Cuando la dirección de la central te asigne un caso aparecerá aquí."}
+                    : filtros.estado === "abierto"
+                      ? "Estás al día. Los casos cerrados están en «Todos»."
+                      : director
+                        ? "Cuando un cliente radique un caso en su app aparecerá aquí, listo para asumirlo o asignarlo."
+                        : "Cuando la dirección de la central te asigne un caso aparecerá aquí."}
                 </Aviso>
               </div>
             ) : (
               <CentralLista casos={casos} ahora={ahora} onAbrir={abrirChat} />
             )}
 
-            {!amplio && paginas > 1 && (
-              <nav aria-label="Páginas de casos" className="flex items-center justify-between gap-3 pt-1">
-                <button type="button" className="ct-btn ct-btn-redondo" aria-label="Página anterior" disabled={filtros.pagina <= 1} onClick={() => cambiar({ pagina: filtros.pagina - 1 })}>
-                  <ChevronLeft className="size-4" aria-hidden />
-                </button>
-                <p className="ct-muted m-0 text-[13px]">
-                  Página <span className="ct-mono text-[color:var(--ct-text)]">{filtros.pagina}</span> de <span className="ct-mono">{paginas}</span>
-                </p>
-                <button type="button" className="ct-btn ct-btn-redondo" aria-label="Página siguiente" disabled={filtros.pagina >= paginas} onClick={() => cambiar({ pagina: filtros.pagina + 1 })}>
-                  <ChevronRight className="size-4" aria-hidden />
-                </button>
-              </nav>
-            )}
+            <CentralPaginas
+              pagina={pagina}
+              paginas={paginas}
+              className="pt-1"
+              onIr={(p) => {
+                cambiar({ pagina: p })
+                document.getElementById("ct-casos")?.scrollIntoView({ block: "start" })
+              }}
+            />
           </section>
         </main>
       )}

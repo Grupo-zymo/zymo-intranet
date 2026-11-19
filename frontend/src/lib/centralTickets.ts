@@ -59,7 +59,7 @@ export const FILTROS_VACIOS: CentralFiltros = {
   pagina: 1,
 }
 
-export const LIMITE_LISTA = 20
+export const LIMITE_LISTA = 10
 /** Tope del servicio por página: lo que se trae para el tablero y los filtros locales. */
 export const LIMITE_AMPLIO = 100
 
@@ -70,7 +70,7 @@ function uno<T extends string>(valor: string | null, permitidos: readonly T[]): 
 export function filtrosDesdeUrl(params: URLSearchParams): CentralFiltros {
   const pagina = Number(params.get("pagina"))
   return {
-    estado: uno(params.get("estado"), [...ESTADOS, "abierto"] as const),
+    estado: uno(params.get("estado"), [...ESTADOS, "abierto", "todos"] as const),
     severidad: uno(params.get("severidad"), SEVERIDADES),
     area: uno(params.get("area"), AREAS),
     tipo: uno(params.get("tipo"), TIPOS),
@@ -113,7 +113,7 @@ export function usaFiltroLocal(f: CentralFiltros): boolean {
 export function consultaCasos(f: CentralFiltros, amplio: boolean): Record<string, string | number> {
   const q: Record<string, string | number> = {}
   const estado = f.estado || (usaFiltroLocal(f) ? "abierto" : "")
-  if (estado) q.estado = estado
+  if (estado && estado !== "todos") q.estado = estado
   if (f.severidad) q.severidad = f.severidad
   if (f.area) q.area = f.area
   if (f.tipo) q.tipo = f.tipo

@@ -8,6 +8,7 @@ import { useCentralCasos, useCentralResumen } from "@/hooks/useCentralTickets"
 import {
   FILTROS_VACIOS,
   LIMITE_AMPLIO,
+  LIMITE_LISTA,
   aplicarFiltroLocal,
   consultaCasos,
   esperaRespuesta,
@@ -22,7 +23,7 @@ import type { CentralCasoItem, CentralFiltros as Filtros, CentralNivel } from "@
 import { CONSULTA_ABIERTOS, CentralCabecera, RUTA_CHATS } from "./CentralCabecera"
 import { CentralBarraFiltros } from "./CentralFiltros"
 import { CentralCargaLideres, CentralKpisWeb, CentralTendencia } from "./CentralPulso"
-import { Aviso, AvisoServicio, EstadoChip, Responsable, SeveridadChip, SlaResumen, useAhora } from "./partes"
+import { Aviso, AvisoServicio, CentralPaginas, EstadoChip, Responsable, SeveridadChip, SlaResumen, useAhora } from "./partes"
 import "./central.css"
 
 type Motivo = "sin" | "escalado" | "vencido" | "espera"
@@ -169,6 +170,14 @@ export function CentralDashboardWeb({ nivel }: { nivel: CentralNivel; miCorreo: 
             : prioridad(b) - prioridad(a) || Date.parse(b.creadoEn) - Date.parse(a.creadoEn),
         )
 
+  // El servicio entrega hasta 100 casos juntos: se parten en páginas de 10 aquí.
+  const paginas = Math.max(1, Math.ceil(pendientes.length / LIMITE_LISTA))
+  const pagina = Math.min(filtros.pagina, paginas)
+  const visibles = pendientes.slice((pagina - 1) * LIMITE_LISTA, pagina * LIMITE_LISTA)
+  // Solo se eligió una vista de estado («Abiertos» / «Todos»), sin otros filtros.
+  const soloVista = !hayFiltros({ ...filtros, estado: "" })
+  const titulo = !conFiltros ? "Pendientes" : soloVista && filtros.estado === "todos" ? "Todos los casos" : soloVista && filtros.estado === "abierto" ? "Casos abiertos" : "Casos con estos filtros"
+
   function escribir(mutar: (p: URLSearchParams) => URLSearchParams) {
     setParams((actual) => mutar(new URLSearchParams(actual)), { replace: true })
   }
@@ -227,13 +236,19 @@ export function CentralDashboardWeb({ nivel }: { nivel: CentralNivel; miCorreo: 
             <div className="flex flex-col gap-4 p-6">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 id="ct-pendientes" className="m-0 flex items-center gap-2 text-xl font-bold">
-                  {conFiltros ? "Casos con estos filtros" : "Pendientes"}
+                  {titulo}
                   {!conFiltros && <AlertTriangle className="size-4 text-[color:var(--ct-orange)]" aria-hidden />}
                 </h2>
                 <p className="ct-muted m-0 text-[15px]" aria-live="polite">
                   {filtrada.data ? (
                     <>
                       <span className="ct-mono">{pendientes.length}</span> {pendientes.length === 1 ? "caso" : "casos"}
+                      {paginas > 1 && (
+                        <>
+                          {" · "}
+                          <span className="ct-mono">{(pagina - 1) * LIMITE_LISTA + 1}–{(pagina - 1) * LIMITE_LISTA + visibles.length}</span>
+                        </>
+                      )}
                     </>
                   ) : null}
                 </p>
@@ -249,16 +264,19 @@ export function CentralDashboardWeb({ nivel }: { nivel: CentralNivel; miCorreo: 
             {filtrada.error && !filtrada.data ? (
               <AvisoServicio error={filtrada.error} onReintentar={() => void filtrada.refetch()} />
             ) : (
-              <Pendientes
-                casos={pendientes}
-                cargando={filtrada.isLoading}
-                conFiltros={conFiltros}
-                ahora={ahora}
-                incompleto={(filtrada.data?.total ?? 0) > LIMITE_AMPLIO}
-                total={filtrada.data?.total ?? 0}
-                onAbrir={abrirChat}
-                onLimpiar={limpiar}
-              />
+              <>
+                <Pendientes
+                  casos={visibles}
+                  cargando={filtrada.isLoading}
+                  conFiltros={conFiltros}
+                  ahora={ahora}
+                  incompleto={(filtrada.data?.total ?? 0) > LIMITE_AMPLIO}
+                  total={filtrada.data?.total ?? 0}
+                  onAbrir={abrirChat}
+                  onLimpiar={limpiar}
+                />
+                <CentralPaginas pagina={pagina} paginas={paginas} className="border-t px-6 pb-3 pt-4" onIr={(p) => cambiar({ pagina: p })} />
+              </>
             )}
           </section>
         </main>
