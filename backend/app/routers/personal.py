@@ -1171,6 +1171,7 @@ class PersonaBuscarOut(BaseModel):
     nombre: str
     cargo: str
     plataforma: str
+    area: str = ""  # area del directorio (ficha de la persona), no User.area
     documento: str
     # solo corporativo a proposito (sin fallback a personal) — pedido explicito
     # del consumidor que necesita este campo (ZYMO_Assets)
@@ -1209,11 +1210,13 @@ def buscar_personas_publico(
     for p in personas:
         sede = main_db.get(Sede, p.sede_id) if p.sede_id else None
         cargo = db.get(PtcCargo, p.cargo_id) if p.cargo_id else None
+        area = main_db.get(GlobalArea, p.area_id) if p.area_id else None
         result.append(PersonaBuscarOut(
             id=p.id,
             nombre=p.nombre,
             cargo=cargo.nombre if cargo else "",
             plataforma=sede.name if sede else "",
+            area=area.name if area else "",
             documento=p.documento or "",
             correo_corporativo=p.email_corporativo or "",
         ))
