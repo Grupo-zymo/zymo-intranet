@@ -361,6 +361,14 @@ def mis_solicitudes(
     return oc_db.exec(query).all()
 
 
+def _excel_response(contenido: bytes, filename: str) -> StreamingResponse:
+    return StreamingResponse(
+        io.BytesIO(contenido),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/excel")
 def exportar_solicitudes_excel(
     current_user: User = Depends(require_compras),
@@ -369,12 +377,20 @@ def exportar_solicitudes_excel(
     """Todas las solicitudes no archivadas, una fila por OS. Registrado antes de /{solicitud_id}."""
     from app.services.oc_export import exportar
 
-    contenido, filename = exportar(oc_db)
-    return StreamingResponse(
-        io.BytesIO(contenido),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
+    return _excel_response(*exportar(oc_db))
+
+
+@router.get("/mis-solicitudes/excel")
+def exportar_mis_solicitudes_excel(
+    current_user: User = Depends(get_current_user),
+    oc_db: Session = Depends(get_oc_db),
+):
+    """Mismo Excel de compras, solo con las solicitudes del usuario logueado."""
+    from app.services.oc_export import exportar
+
+    if not current_user.email:
+        raise HTTPException(status_code=400, detail="Tu cuenta no tiene correo.")
+    return _excel_response(*exportar(oc_db, current_user.email))
 
 
 @router.get("/{solicitud_id}", response_model=SolicitudRead)

@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { api } from "@/lib/api"
+import { guardarArchivo } from "@/lib/archivos"
 import { useNavigate, Link } from "react-router-dom"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { useMisSolicitudes, useMarcarEntregada, useEditarCorreccion } from "@/hooks/useOC"
@@ -48,6 +50,22 @@ const ESTADOS_OPTIONS = Object.entries(ESTADO_CONFIG).map(([value, { label }]) =
 
 export function MisSolicitudesPage() {
   const navigate = useNavigate()
+  const [descargando, setDescargando] = useState(false)
+  const [errorExcel, setErrorExcel] = useState(false)
+
+  async function descargarExcel() {
+    setDescargando(true)
+    setErrorExcel(false)
+    try {
+      const res = await api.get("/api/oc/solicitudes/mis-solicitudes/excel", { responseType: "blob" })
+      const match = (res.headers["content-disposition"] ?? "").match(/filename="(.+?)"/)
+      await guardarArchivo(res.data as Blob, match ? match[1] : "mis-solicitudes.xlsx")
+    } catch {
+      setErrorExcel(true)
+    } finally {
+      setDescargando(false)
+    }
+  }
   const { data: solicitudes = [], isLoading, isRefetching } = useMisSolicitudes()
   const [filtroEstado, setFiltroEstado] = useState<string | null>(null)
 
@@ -104,6 +122,14 @@ export function MisSolicitudesPage() {
                   </div>
                 </div>
               )}
+
+              <button
+                onClick={() => void descargarExcel()}
+                disabled={descargando}
+                className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors disabled:opacity-60"
+              >
+                {descargando ? "Descargando..." : errorExcel ? "Error, reintentar" : "Descargar Excel"}
+              </button>
 
               <button
                 onClick={() => navigate("/operativo/nueva-solicitud")}

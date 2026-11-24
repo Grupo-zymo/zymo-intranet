@@ -224,15 +224,18 @@ def workbook_bytes(filas: list[list]) -> bytes:
     return buf.getvalue()
 
 
-def exportar(oc_db: Session) -> tuple[bytes, str]:
-    """Todas las solicitudes no archivadas. Tres lecturas, sin N+1."""
+def exportar(oc_db: Session, solicitante_email: str | None = None) -> tuple[bytes, str]:
+    """Solicitudes no archivadas (de un solicitante si se pasa su correo). Tres lecturas, sin N+1."""
+    conds = [SolicitudOC.archivada == False]  # noqa: E712
+    if solicitante_email:
+        conds.append(SolicitudOC.solicitante_email == solicitante_email)
     sols = oc_db.exec(
         select(SolicitudOC)
-        .where(SolicitudOC.archivada == False)  # noqa: E712
+        .where(*conds)
         .options(defer(SolicitudOC.fotos_producto))
         .order_by(SolicitudOC.fecha_solicitud.desc(), SolicitudOC.id.desc())
     ).all()
-    ids = select(SolicitudOC.id).where(SolicitudOC.archivada == False)  # noqa: E712
+    ids = select(SolicitudOC.id).where(*conds)
     cots = oc_db.exec(
         select(CotizacionProveedor).where(CotizacionProveedor.solicitud_id.in_(ids))
     ).all()
