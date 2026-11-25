@@ -58,8 +58,9 @@ export function useSolicitudes(filters: SolicitudesFilters = {}, page: number = 
   })
 }
 
-export function useMisSolicitudes() {
+export function useMisSolicitudes(enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["oc", "mis-solicitudes"],
     queryFn: async () => {
       const { data } = await api.get<SolicitudOC[]>("/api/oc/solicitudes/mis-solicitudes?limit=200")
@@ -367,6 +368,17 @@ export interface EditarCorreccionPayload {
   descripcion?: string
   cantidad?: number
   observaciones_solicitante?: string
+  nivel_prioridad?: string
+  categoria?: string
+  grupo_articulos?: string
+  cliente?: string
+  condicion?: string
+  plataforma?: string
+  placa_ficha?: string
+  tipo_mantenimiento?: string
+  clasificacion_mantenimiento?: string
+  modalidad_mantenimiento?: string
+  fecha_proximo_mantenimiento?: string
 }
 
 export function useEditarCorreccion() {

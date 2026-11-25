@@ -3,7 +3,8 @@ import { api } from "@/lib/api"
 import { guardarArchivo } from "@/lib/archivos"
 import { useNavigate, Link } from "react-router-dom"
 import { PageLayout } from "@/components/layout/PageLayout"
-import { useMisSolicitudes, useMarcarEntregada, useEditarCorreccion } from "@/hooks/useOC"
+import { useMisSolicitudes, useMarcarEntregada, useEditarCorreccion, useListasFormulario, type EditarCorreccionPayload } from "@/hooks/useOC"
+import { useSedesParaSolicitudesOc } from "@/hooks/useSedes"
 import { Combobox } from "@/components/ui/Combobox"
 import { formatFechaRelativa, formatFechaHora } from "@/lib/dates"
 import type { SolicitudOC } from "@/types/oc"
@@ -215,9 +216,9 @@ function SlaIndicador({ solicitud: s }: { solicitud: SolicitudOC }) {
 function SolicitudCard({ solicitud: s }: { solicitud: SolicitudOC }) {
   const [confirmando, setConfirmando] = useState(false)
   const [corrigiendo, setCorrigiendo] = useState(false)
-  const [corrDesc, setCorrDesc] = useState("")
-  const [corrCantidad, setCorrCantidad] = useState("")
-  const [corrObs, setCorrObs] = useState("")
+  const [corr, setCorr] = useState<Record<string, string>>({})
+  const { data: listas } = useListasFormulario()
+  const { data: sedesOc = [] } = useSedesParaSolicitudesOc()
   const marcarEntregada = useMarcarEntregada()
   const editarCorreccion = useEditarCorreccion()
 
@@ -231,23 +232,46 @@ function SolicitudCard({ solicitud: s }: { solicitud: SolicitudOC }) {
     })
   }
 
+  // El formulario arranca con lo que ya tiene la solicitud; solo viaja lo que el solicitante cambia.
+  const actual = (campo: string): string => String((s as unknown as Record<string, unknown>)[campo] ?? "")
+  const valor = (campo: string) => corr[campo] ?? actual(campo)
+  const cambios = Object.keys(corr).filter((k) => corr[k].trim() !== actual(k))
+  const esMant = s.tipo_solicitud === "mantenimiento"
+
   function handleEnviarCorreccion() {
-    const payload: { descripcion?: string; cantidad?: number; observaciones_solicitante?: string } = {}
-    if (corrDesc.trim()) payload.descripcion = corrDesc.trim()
-    if (corrCantidad.trim() && !isNaN(Number(corrCantidad))) payload.cantidad = Number(corrCantidad)
-    if (corrObs.trim()) payload.observaciones_solicitante = corrObs.trim()
+    const payload: Record<string, string | number> = {}
+    for (const k of cambios) payload[k] = k === "cantidad" ? Number(corr[k]) : corr[k].trim()
     editarCorreccion.mutate(
-      { id: s.id, payload },
-      {
-        onSuccess: () => {
-          setCorrigiendo(false)
-          setCorrDesc("")
-          setCorrCantidad("")
-          setCorrObs("")
-        },
-      }
+      { id: s.id, payload: payload as EditarCorreccionPayload },
+      { onSuccess: () => { setCorrigiendo(false); setCorr({}) } },
     )
   }
+
+  const opciones = (l?: string[]) => (l ?? []).map((v) => ({ value: v, label: v }))
+  const combo = (campo: string, etiqueta: string, lista: { value: string; label: string }[]) => (
+    <div>
+      <label className="block text-xs text-muted-foreground mb-1">{etiqueta}</label>
+      <Combobox
+        className="w-full"
+        options={lista}
+        value={valor(campo) || null}
+        onChange={(v) => setCorr({ ...corr, [campo]: (v as string) ?? "" })}
+        placeholder="Seleccionar…"
+      />
+    </div>
+  )
+  const texto = (campo: string, etiqueta: string, tipo = "text") => (
+    <div>
+      <label className="block text-xs text-muted-foreground mb-1">{etiqueta}</label>
+      <input
+        type={tipo}
+        value={valor(campo)}
+        min={tipo === "number" ? 1 : undefined}
+        onChange={(e) => setCorr({ ...corr, [campo]: e.target.value })}
+        className="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+      />
+    </div>
+  )
 
   return (
     <div className={`bg-card rounded-xl border shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
@@ -284,48 +308,44 @@ function SolicitudCard({ solicitud: s }: { solicitud: SolicitudOC }) {
           )}
           <p className="text-xs font-medium text-amber-700">Edita los campos que necesitas corregir:</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Descripción</label>
-              <input
-                type="text"
-                value={corrDesc}
-                onChange={(e) => setCorrDesc(e.target.value)}
-                placeholder={s.descripcion}
-                className="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Cantidad</label>
-              <input
-                type="number"
-                value={corrCantidad}
-                onChange={(e) => setCorrCantidad(e.target.value)}
-                placeholder={String(s.cantidad)}
-                min="1"
-                className="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
-              />
-            </div>
+            {combo("nivel_prioridad", "Prioridad", opciones(listas?.prioridades))}
+            {!esMant && combo("categoria", "Categoría / Estatus", opciones(listas?.categorias))}
+            {!esMant && combo("grupo_articulos", "Grupo de artículos", opciones(listas?.grupos_articulos))}
+            {combo("cliente", "Cliente", opciones(listas?.clientes))}
+            {combo("condicion", "Condición", opciones(listas?.condiciones))}
+            {combo("plataforma", "Plataforma", sedesOc.map((x) => ({ value: x.name, label: x.name })))}
+            {texto("descripcion", "Descripción")}
+            {texto("cantidad", "Cantidad", "number")}
+            {texto("placa_ficha", "Placa / ficha")}
+            {esMant && texto("tipo_mantenimiento", "Tipo de mantenimiento")}
+            {esMant && combo("clasificacion_mantenimiento", "Clasificación", opciones(["correctivo", "preventivo"]))}
+            {esMant && combo("modalidad_mantenimiento", "Modalidad", opciones(["interno", "externo"]))}
+            {esMant && texto("fecha_proximo_mantenimiento", "Fecha próximo mantenimiento", "date")}
             <div className="sm:col-span-2">
               <label className="block text-xs text-muted-foreground mb-1">Observaciones</label>
               <textarea
-                value={corrObs}
-                onChange={(e) => setCorrObs(e.target.value)}
-                placeholder={s.observaciones_solicitante ?? "Añade observaciones..."}
+                value={valor("observaciones_solicitante")}
+                onChange={(e) => setCorr({ ...corr, observaciones_solicitante: e.target.value })}
                 rows={2}
                 className="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
             </div>
           </div>
+          {editarCorreccion.isError && (
+            <p role="alert" className="text-xs font-medium text-red-600">
+              No se pudo enviar la corrección{(editarCorreccion.error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail ? `: ${JSON.stringify((editarCorreccion.error as { response?: { data?: { detail?: unknown } } }).response!.data!.detail)}` : "."}
+            </p>
+          )}
           <div className="flex items-center gap-2">
             <button
               onClick={handleEnviarCorreccion}
-              disabled={editarCorreccion.isPending || (!corrDesc.trim() && !corrCantidad.trim() && !corrObs.trim())}
+              disabled={editarCorreccion.isPending || cambios.length === 0}
               className="rounded-lg bg-amber-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 disabled:opacity-50 transition-colors"
             >
               {editarCorreccion.isPending ? "Enviando..." : "Enviar corrección"}
             </button>
             <button
-              onClick={() => { setCorrigiendo(false); setCorrDesc(""); setCorrCantidad(""); setCorrObs("") }}
+              onClick={() => { setCorrigiendo(false); setCorr({}) }}
               className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted transition-colors"
             >
               Cancelar

@@ -139,9 +139,21 @@ class CorreccionSolicitudPayload(BaseModel):
 
 
 class EditarCorreccionPayload(BaseModel):
+    # Todo lo que el solicitante llenó al crear; solo viaja lo que cambia.
     descripcion: Optional[str] = None
-    cantidad: Optional[int] = None
+    cantidad: Optional[int] = Field(default=None, ge=1)
     observaciones_solicitante: Optional[str] = None
+    nivel_prioridad: Optional[Literal["Alta", "Media", "Baja"]] = None
+    categoria: Optional[str] = None
+    grupo_articulos: Optional[str] = None
+    cliente: Optional[str] = None
+    condicion: Optional[str] = None
+    plataforma: Optional[str] = None
+    placa_ficha: Optional[str] = None
+    tipo_mantenimiento: Optional[str] = None
+    clasificacion_mantenimiento: Optional[Literal["correctivo", "preventivo"]] = None
+    modalidad_mantenimiento: Optional[Literal["interno", "externo"]] = None
+    fecha_proximo_mantenimiento: Optional[date] = None
 
 
 class PrioridadPayload(BaseModel):
@@ -956,7 +968,11 @@ def editar_correccion(
                 detail="Solo el solicitante puede editar su propia solicitud.",
             )
 
+    # Columnas obligatorias: un null las dejaría rotas, así que se ignora.
+    obligatorias = {"descripcion", "cantidad", "nivel_prioridad"}
     for field, value in payload.model_dump(exclude_unset=True).items():
+        if value is None and field in obligatorias:
+            continue
         setattr(solicitud, field, value)
 
     solicitud.estado = EstadoOC.en_cotizacion
