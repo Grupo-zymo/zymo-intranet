@@ -339,10 +339,10 @@ function SolicitudCard({ solicitud: s }: { solicitud: SolicitudOC }) {
           <div className="flex items-center gap-2">
             <button
               onClick={handleEnviarCorreccion}
-              disabled={editarCorreccion.isPending || cambios.length === 0}
+              disabled={editarCorreccion.isPending}
               className="rounded-lg bg-amber-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 disabled:opacity-50 transition-colors"
             >
-              {editarCorreccion.isPending ? "Enviando..." : "Enviar corrección"}
+              {editarCorreccion.isPending ? "Enviando..." : cambios.length === 0 ? "Reenviar sin cambios" : "Enviar corrección"}
             </button>
             <button
               onClick={() => { setCorrigiendo(false); setCorr({}) }}
