@@ -231,12 +231,12 @@ export function Sidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       className={MOVIL_ITEM}
-                      tooltip="ZYMO Assets"
-                      aria-label="ZYMO Assets (nueva pestaña)"
+                      tooltip="Zymo activos fijos"
+                      aria-label="Zymo activos fijos (nueva pestaña)"
                       onClick={() => void openExternalApp(zymoAssets, useAuthStore.getState().token)}
                     >
                       <Package className="w-4 h-4" />
-                      <span>ZYMO Assets</span>
+                      <span>Zymo activos fijos</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}

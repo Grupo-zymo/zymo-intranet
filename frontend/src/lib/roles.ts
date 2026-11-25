@@ -382,7 +382,7 @@ export const EXTERNAL_APPS: AppDefinition[] = [
     id: "zymo_assets",
     category: "app_externa",
     icon: "📦",
-    name: "ZYMO Assets",
+    name: "Zymo activos fijos",
     description: "Inventario y control de activos patrimoniales",
     // VITE_ZYMO_ASSETS_URL solo se define en un .env local para probar contra otra instancia
     url: import.meta.env.VITE_ZYMO_ASSETS_URL || "https://zymointranet.com/activos",
@@ -396,7 +396,7 @@ export const ALL_APPS: AppDefinition[] = [...INTERNAL_MODULES, ...EXTERNAL_APPS]
 export const ORG_PERMISSION_GROUPS: ModulePermissionGroup[] = [
   ...INTERNAL_MODULE_GROUPS,
   {
-    title: "ZYMO Assets",
+    title: "Zymo activos fijos",
     subtitle: "Inventario y control de activos patrimoniales",
     modules: EXTERNAL_APPS.filter((a) => a.id === "zymo_assets"),
   },
