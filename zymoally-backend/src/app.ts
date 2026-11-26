@@ -86,8 +86,12 @@ app.use("/api/sac/export", requireSacAccess, sacExportRouter)
 // --- Central de tickets (casos que radican los clientes en la app de autogestión) ---
 app.use("/api/central-tickets", requireCentralAccess, centralRouter)
 
+// --- Campana de avisos: toda cuenta autenticada lee y marca SOLO los suyos (mesa de ayuda, SIG…).
+//     Va ANTES de la puerta de la mesa: un líder del SIG sin acceso a la mesa también tiene campana. ---
+app.use("/api/mesa", mesaAvisosRouter)
+
 // --- Mesa de ayuda interna por áreas (toda cuenta autenticada; las reglas van por ticket) ---
-app.use("/api/mesa", requireMesaAccess, mesaConfigRouter, mesaAvisosRouter, mesaTicketsRouter)
+app.use("/api/mesa", requireMesaAccess, mesaConfigRouter, mesaTicketsRouter)
 
 // --- 404 handler ---
 app.use((_req: Request, res: Response) => {

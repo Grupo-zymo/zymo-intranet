@@ -11,13 +11,27 @@ export const registrarSchema = z.object({
 })
 export const borrarSchema = z.object({ token: z.string().min(20).max(4096) })
 
-/** Ruta interna de la intranet: empieza por "/" y no por "//" (nada de saltar a otro sitio). */
-const urlRelativa = z.string().max(300).refine((u) => u.startsWith("/") && !u.startsWith("//") && !u.includes("\\"), "url relativa")
+/**
+ * Ruta interna de la intranet: empieza por "/" y no por "//" (nada de saltar a otro sitio). Tampoco lleva "\" ni
+ * espacios o caracteres de control: el navegador descarta tabuladores y saltos de línea al resolver una ruta, así que
+ * "/\t/evil.com" terminaría en https://evil.com.
+ */
+const urlRelativa = z.string().max(300).refine((u) => u.startsWith("/") && !u.startsWith("//") && !u.includes("\\") && !/[\u0000- \u007f]/.test(u), "url relativa")
 
 export const internoSchema = z.object({
   correos: z.array(z.string().max(254)).max(200),
   titulo: z.string().min(1).max(80),
   texto: z.string().min(1).max(180),
+  url: urlRelativa,
+  etiqueta: z.string().min(1).max(60),
+})
+
+/** Aviso de la campana que manda otro servicio (el SIG): a cuentas concretas, con la ruta a la que lleva. */
+export const avisoInternoSchema = z.object({
+  userIds: z.array(z.number().int().positive()).min(1).max(200),
+  tipo: z.string().min(1).max(40),
+  titulo: z.string().min(1).max(80),
+  texto: z.string().min(1).max(300),
   url: urlRelativa,
   etiqueta: z.string().min(1).max(60),
 })

@@ -4,7 +4,7 @@
 
 import assert from "assert"
 import { armarMensajeFcm, despacharFcm, enviarFcmPorCorreo, leerCredenciales, type Enviador } from "./fcm"
-import { borrarSchema, claveValida, correosEnMinuscula, datosDispositivo, internoSchema, registrarSchema } from "./pushApi"
+import { avisoInternoSchema, borrarSchema, claveValida, correosEnMinuscula, datosDispositivo, internoSchema, registrarSchema } from "./pushApi"
 import { crearAntiduplicado, crearAvisosCentral, decidirAviso, URL_CENTRAL } from "./centralPush"
 import { crearDestinatarios } from "./destinatarios"
 import { crearRelay } from "./centralStream"
@@ -18,11 +18,30 @@ async function main(): Promise<void> {
   const ok = { correos: ["A@x.co"], titulo: "T", texto: "x", url: "/servicio-cliente/central", etiqueta: "e" }
   assert.ok(internoSchema.safeParse(ok).success)
   for (const url of ["//evil.com", "https://evil.com", "central", "/a\\b"]) assert.ok(!internoSchema.safeParse({ ...ok, url }).success, `url ${url}`)
+  // El navegador descarta tabuladores y saltos de línea al resolver una ruta: "/\t/evil.com" termina en https://evil.com
+  for (const url of ["/\t/evil.com", "/\n/evil.com", "/\r/evil.com", "/ /evil.com", " /a", "/a\u0000b"]) {
+    assert.ok(!internoSchema.safeParse({ ...ok, url }).success, `url con espacio o control ${JSON.stringify(url)}`)
+  }
+  assert.strictEqual(new URL("/\t/evil.com", "https://zymointranet.com").host, "evil.com", "por esto se rechazan")
+  for (const url of ["/oc/solicitudes/3f2b6c1e-0000-4000-8000-000000000000", "/sig-area?proc=12&codigo=PRC-000-ABC&titulo=Gesti%C3%B3n+de+compras"]) {
+    assert.ok(internoSchema.safeParse({ ...ok, url }).success, `ruta real ${url}`)
+  }
   assert.ok(!internoSchema.safeParse({ ...ok, titulo: "x".repeat(81) }).success, "titulo > 80")
   assert.ok(!internoSchema.safeParse({ ...ok, texto: "x".repeat(181) }).success, "texto > 180")
   assert.ok(!internoSchema.safeParse({ ...ok, etiqueta: "x".repeat(61) }).success, "etiqueta > 60")
   assert.ok(!internoSchema.safeParse({ ...ok, correos: Array(201).fill("a@x.co") }).success, "correos > 200")
   assert.deepStrictEqual(correosEnMinuscula([" A@X.co ", "a@x.co", "sin-arroba"]), ["a@x.co"])
+  // Payload de /api/avisos/interno: avisos de la campana que mandan otros servicios (el SIG), por id de cuenta
+  const av = { userIds: [7, 8], tipo: "sig_aprobado", titulo: "SIG · PRC-1", texto: "x", url: "/sig-area?proc=1", etiqueta: "sig-proc-1" }
+  assert.ok(avisoInternoSchema.safeParse(av).success)
+  for (const userIds of [[], [0], [-1], [1.5], ["7"], Array(201).fill(1)]) assert.ok(!avisoInternoSchema.safeParse({ ...av, userIds }).success, `userIds ${JSON.stringify(userIds).slice(0, 20)}`)
+  for (const url of ["//evil.com", "https://evil.com", "sig-area", "/a\\b"]) assert.ok(!avisoInternoSchema.safeParse({ ...av, url }).success, `url ${url}`)
+  assert.ok(!avisoInternoSchema.safeParse({ ...av, tipo: "" }).success, "tipo vacío")
+  assert.ok(!avisoInternoSchema.safeParse({ ...av, tipo: "x".repeat(41) }).success, "tipo > 40")
+  assert.ok(!avisoInternoSchema.safeParse({ ...av, titulo: "x".repeat(81) }).success, "titulo > 80")
+  assert.ok(avisoInternoSchema.safeParse({ ...av, texto: "x".repeat(300) }).success, "la campana guarda hasta 300 caracteres")
+  assert.ok(!avisoInternoSchema.safeParse({ ...av, texto: "x".repeat(301) }).success, "texto > 300")
+  assert.ok(!avisoInternoSchema.safeParse({ ...av, texto: "" }).success, "texto vacío")
   // registro / borrado
   assert.ok(registrarSchema.safeParse({ token: TOKEN, plataforma: "android" }).success)
   assert.ok(!registrarSchema.safeParse({ token: "corto", plataforma: "android" }).success)

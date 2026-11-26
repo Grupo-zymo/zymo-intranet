@@ -320,16 +320,19 @@ model MesaHistorial {
   @@index([ticketId])
 }
 
-// Avisos de la campana de la intranet: uno por persona y por evento de un ticket.
+// Avisos de la campana de la intranet: uno por persona y por evento. Los de la mesa de ayuda son de un ticket;
+// los que mandan otros servicios (el SIG avisa al líder de área que aprobaron o rechazaron algo) no tienen ticket
+// y traen en `url` la ruta de la intranet a la que llevan.
 model MesaAviso {
-  id        Int        @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   userId    Int
-  ticketId  Int
-  ticket    MesaTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  tipo      String // nuevo | asignacion | respuesta | nota | cierre | redireccion | fuera_de_meta
+  ticketId  Int?
+  ticket    MesaTicket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  tipo      String // mesa: nuevo | asignacion | respuesta | nota | cierre | redireccion | fuera_de_meta · SIG: sig_aprobado | sig_rechazado
   texto     String
+  url       String?
   leidoEn   DateTime?
-  createdAt DateTime   @default(now())
+  createdAt DateTime    @default(now())
 
   @@index([userId, leidoEn])
   @@index([ticketId])

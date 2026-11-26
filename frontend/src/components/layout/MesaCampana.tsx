@@ -13,12 +13,15 @@ import {
 import { zymoallyApi } from "@/lib/zymoallyApi"
 import { formatFechaRelativa } from "@/lib/dates"
 import { useMesaPush } from "@/hooks/useMesaPush"
-import { canSeeMesa } from "@/lib/permissions"
+import { canSeeMesa, recibeAvisosSig } from "@/lib/permissions"
 import { useAuthStore } from "@/store/authStore"
 
 interface Aviso {
   id: number
-  ticketId: number
+  /** Aviso de un ticket de la mesa de ayuda. */
+  ticketId: number | null
+  /** Aviso de otro módulo (el SIG): la ruta de la intranet a la que lleva. */
+  url: string | null
   tipo: string
   texto: string
   leidoEn: string | null
@@ -28,19 +31,21 @@ interface Aviso {
 const CLAVE = ["mesa", "avisos"]
 
 /**
- * Campana de avisos de la mesa de ayuda. Vive en la barra superior de la
- * intranet (no en la mesa) porque reemplaza al correo: tiene que verse desde
- * cualquier módulo. Se refresca cada 30 s con la pestaña a la vista.
+ * Campana de avisos de la intranet: los de la mesa de ayuda y los del SIG (al
+ * líder de área, cuando aprueban o rechazan algo de su área). Vive en la barra
+ * superior (no en un módulo) porque reemplaza al correo: tiene que verse desde
+ * cualquier parte. Se refresca cada 30 s con la pestaña a la vista.
  */
 export function MesaCampana() {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  // Sin acceso a la mesa no hay campana ni consultas (el servidor respondería 403)
   const tieneMesa = useAuthStore((s) => (s.user ? canSeeMesa(s.user.role, s.user.app_permissions) : false))
+  const lideraSig = useAuthStore((s) => recibeAvisosSig(s.user?.app_permissions))
   const avisos = useQuery<{ sinLeer: number; masSinLeer: number; items: Aviso[] }>({
     queryKey: CLAVE,
     queryFn: async () => (await zymoallyApi.get("/api/mesa/avisos")).data,
-    enabled: tieneMesa,
+    // Sin mesa ni área que liderar en el SIG no llega ningún aviso: ni campana ni consultas
+    enabled: tieneMesa || lideraSig,
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
     staleTime: 10_000,
@@ -60,7 +65,7 @@ export function MesaCampana() {
 
   function abrir(a: Aviso) {
     if (!a.leidoEn) leer.mutate([a.id])
-    navigate(`/mesa-ayuda/solicitudes?ticket=${a.ticketId}`)
+    navigate(a.url ?? `/mesa-ayuda/solicitudes?ticket=${a.ticketId}`)
   }
 
   return (
@@ -89,7 +94,9 @@ export function MesaCampana() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
-          <p className="px-3 py-6 text-center text-sm text-muted-foreground">Sin avisos. Cuando pase algo en tus tickets, aparecerá aquí.</p>
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+            {tieneMesa ? "Sin avisos. Cuando pase algo en tus tickets, aparecerá aquí." : "Sin avisos. Cuando aprueben o rechacen algo de tu área en el SIG, aparecerá aquí."}
+          </p>
         ) : (
           items.map((a) => (
             <DropdownMenuItem key={a.id} className="flex cursor-pointer items-start gap-2 py-2.5" onSelect={() => abrir(a)}>
@@ -110,10 +117,15 @@ export function MesaCampana() {
             y {masSinLeer} {masSinLeer === 1 ? "aviso más" : "avisos más"} sin leer
           </p>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer justify-center py-2.5 text-sm font-medium text-primary" onSelect={() => navigate("/mesa-ayuda/solicitudes?vista=area")}>
-          Ver la bandeja de la mesa de ayuda
-        </DropdownMenuItem>
+        {/* La bandeja es de la mesa: quien solo recibe avisos del SIG no tiene a dónde ir con este enlace */}
+        {tieneMesa && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer justify-center py-2.5 text-sm font-medium text-primary" onSelect={() => navigate("/mesa-ayuda/solicitudes?vista=area")}>
+              Ver la bandeja de la mesa de ayuda
+            </DropdownMenuItem>
+          </>
+        )}
         {/* Notificaciones del teléfono: se activan por dispositivo */}
         {push.estado !== "no_disponible" && (
           <>

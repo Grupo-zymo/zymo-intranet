@@ -10,6 +10,7 @@ import prisma from "../config/prisma"
 import { getUserId, requireSigAccess, requireAprobador } from "../middleware/auth"
 import { fueraDeArea } from "../middleware/gateLider"
 import { sendAprobacionEmail } from "../services/email"
+import { avisarLideres } from "../services/avisosLider"
 import { extractText } from "../services/textExtraction"
 import { getPdfPreview, isOfficeDoc } from "../services/pdfPreview"
 import { resolveActorName } from "../utils/userNames"
@@ -305,6 +306,8 @@ export async function registrarVersionSubida(
       where: { id: procedimientoId },
       data:  { estado: "VIGENTE" },
     })
+    // Quedó aprobada sin que nadie pulsara «aprobar»: el líder del área se entera, sin nombrar a quien la subió
+    void avisarLideres({ procedimientoId, decision: "APROBADO", tipo: "version", nombre: versionDoc, actor: { id: userId, nombre: userName }, nombrar: false, autorId: userId })
   }
   return { status: 201, body: { ...commit, warnings } }
 }
@@ -384,6 +387,7 @@ router.post("/", requireSigAccess, async (req: Request, res: Response) => {
       where: { id: parsed.data.procedimientoId },
       data:  { estado: "VIGENTE" },
     })
+    void avisarLideres({ procedimientoId: parsed.data.procedimientoId, decision: "APROBADO", tipo: "version", nombre: parsed.data.versionDoc, actor: { id: userId, nombre: userName }, nombrar: false, autorId: userId })
   }
 
   res.status(201).json(commit)
@@ -427,6 +431,8 @@ router.post("/:id/aprobar", requireAprobador, async (req: Request, res: Response
     aprobadoPor: userName,
     mensaje: commit.mensaje,
   }).catch((err) => console.error("Error enviando email de aprobación:", err))
+  // Campana del líder del área (no se espera: no debe demorar ni tumbar la aprobación)
+  void avisarLideres({ procedimientoId: commit.procedimientoId, decision: "APROBADO", tipo: "version", nombre: commit.versionDoc, actor: { id: userId, nombre: userName }, autorId: commit.autorId })
 
   res.json({ ok: true })
 })
@@ -507,6 +513,7 @@ router.post("/:id/rechazar", requireAprobador, async (req: Request, res: Respons
       comentarioRevision: comentario,
     },
   })
+  void avisarLideres({ procedimientoId: commit.procedimientoId, decision: "RECHAZADO", tipo: "version", nombre: commit.versionDoc, motivo: comentario, actor: { id: userId, nombre: userName }, autorId: commit.autorId })
 
   res.json({ ok: true })
 })

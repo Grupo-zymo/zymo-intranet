@@ -6,7 +6,8 @@ import { Router, type Request, type Response } from "express"
 import { prisma } from "../config/prisma"
 import { env } from "../config/env"
 import { enviarFcmPorCorreo } from "../services/fcm"
-import { borrarSchema, claveValida, correosEnMinuscula, datosDispositivo, internoSchema, registrarSchema } from "../services/pushApi"
+import { enviarPush } from "../services/mesaPush"
+import { avisoInternoSchema, borrarSchema, claveValida, correosEnMinuscula, datosDispositivo, internoSchema, registrarSchema } from "../services/pushApi"
 import { getUserId } from "../middleware/auth"
 
 export const dispositivoRouter = Router()
@@ -49,4 +50,20 @@ internoRouter.post("/api/push/interno", async (req: Request, res: Response) => {
   const { correos, ...mensaje } = b.data
   const enviados = await enviarFcmPorCorreo(correosEnMinuscula(correos), mensaje)
   res.json({ enviados })
+})
+
+// Aviso de la campana que manda otro servicio (el SIG le avisa al líder de área que aprobaron o rechazaron algo):
+// una fila por cuenta, sin ticket y con la ruta a la que lleva, y además al teléfono de quien lo tenga activado.
+internoRouter.post("/api/avisos/interno", async (req: Request, res: Response) => {
+  if (!claveValida(req.headers["x-internal-key"], env.INTERNAL_KEY)) { res.status(403).json({ error: "No autorizado" }); return }
+  const b = avisoInternoSchema.safeParse(req.body)
+  if (!b.success) { res.status(400).json({ error: "Revisa los datos enviados" }); return }
+  const { tipo, titulo, texto, url, etiqueta } = b.data
+  const userIds = [...new Set(b.data.userIds)]
+  await prisma.mesaAviso.createMany({ data: userIds.map((userId) => ({ userId, tipo, texto, url })) })
+  // Al teléfono también, sin esperar: no debe demorar la respuesta. Con su propio catch: un fallo aquí (p. ej. la BD
+  // al leer los dispositivos) quedaría como promesa rechazada sin atender y tumbaría el proceso.
+  enviarPush(userIds, { titulo, texto: texto.slice(0, 200), url, etiqueta })
+    .catch((err) => console.error(`[avisos] push no enviado: ${err instanceof Error ? err.message : "error"}`))
+  res.status(201).json({ creados: userIds.length })
 })

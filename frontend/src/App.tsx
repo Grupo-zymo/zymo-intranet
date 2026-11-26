@@ -216,8 +216,12 @@ function GerencialRoute({ children }: { children: React.ReactNode }) {
 // Líder de área: la misma página del SIG, limitada a las carpetas de su área (la página detecta el modo por el permiso).
 function SigLiderRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
+  const location = useLocation()
   if (!user) return <Navigate to="/login" replace />
-  if (!canSeeSigLider(user.role, user.app_permissions)) return <Navigate to="/dashboard" replace />
+  if (!canSeeSigLider(user.role, user.app_permissions)) {
+    // Los avisos de la campana enlazan al SIG de área: a quien además tiene el SIG completo lo llevan al mismo procedimiento allá
+    return <Navigate to={canSeeSIG(user.role, user.app_permissions) ? `/sig${location.search}` : "/dashboard"} replace />
+  }
   return <>{children}</>
 }
 

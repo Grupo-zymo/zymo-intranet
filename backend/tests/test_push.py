@@ -72,6 +72,81 @@ class DestinatariosTests(unittest.TestCase):
         self.assertEqual(set(r.json()[0]), {"id", "email", "nombre"})
 
 
+def _engine_areas():
+    """Líderes del SIG repartidos en dos áreas: el área de una persona es el texto de su cuenta o una adicional (areas_extra)."""
+    e = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    SQLModel.metadata.create_all(e, tables=[Role.__table__, User.__table__, UsuarioPermiso.__table__, HerramientaAcceso.__table__, Area.__table__])
+    with Session(e) as s:
+        s.add(Area(id=1, name="Gestión Humana"))
+        s.add(Area(id=2, name="Compras"))
+        s.add(Role(name="lider_sig", label="L", app_permissions=["mod_sig_lider"]))
+        filas = [
+            # id, correo, rol, activa, área de la cuenta, áreas adicionales, permiso dado a la persona
+            (1, "gh@z.com", "empleado", True, " gestion  HUMANA ", None, True),   # sin tilde y con espacios de más: misma área
+            (2, "compras@z.com", "empleado", True, "Compras", None, True),        # líder de OTRA área
+            (3, "extra@z.com", "empleado", True, "Compras", [1], True),           # Gestión Humana como área adicional
+            (4, "rol@z.com", "lider_sig", True, "Gestión Humana", None, False),   # el permiso le llega por su rol
+            (5, "sinpermiso@z.com", "empleado", True, "Gestión Humana", None, False),
+            (6, "off@z.com", "empleado", False, "Gestión Humana", None, True),    # desactivada
+            (7, "root@z.com", "admin", True, "Gestión Humana", None, False),      # admin del área: no es su líder
+            (8, "sinarea@z.com", "empleado", True, None, None, True),
+        ]
+        for uid, mail, role, act, area, extra, dado in filas:
+            s.add(User(id=uid, email=mail, full_name=f"U{uid}", hashed_password="x", role=role, is_active=act, area=area, areas_extra=extra))
+            if dado:
+                s.add(UsuarioPermiso(user_id=uid, permiso="mod_sig_lider"))
+        s.commit()
+    return e
+
+
+class DestinatariosDeAreaTests(unittest.TestCase):
+    """GET /api/push-destinatarios/area/{id}: lo usa el SIG para avisar SOLO a los líderes del área del procedimiento."""
+
+    def setUp(self):
+        self.e = _engine_areas()
+        app = FastAPI()
+        app.include_router(router)
+        app.dependency_overrides[get_db] = lambda: Session(self.e)
+        self.c = TestClient(app)
+        self.p = patch.object(settings, "internal_key", "k")
+        self.p.start()
+
+    def tearDown(self):
+        self.p.stop()
+
+    def _correos(self, area_id, permiso="mod_sig_lider"):
+        r = self.c.get(f"/api/push-destinatarios/area/{area_id}?permiso={permiso}", headers={"X-Internal-Key": "k"})
+        self.assertEqual(r.status_code, 200)
+        return sorted(d["email"] for d in r.json())
+
+    def test_403_sin_clave(self):
+        url = "/api/push-destinatarios/area/1?permiso=mod_sig_lider"
+        self.assertEqual(self.c.get(url).status_code, 403)
+        self.assertEqual(self.c.get(url, headers={"X-Internal-Key": "mala"}).status_code, 403)
+
+    def test_422_datos_invalidos(self):
+        h = {"X-Internal-Key": "k"}
+        for ruta in ("/area/1", "/area/1?permiso=Mod-X", "/area/0?permiso=mod_sig_lider", "/area/abc?permiso=mod_sig_lider"):
+            self.assertEqual(self.c.get("/api/push-destinatarios" + ruta, headers=h).status_code, 422, ruta)
+
+    def test_solo_los_del_area_principal_o_adicional(self):
+        self.assertEqual(self._correos(1), ["extra@z.com", "gh@z.com", "rol@z.com"])
+        self.assertEqual(self._correos(2), ["compras@z.com", "extra@z.com"])
+
+    def test_sin_admins_ni_inactivos_ni_sin_permiso(self):
+        correos = self._correos(1)
+        for fuera in ("root@z.com", "off@z.com", "sinpermiso@z.com", "sinarea@z.com", "compras@z.com"):
+            self.assertNotIn(fuera, correos)
+
+    def test_area_inexistente_o_permiso_que_nadie_tiene(self):
+        self.assertEqual(self._correos(99), [])
+        self.assertEqual(self._correos(1, "mod_otro"), [])
+
+    def test_misma_forma_que_el_listado_general(self):
+        r = self.c.get("/api/push-destinatarios/area/1?permiso=mod_sig_lider", headers={"X-Internal-Key": "k"})
+        self.assertEqual(set(r.json()[0]), {"id", "email", "nombre"})
+
+
 class _FakeThread:
     def __init__(self, target, args, daemon):
         self.t, self.a = target, args

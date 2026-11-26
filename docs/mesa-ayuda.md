@@ -21,7 +21,7 @@ Cada ticket recibe un consecutivo `PREFIJO-AAAA-NNNN` (ej. `IT-2026-0001`): el p
 | `MesaMensaje` | Comentarios y notas internas (`interno`). |
 | `MesaEvidencia` | Archivos adjuntos, del ticket o de un mensaje. |
 | `MesaHistorial` | Cambios: creado, asignado, estado, redirigido, eliminado. |
-| `MesaAviso` | Avisos de la campana: uno por persona y por evento. |
+| `MesaAviso` | Avisos de la campana: uno por persona y por evento. Los de la mesa llevan `ticketId`; los de otros módulos (el SIG) no, y traen en `url` la ruta a la que llevan. |
 | `MesaPushSub` | Dispositivos con las notificaciones del teléfono activadas. |
 
 Las áreas son las del panel admin de la intranet; `MesaArea` solo agrega lo que la mesa necesita. Las tablas del módulo viejo (`ZymoPqr*`) no se tocaron.
@@ -44,7 +44,7 @@ Las reglas viven en el servidor (`services/mesaAuth.ts`), nunca solo en la panta
 
 ### Acceso
 
-La mesa se abre por permiso, y lo aplica el servidor (`puedeEntrarMesa` en `services/mesaAuth.ts`, usado por `middleware/mesa.ts`): sin él, toda ruta de `/api/mesa` responde **403**, aunque la cuenta sea del área. En el frontend (`canSeeMesa`) quien no lo tiene no ve la entrada del menú, ni la campana, ni el bloque «Apoyo de otras áreas» de la Central, y `/mesa-ayuda` lo devuelve al Dashboard.
+La mesa se abre por permiso, y lo aplica el servidor (`puedeEntrarMesa` en `services/mesaAuth.ts`, usado por `middleware/mesa.ts`): sin él, toda ruta de la mesa en `/api/mesa` responde **403**, aunque la cuenta sea del área. La única excepción es la campana (`/avisos` y `/push`, ver «Avisos de otros módulos»): responde a cualquier cuenta con sesión, pero sin el permiso no muestra ningún aviso de tickets. En el frontend (`canSeeMesa`) quien no lo tiene no ve la entrada del menú, ni el bloque «Apoyo de otras áreas» de la Central, y `/mesa-ayuda` lo devuelve al Dashboard; tampoco ve la campana, salvo que sea líder de área en el SIG.
 
 | Quién | Entra |
 |---|---|
@@ -84,8 +84,8 @@ Se asignan en **Organización → Editar permisos** (por persona o por área), g
 | `GET /evidencias/:id` | Descargar un adjunto | Quien vea el ticket (y la nota, si es interna) |
 | `GET /serie?vista=&dias=7\|14\|30` | Cuántos tickets llegaron y se cerraron cada día, entre los que quien llama puede ver | Igual que la lista |
 | `GET /panorama` | Tickets por área y estado, más el total de eliminados | Admin |
-| `GET /avisos`, `POST /avisos/leer` | La campana: avisos propios y marcarlos leídos | Cada quien, los suyos |
-| `GET /push`, `POST /push/suscripcion`, `DELETE /push/suscripcion` | Notificaciones del teléfono: clave pública y alta o baja de este dispositivo | Cada quien, sus dispositivos |
+| `GET /avisos`, `POST /avisos/leer` | La campana: avisos propios y marcarlos leídos | Toda cuenta con sesión, los suyos; sin acceso a la mesa, solo los que no son de un ticket |
+| `GET /push`, `POST /push/suscripcion`, `DELETE /push/suscripcion` | Notificaciones del teléfono: clave pública y alta o baja de este dispositivo | Cada quien, sus dispositivos; activarlas exige acceso a la mesa |
 | `GET /yo` | Qué es quien llama (`esAdmin`, `esLider`, `esSac`, `areaIds`), para decidir qué mostrar | Todos |
 | `GET /por-radicado/:radicado` | Tickets internos nacidos de un caso de la Central | Solo devuelve los que quien llama puede ver |
 
@@ -164,6 +164,25 @@ La regla (`destinatarios()` en `services/mesaAvisos.ts`, función pura): **sin r
 - Crear avisos nunca tumba la acción: si falla, se registra en el log y la acción sigue.
 - «Toda el área» son las cuentas cuya área principal es esa (misma limitación que la lista de asignables).
 - La campana también está en la cabecera de la Central de tickets (`CentralCabecera`), que no usa la barra de la intranet.
+
+#### Avisos de otros módulos: el SIG al líder de área
+
+Desde 2026-11-26 la campana no es solo de la mesa. Cuando alguien autorizado **aprueba o rechaza** una versión, un formato, un instructivo o un anexo de un procedimiento, el SIG le avisa a los líderes del área de ese procedimiento y solo a ellos.
+
+| Qué pasa en el SIG | Texto del aviso |
+|---|---|
+| Aprueban o rechazan una versión | `Pepito aprobó tu versión 3 del PRC-000-ABC` · `Pepito rechazó tu versión 3 del PRC-000-ABC: <motivo>` |
+| Aprueban o rechazan un formato, instructivo o anexo | `Pepito aprobó tu formato «Nombre» del PRC-000-ABC` (el rechazo lleva el motivo) |
+| Un gerente o admin sube una versión, que queda aprobada al instante | `La versión 3 del PRC-000-ABC fue aprobada` (no nombra a nadie) |
+
+- **A quién:** las cuentas con el permiso `mod_sig_lider` cuya área (la de su cuenta, o una adicional de `areas_extra`) es la del procedimiento: la misma regla con la que el SIG decide qué carpetas ve cada líder. Nunca a quien hizo la acción. Dice «tu» a quien subió el archivo y «la/el» a los demás líderes del área. Una carpeta del SIG sin enlazar a un área de la intranet no tiene a quién avisar.
+- **Cómo viaja:** `sig-backend/src/services/avisosLider.ts` pregunta los líderes a la intranet (`GET /api/push-destinatarios/area/{id}?permiso=mod_sig_lider`, backend Python, sin admins) y manda el aviso a `POST /api/avisos/interno` de `zymoally-backend`; ambas llamadas son de servicio a servicio, con `X-Internal-Key`. Si algo falla se registra y la aprobación sigue igual.
+- **Encendido:** `AVISOS_URL` en el servicio `sig-backend` de `docker-compose.yml`. El SIG de pruebas no la lleva, así que no avisa a nadie.
+- **A dónde lleva:** al procedimiento en el SIG del líder (`/sig-area?proc=…`). Quien además tiene el SIG completo llega al mismo procedimiento en `/sig`.
+- **Sin acceso a la mesa:** el líder ve la campana solo con los avisos del SIG. Los avisos de tickets que la mesa le haya creado por ser de un área siguen guardados y ocultos hasta que un admin le dé acceso, y no puede activar las notificaciones del teléfono en el navegador (un dispositivo suscrito recibe todo lo que la mesa le avise a su área).
+- **Listado maestro:** también avisa al líder del área (código nuevo, código cambiado, baja) con `tipo: "sig_listado"`, por `avisarLideresDelArea`. Lleva a `/sig-area?listado=<id>`. Ejemplo: `Pepito Pérez cambió el código FR-005-PN a FR-006-PN (Matriz de riesgos clientes)`. La importación del Excel no avisa.
+- **No avisa:** los formatos, instructivos y anexos que el SIG sube directamente (nacen aprobados, nadie los revisa) ni las versiones marcadas «sin cambios».
+- Self-checks: `sig-backend/scripts/avisosLider.selfcheck.ts` (texto, destinatarios y enlace, sin BD), `zymoally-backend/src/services/mesaApi.selfcheck.ts` (la API con la BD) y `backend/tests/test_push.py` (quién es líder de qué área).
 
 #### Notificaciones del teléfono (Web Push)
 

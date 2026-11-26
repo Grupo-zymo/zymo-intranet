@@ -10,6 +10,9 @@ export const env = {
   })(),
   INTRANET_API_URL: process.env.INTRANET_API_URL ?? "http://backend:8001",
   INTERNAL_KEY: process.env.INTERNAL_KEY ?? "task-internal-key-dev",
+  // Servicio que guarda los avisos de la campana (zymoally-backend). Vacía = no se avisa a los líderes de área;
+  // así debe quedar el SIG de pruebas. Nombre propio a propósito: no se hereda del .env que comparten los servicios.
+  AVISOS_URL: (process.env.AVISOS_URL ?? "").trim().replace(/\/+$/, ""),
   CORS_ORIGIN: process.env.CORS_ORIGIN,
   // Email para notificaciones de aprobación
   SMTP_HOST: process.env.SMTP_HOST,

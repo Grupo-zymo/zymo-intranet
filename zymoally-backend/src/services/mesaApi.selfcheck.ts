@@ -79,6 +79,7 @@ async function limpiar() {
   await prisma.mesaCategoria.deleteMany({ where: { areaId: { in: AREAS } } })
   await prisma.mesaArea.deleteMany({ where: { areaId: { in: AREAS } } })
   await prisma.mesaPushSub.deleteMany({ where: { userId: { gte: 9000, lt: 9100 } } })
+  await prisma.mesaAviso.deleteMany({ where: { userId: { gte: 9000, lt: 9100 } } }) // los que no son de un ticket no se van con él
 }
 
 async function main() {
@@ -115,10 +116,15 @@ async function main() {
     assert.strictEqual((await api("creador", "POST", "/tickets", formulario({ areaId: String(IT), asunto: "Con radicado", descripcion: "d", radicadoOrigen: "PQR-1" }))).status, 403, "solo SAC enlaza casos de la Central")
 
     // ── Sin el permiso no se entra a nada de la mesa, aunque la cuenta sea del área ──
-    for (const ruta of ["/tickets?vista=area", `/tickets/${id}`, "/yo", "/avisos", "/areas"]) {
+    for (const ruta of ["/tickets?vista=area", `/tickets/${id}`, "/yo", "/areas"]) {
       assert.strictEqual((await api("sinAcceso", "GET", ruta)).status, 403, `sin permiso: ${ruta}`)
     }
     assert.strictEqual((await api("sinAcceso", "POST", "/tickets", formulario({ areaId: String(IT), asunto: "No debería", descripcion: "d" }))).status, 403)
+    // La campana no es solo de la mesa (también trae los avisos del SIG): toda cuenta con sesión lee LOS SUYOS
+    const campanaSinMesa = await api("sinAcceso", "GET", "/avisos")
+    assert.deepStrictEqual([campanaSinMesa.status, campanaSinMesa.data.sinLeer, campanaSinMesa.data.items], [200, 0, []], "sin mesa: campana vacía, no un 403")
+    const sinId = await fetchReal(`${base}/api/mesa/avisos`, { headers: { Authorization: `Bearer ${jwt.sign({ sub: "sinid@zz.test" }, env.JWT_SECRET, { algorithm: "HS256", expiresIn: "5m" })}` } })
+    assert.strictEqual(sinId.status, 403, "sesión sin id de usuario: no hay campana")
 
     // ── Cada quien ve lo suyo ──
     assert.strictEqual((await api("creador", "GET", "/tickets?vista=mias")).data.total, 1)
@@ -258,7 +264,7 @@ async function main() {
     assert.strictEqual((await api("sac", "GET", "/usuarios")).status, 200)
 
     // ── Avisos de la campana ──
-    type Aviso = { id: number; ticketId: number; tipo: string; leidoEn: string | null }
+    type Aviso = { id: number; ticketId: number | null; url: string | null; tipo: string; texto: string; leidoEn: string | null }
     const avisosDe = async (q: Quien, ticketId: number) =>
       (await prisma.mesaAviso.findMany({ where: { userId: P[q].id, ticketId }, select: { tipo: true } })).map((a) => a.tipo).sort()
     // Ticket 1: lo creó "creador"; it1 respondió y asignó a it2; it1 lo cerró; "creador" lo reabrió al responder
@@ -302,6 +308,43 @@ async function main() {
     const llena = (await api("it2", "GET", "/avisos")).data
     assert.deepStrictEqual([llena.sinLeer, llena.masSinLeer, llena.items.length, llena.items.every((a: Aviso) => a.leidoEn === null)], [12, 4, 8, true])
     assert.strictEqual(llena.items[0].texto, "más 9", "los más recientes primero")
+
+    // ── Avisos que mandan otros servicios (el SIG): sin ticket y con la ruta a la que llevan ──
+    const interno = (cuerpo: unknown, clave?: string) =>
+      fetchReal(`${base}/api/avisos/interno`, { method: "POST", headers: { "Content-Type": "application/json", ...(clave ? { "X-Internal-Key": clave } : {}) }, body: JSON.stringify(cuerpo) })
+    const avisoSig = {
+      userIds: [P.sinAcceso.id, P.lider.id, P.lider.id], tipo: "sig_rechazado", titulo: "SIG · PRC-ZZ",
+      texto: "Persona admin rechazó tu versión 3 del PRC-ZZ: falta la firma", url: "/sig-area?proc=1&codigo=PRC-ZZ", etiqueta: "sig-proc-1",
+    }
+    assert.strictEqual((await interno(avisoSig)).status, 403, "sin clave de servicio no se crea nada")
+    assert.strictEqual((await interno(avisoSig, "clave-equivocada")).status, 403)
+    assert.strictEqual((await interno({ ...avisoSig, url: "https://evil.test/x" }, env.INTERNAL_KEY)).status, 400, "solo rutas de la intranet")
+    assert.strictEqual((await api("sinAcceso", "GET", "/avisos")).data.sinLeer, 0, "los intentos rechazados no dejan avisos")
+    const hecho = await interno(avisoSig, env.INTERNAL_KEY)
+    assert.deepStrictEqual([hecho.status, ((await hecho.json()) as { creados: number }).creados], [201, 2], "una fila por persona, sin repetir")
+    const delSig = (await api("sinAcceso", "GET", "/avisos")).data
+    assert.deepStrictEqual([delSig.sinLeer, delSig.items.length], [1, 1])
+    const unoSig = delSig.items[0] as Aviso
+    assert.deepStrictEqual(
+      { ticketId: unoSig.ticketId, url: unoSig.url, texto: unoSig.texto, tipo: unoSig.tipo },
+      { ticketId: null, url: avisoSig.url, texto: avisoSig.texto, tipo: "sig_rechazado" },
+    )
+    assert.strictEqual((await api("it1", "POST", "/avisos/leer", { ids: [unoSig.id] })).data.marcados, 0, "nadie marca el aviso de otra persona")
+    // Sin acceso a la mesa, los avisos de tickets de su área existen pero NO se le muestran ni los marca: solo los de otros módulos
+    const deTickets = { userId: P.sinAcceso.id, ticketId: { not: null }, leidoEn: null }
+    const ocultos = await prisma.mesaAviso.count({ where: deTickets })
+    assert.ok(ocultos > 0, "la mesa avisa a toda el área, también a quien aún no tiene acceso")
+    assert.strictEqual((await api("sinAcceso", "POST", "/avisos/leer", {})).data.marcados, 1, "«marcar todo» solo toca lo que ve")
+    assert.strictEqual(await prisma.mesaAviso.count({ where: deTickets }), ocultos, "los de la mesa quedan intactos para cuando le den acceso")
+    assert.deepStrictEqual([(await api("sinAcceso", "GET", "/avisos")).data.sinLeer, (await api("sinAcceso", "GET", "/avisos")).data.items.length], [0, 1], "ya leído, sigue en su lista")
+    // Los avisos de la mesa siguen con su ticket y sin ruta propia; el del SIG convive con ellos en la misma lista
+    const delLider = (await api("lider", "GET", "/avisos")).data.items as Aviso[]
+    assert.ok(delLider.some((a) => a.ticketId === null && a.url === avisoSig.url), "el líder ve el aviso del SIG")
+    assert.ok(delLider.some((a) => a.ticketId !== null && a.url === null), "y sigue viendo los de sus tickets")
+    // Las notificaciones del teléfono en el navegador siguen siendo de quien tiene mesa: un dispositivo suscrito
+    // recibe todo lo que la mesa le avise a su área, y eso no debe llegarle a quien aún no puede abrirla
+    assert.deepStrictEqual([(await api("sinAcceso", "GET", "/push")).status, (await api("sinAcceso", "GET", "/push")).data.clave], [200, null], "sin mesa: no se le ofrece activarlas")
+    assert.strictEqual((await api("sinAcceso", "POST", "/push/suscripcion", { endpoint: "https://push.example.test/sin-mesa", keys: { p256dh: "clave-publica-del-dispositivo", auth: "secreto" } })).status, 403)
 
     // ── Notificaciones del teléfono: cada quien administra sus dispositivos ──
     const sub = { endpoint: "https://push.example.test/abc", keys: { p256dh: "clave-publica-del-dispositivo", auth: "secreto" } }

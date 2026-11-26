@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express"
 import { z } from "zod"
 import prisma from "../config/prisma"
 import { getUserId, requireAprobador } from "../middleware/auth"
+import { avisarLideres } from "../services/avisosLider"
 import { resolveActorName } from "../utils/userNames"
 
 // Cola de revisión de lo que suben los líderes de área (formatos, instructivos y docs extra).
@@ -42,16 +43,33 @@ async function resolver(req: Request, res: Response, estado: "APROBADO" | "RECHA
   const comentario = estado === "RECHAZADO" && motivo.success ? motivo.data.comentario : null
   const t = tabla[tipo] as typeof prisma.sigFormato // las tres tablas comparten estos campos
   const uid = getUserId(req.user!)
+  const quien = await resolveActorName(uid, req.user!.full_name)
   // Un solo UPDATE condicionado: dos revisores a la vez no pueden resolver lo mismo dos veces.
   const { count } = await t.updateMany({
     where: { id, estado: "PENDIENTE_REVISION" },
-    data: { estado, aprobadoNombre: await resolveActorName(uid, req.user!.full_name), aprobadoEn: new Date(), comentarioRevision: comentario },
+    data: { estado, aprobadoNombre: quien, aprobadoEn: new Date(), comentarioRevision: comentario },
   })
   if (count === 0) {
     const existe = await t.findUnique({ where: { id }, select: { id: true } })
     res.status(existe ? 409 : 404).json({ error: existe ? "Ya fue procesado" : "No encontrado" }); return
   }
   res.json({ ok: true })
+
+  // Ya respondido: la campana del líder del área. Un fallo aquí no toca la revisión que ya quedó guardada.
+  try {
+    const comun = { procedimientoId: true, autorId: true } as const
+    const doc = tipo === "instructivo"
+      ? await prisma.sigInstructivo.findUnique({ where: { id }, select: { ...comun, titulo: true } })
+      : await t.findUnique({ where: { id }, select: { ...comun, nombre: true } })
+    if (doc) {
+      void avisarLideres({
+        procedimientoId: doc.procedimientoId, decision: estado, tipo, nombre: "titulo" in doc ? doc.titulo : doc.nombre,
+        motivo: comentario, actor: { id: uid, nombre: quien }, autorId: doc.autorId,
+      })
+    }
+  } catch (err) {
+    console.error(`[sig] no se pudo avisar la revisión del ${tipo} ${id}: ${err instanceof Error ? err.message : "error"}`)
+  }
 }
 
 router.post("/:tipo/:id/aprobar", (req, res) => resolver(req, res, "APROBADO"))

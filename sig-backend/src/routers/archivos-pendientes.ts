@@ -7,6 +7,7 @@ import fsSync from "fs"
 import prisma from "../config/prisma"
 import { requireSigAccess, getUserId } from "../middleware/auth"
 import { extractText } from "../services/textExtraction"
+import { avisarLideres } from "../services/avisosLider"
 import { resolveActorName } from "../utils/userNames"
 import { cabecerasArchivo, inline } from "../utils/descarga"
 import { servirPdfPreview } from "../services/pdfPreview"
@@ -211,6 +212,8 @@ router.post("/:id/asignar-procedimiento", requireSigAccess, async (req: Request,
 
   if (isGerente) {
     await prisma.sigProcedimiento.update({ where: { id: parsed.data.procedimientoId }, data: { estado: "VIGENTE" } })
+    // Quedó aprobada sin que nadie pulsara «aprobar»: el líder del área se entera, sin nombrar a quien la subió
+    void avisarLideres({ procedimientoId: parsed.data.procedimientoId, decision: "APROBADO", tipo: "version", nombre: parsed.data.versionDoc, actor: { id: userId, nombre: userName }, nombrar: false, autorId: userId })
   }
 
   await prisma.sigArchivoPendiente.update({

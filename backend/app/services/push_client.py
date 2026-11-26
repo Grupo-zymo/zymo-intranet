@@ -25,14 +25,31 @@ def push_habilitado() -> bool:
 
 
 def consultar_destinatarios(
-    db: Session, permiso: str, incluir_admin: bool = True, limite: int = _MAX_DESTINATARIOS
+    db: Session, permiso: str, incluir_admin: bool = True, limite: int = _MAX_DESTINATARIOS,
+    area_id: Optional[int] = None,
 ) -> list[dict]:
     """Cuentas activas que tienen `permiso`: por su rol O asignado directamente a la persona (tabla usuario_permiso,
-    que es donde se dan casi todos los permisos reales), más los admins si incluir_admin. Sin duplicados."""
+    que es donde se dan casi todos los permisos reales), más los admins si incluir_admin. Sin duplicados.
+    Con `area_id`, solo las de esa área: es la de su cuenta (`User.area`, sin tildes ni mayúsculas) o una adicional
+    (`areas_extra`) — la misma regla con la que el SIG decide qué carpetas ve un líder."""
+    from app.models.area import Area
     from app.models.area_acceso import UsuarioPermiso
     from app.models.role import Role
     from app.models.user import User
     from app.services.acceso_area import permisos_asignados
+    from app.services.usuarios_por_area import normalizar
+
+    nombre_area = ""
+    if area_id is not None:
+        area = db.get(Area, area_id)
+        if not area:
+            return []
+        nombre_area = normalizar(area.name)
+
+    def del_area(u: User) -> bool:
+        if area_id is None:
+            return True
+        return (bool(nombre_area) and normalizar(u.area) == nombre_area) or area_id in (u.areas_extra or [])
 
     roles = {"admin"} if incluir_admin else set()
     for r in db.exec(select(Role)).all():
@@ -52,7 +69,7 @@ def consultar_destinatarios(
     out: list[dict] = []
     for u in sorted(candidatos.values(), key=lambda x: x.id):
         correo = (u.email or "").strip().lower()
-        if not correo or correo in vistos:
+        if not correo or correo in vistos or not del_area(u):
             continue
         vistos.add(correo)
         out.append({"id": u.id, "email": correo, "nombre": u.full_name or correo})

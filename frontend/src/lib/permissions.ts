@@ -77,6 +77,21 @@ export function canSeeSigLider(role: string, appPerms?: string[]): boolean {
   return hasPerm(appPerms, "mod_sig_lider") && !hasPerm(appPerms, "mod_sig") && !hasPerm(appPerms, "mod_sig_subir")
 }
 
+/**
+ * Líder de área puro: ve los documentos del SIG en pantalla, pero no se le ofrece descargarlos ni imprimirlos.
+ * El equipo del SIG (mod_sig, mod_sig_subir), gerente y admin conservan todo.
+ * ponytail: solo oculta botones y la barra del lector de PDF (Chrome y Edge); el servidor sigue entregando el archivo
+ * porque hace falta para mostrarlo. Para un bloqueo real: visor propio con pdf.js (ya instalado) y PDF solo de lectura.
+ */
+export function sigSoloLectura(role: string, appPerms?: string[]): boolean {
+  return role !== "gerente" && canSeeSigLider(role, appPerms)
+}
+
+/** Recibe en la campana los avisos del SIG (aprobaron o rechazaron algo de su área): quien tiene el permiso de líder, aunque además tenga el SIG completo. */
+export function recibeAvisosSig(appPerms?: string[]): boolean {
+  return hasPerm(appPerms, "mod_sig_lider")
+}
+
 // ── Herramientas de usuario ────────────────────────────────────────────────────
 
 export function hasUserTool(userTools: string[] | undefined, key: string): boolean {
