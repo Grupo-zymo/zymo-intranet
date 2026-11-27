@@ -19,6 +19,7 @@ import referenciasRouter from "./routers/referencias"
 import auditoriasRouter from "./routers/auditorias"
 import indicadoresRouter from "./routers/indicadores"
 import buscarRouter from "./routers/buscar"
+import listadoMaestroRouter from "./routers/listado-maestro"
 import { gateLider } from "./middleware/gateLider"
 import reportesDesarrolloRouter from "./routers/reportes-desarrollo"
 
@@ -55,6 +56,7 @@ app.use("/api/referencias", referenciasRouter)
 app.use("/api", auditoriasRouter) // /api/auditorias, /api/hallazgos, /api/consultas
 app.use("/api/indicadores", indicadoresRouter)
 app.use("/api/buscar", buscarRouter)
+app.use("/api/listado-maestro", listadoMaestroRouter)
 app.use("/api/reportes-desarrollo", reportesDesarrolloRouter)
 
 // 404

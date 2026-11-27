@@ -131,12 +131,14 @@ router.delete("/:id", requireSigAccess, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id)
   const area = await prisma.sigArea.findUnique({ where: { id } })
   if (!area) { res.status(404).json({ error: "Carpeta no encontrada" }); return }
-  const [procs, kpis] = await Promise.all([
+  const [procs, kpis, listado, archivos] = await Promise.all([
     prisma.sigProcedimiento.count({ where: { areaId: id } }),
     prisma.sigIndicador.count({ where: { areaId: id } }),
+    prisma.sigListadoMaestro.count({ where: { areaId: id } }), // la FK es Restrict: sin esto el borrado daría 500
+    prisma.sigArchivoArea.count({ where: { areaId: id } }), // su FK es Cascade: sin esto se borrarían con la carpeta
   ])
-  if (procs > 0 || kpis > 0) {
-    res.status(409).json({ error: "La carpeta tiene contenido (procedimientos o indicadores). Solo se eliminan carpetas vacías." })
+  if (procs > 0 || kpis > 0 || listado > 0 || archivos > 0) {
+    res.status(409).json({ error: "La carpeta tiene contenido (procedimientos, indicadores, archivos del área o filas del listado maestro). Solo se eliminan carpetas vacías." })
     return
   }
   await prisma.$transaction([

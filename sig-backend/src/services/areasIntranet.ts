@@ -40,10 +40,11 @@ async function sincronizar(): Promise<void> {
   // un área que ya no existe en la intranet: su carpeta se va con ella; si ya tiene contenido, se conserva sin enlazar
   const huerfanas = await prisma.sigArea.findMany({
     where: { intranetAreaId: { not: null, notIn: catalogo.map((a) => a.id) } },
-    include: { _count: { select: { procedimientos: true, indicadores: true } } },
+    include: { _count: { select: { procedimientos: true, indicadores: true, listado: true, archivos: true } } },
   })
   for (const h of huerfanas) {
-    if (h._count.procedimientos + h._count.indicadores === 0) await prisma.sigArea.delete({ where: { id: h.id } })
+    // también son contenido: el listado maestro (FK Restrict, el delete fallaría) y los archivos del área (FK Cascade, se borrarían)
+    if (h._count.procedimientos + h._count.indicadores + h._count.listado + h._count.archivos === 0) await prisma.sigArea.delete({ where: { id: h.id } })
     else await prisma.sigArea.update({ where: { id: h.id }, data: { intranetAreaId: null } })
   }
 }

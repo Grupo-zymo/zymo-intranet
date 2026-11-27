@@ -24,11 +24,50 @@ model SigArea {
   nombre         String
   descripcion    String?
   color          String             @default("#3b82f6")
+  /// Sigla del área en los códigos de sus documentos (GAD, PN…). La pone el equipo SIG en el listado maestro.
+  sigla          String?            @db.VarChar(5)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   procedimientos SigProcedimiento[]
   indicadores    SigIndicador[]
   archivos       SigArchivoArea[]
+  listado        SigListadoMaestro[]
+}
+
+// ── Listado maestro de documentos (reemplaza el Excel FR-002-SIG) ─────────────
+// Un registro por documento codificado del área, exista o no cargado en el SIG: el cruce con lo cargado se calcula
+// al leer (services/listadoMaestro.ts). `codigo` NO es único en la base: el Excel trae duplicados reales que el SIG
+// debe corregir; la aplicación impide crear o editar hacia un código ya usado por otra fila vigente.
+
+model SigListadoMaestro {
+  id                 Int       @id @default(autoincrement())
+  areaId             Int
+  area               SigArea   @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  tipo               String    @db.VarChar(30)
+  codigo             String    @db.VarChar(30)
+  nombre             String    @db.VarChar(300)
+  empresa            String?   @db.VarChar(60)
+  version            String?   @db.VarChar(20)
+  fechaCreacion      DateTime?
+  fechaActualizacion DateTime?
+  controlCambios     String?   @db.Text
+  /// Tiempo de archivo activo e inactivo, en años (null = no aplica)
+  anosActivo         Int?
+  anosInactivo       Int?
+  disposicionFinal   String?   @db.VarChar(40)
+  ubicacion          String?   @db.Text
+  revisado           Boolean   @default(false)
+  /// APROBADO | PENDIENTE | BAJA
+  estado             String    @default("APROBADO") @db.VarChar(12)
+  /// Cambios de código, bajas e importación: [{ fecha, quien, accion, detalle }]
+  historial          Json      @default("[]")
+  creadoPor          String?
+  editadoPor         String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([areaId])
+  @@index([codigo])
 }
 
 // ── Procedimiento (el "repositorio" de un documento) ──────────────────────────

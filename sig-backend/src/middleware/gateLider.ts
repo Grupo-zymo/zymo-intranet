@@ -74,6 +74,7 @@ export async function gateLider(req: Request, res: Response, next: NextFunction)
   const areas = carpetas.map((c) => c.id)
   req.sigAreaIds = areas // los listados de áreas y procedimientos filtran con esto; las subidas lo comprueban
   req.sigSoloPendiente = true
+  if (familia === "listado-maestro") { puertaListado(req, res, next, idRaw, resto); return }
 
   if (req.method === "POST" && SUBIDAS.has(`${familia}/${idRaw}`) && resto.length === 0) { req.sigLiderOk = true; next(); return }
   if (req.method !== "GET") { prohibido(res, "Los líderes suben archivos y versiones nuevas; borrar, editar o aprobar es del SIG"); return }
@@ -108,12 +109,19 @@ export async function gateLider(req: Request, res: Response, next: NextFunction)
   next()
 }
 
+/** Listado maestro: el líder (acotado a su área en el manejador) y mod_sig_subir solo lo leen; lo edita el equipo del SIG. */
+function puertaListado(req: Request, res: Response, next: NextFunction, idRaw: string | undefined, resto: string[]): void {
+  if (req.method === "GET" && resto.length === 0 && (idRaw === undefined || idRaw === "areas")) { req.sigLiderOk = true; next(); return }
+  prohibido(res, "El listado maestro lo edita el equipo del SIG")
+}
+
 /** Lecturas de mod_sig_subir: contenido de cualquier área, nunca análisis (auditorías, hallazgos, indicadores, cargos, referencias) ni la cola de aprobación. */
 function puertaSubir(req: Request, res: Response, next: NextFunction, familia: string | undefined, idRaw: string | undefined, resto: string[]): void {
   req.sigSoloPendiente = true
   const ok = () => { req.sigLiderOk = true; next() }
   const ruta = resto.join("/")
   const numerico = idRaw !== undefined && Number.isFinite(parseInt(idRaw))
+  if (familia === "listado-maestro") { puertaListado(req, res, next, idRaw, resto); return }
 
   // mod_sig_aprobar (junto a mod_sig_subir): ve la cola de pendientes y aprueba o rechaza versiones y archivos. Nada más.
   if ((req.user?.app_permissions ?? []).includes("mod_sig_aprobar")) {

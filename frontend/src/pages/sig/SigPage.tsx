@@ -19,13 +19,14 @@ import { ClipboardList,
   FileText, GitCommit, Inbox, X, Gauge,
   GitBranchPlus, GitBranch, Clock, ChevronRight, ChevronLeft, Check, Circle, Download,
   AlertCircle,
-  ClipboardCheck, RefreshCw, History, UploadCloud, BookOpen, Paperclip, Users, Columns2,
+  ClipboardCheck, RefreshCw, History, UploadCloud, BookOpen, Paperclip, Users, Columns2, ListChecks,
 } from "lucide-react"
 import { SigAuditoriasView, AuditoriasProcLista } from "@/components/sig/SigAuditoriasView"
 import type { PreselectedProc } from "@/components/sig/SigCargarModal"
 import { SigArchivosPendientesTray } from "@/components/sig/SigArchivosPendientesTray"
 import { SigInstructivosPanel, type SigInstructivo, InstructivoArchivoView, PROSE as INST_PROSE } from "@/components/sig/SigInstructivosPanel"
 import { PdfFrame, WordPreview } from "@/components/sig/SigFileViewer"
+import { useSinDescarga, useSoloLectura } from "@/components/sig/sinDescarga"
 import { ArchivoPrevisualizador } from "@/components/sig/ArchivoPrevisualizador"
 import { SigProcedimientoCargosPanel } from "@/components/sig/SigProcedimientoCargosPanel"
 import { SigAnexoPanel } from "@/components/sig/SigAnexoPanel"
@@ -40,10 +41,11 @@ const SigDiffEditor = perezoso(() => import("@/components/sig/SigDiffEditor"), "
 const SigDiffMobileView = perezoso(() => import("@/components/sig/SigDiffMobileView"), "SigDiffMobileView")
 const SigCargarModal = perezoso(() => import("@/components/sig/SigCargarModal"), "SigCargarModal")
 const SigIndicadoresView = perezoso(() => import("@/components/sig/SigIndicadoresView"), "SigIndicadoresView")
+const SigListadoMaestroView = perezoso(() => import("@/components/sig/listado/SigListadoMaestroView"), "SigListadoMaestroView")
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type TabIcon = "file" | "diff" | "queue" | "sync" | "kpi" | "area"
+type TabIcon = "file" | "diff" | "queue" | "sync" | "kpi" | "area" | "listado"
 
 interface TabMeta {
   key: string
@@ -59,12 +61,15 @@ type ActiveView =
   | { kind: "queue" }
   | { kind: "analisis-sync" }
   | { kind: "indicadores" }
+  | { kind: "listado"; areaId: number | null }
   | { kind: "area-files"; id: number; nombre: string }
 
 // ── SigPage ────────────────────────────────────────────────────────────────────
 
 export function SigPage() {
   const isMobile = useIsMobile()
+  // Líder de área: solo consulta (sin clic derecho, sin Ctrl+P/S, impresión en blanco); ver components/sig/sinDescarga.ts
+  useSoloLectura(useSinDescarga())
   return isMobile ? <SigMobileEntry /> : <SigDesktopView />
 }
 
@@ -81,6 +86,8 @@ function SigDesktopView() {
   const canEditSig = isGerente || perms.includes("mod_sig") || esLider
   // aprobar lo pendiente: gerente/admin o mod_sig_aprobar (no confundir con editar o borrar, que siguen siendo de isGerente)
   const puedeAprobar = isGerente || perms.includes("mod_sig_aprobar")
+  // listado maestro: lo leen todos (el líder, solo sus áreas); lo escribe el equipo del SIG
+  const canEditListado = isGerente || perms.includes("mod_sig")
 
   const [openTabs, setOpenTabs] = useState<TabMeta[]>([])
   const [activeKey, setActiveKey] = useState<string | null>(null)
@@ -146,9 +153,16 @@ function SigDesktopView() {
     )
   }, [openTab])
 
+  const openListado = useCallback((areaId: number | null = null) => {
+    openTab({ kind: "listado", areaId }, { key: "listado", icon: "listado", title: "Listado maestro" })
+  }, [openTab])
+
   // Enlace desde el inicio (panel de procedimientos): /sig?proc=ID&codigo=…&titulo=…
+  // y desde el aviso del listado maestro: /sig?listado=AREA_ID
   const [searchParams] = useSearchParams()
   useEffect(() => {
+    const listado = searchParams.get("listado")
+    if (listado !== null) openListado(Number(listado) || null)
     const id = Number(searchParams.get("proc"))
     if (!id) return
     openProcedure(id, {
@@ -190,6 +204,7 @@ function SigDesktopView() {
   // ── Derived state ─────────────────────────────────────────────────────────────
 
   const activeView: ActiveView = (activeKey && views[activeKey]) || { kind: "welcome" }
+  const vistaListado = views.listado
   const pendingCount = pendientes.length + archivosPend.length
 
   return (
@@ -205,6 +220,7 @@ function SigDesktopView() {
         onOpenQueue={openQueue}
         onOpenSync={openAnalisisSync}
         onOpenIndicadores={openIndicadores}
+        onOpenListado={() => openListado()}
         onCargar={() => openCargar(null)}
         onSelectProcedure={openProcedure}
       />
@@ -259,6 +275,12 @@ function SigDesktopView() {
             )}
             {activeView.kind === "analisis-sync" && <SigAuditoriasView />}
             {activeView.kind === "indicadores" && <SigIndicadoresView canEdit={canEditSig} />}
+            {/* montado mientras la pestaña siga abierta: al volver de abrir un documento conserva área, filtros y búsqueda */}
+            {vistaListado?.kind === "listado" && (
+              <div className={cn("h-full", activeView.kind !== "listado" && "hidden")}>
+                <SigListadoMaestroView canEdit={canEditListado} areaInicial={vistaListado.areaId} onOpenProcedure={openProcedure} />
+              </div>
+            )}
             {activeView.kind === "area-files" && (
               <PanelSIG icono={Paperclip} guia={`Archivos sueltos del área ${activeView.nombre}: no pertenecen a ningún procedimiento. Acepta cualquier formato.`}>
                 <SigAnexoPanel
@@ -306,7 +328,7 @@ function SigDesktopView() {
 // ── Title bar ──────────────────────────────────────────────────────────────────
 
 function TitleBar({
-  puedeAprobar, canEditSig, esLider, soloVersiones, pendingCount, onOpenQueue, onOpenSync, onOpenIndicadores, onCargar, onSelectProcedure,
+  puedeAprobar, canEditSig, esLider, soloVersiones, pendingCount, onOpenQueue, onOpenSync, onOpenIndicadores, onOpenListado, onCargar, onSelectProcedure,
 }: {
   puedeAprobar:         boolean
   canEditSig:           boolean
@@ -318,6 +340,8 @@ function TitleBar({
   onOpenQueue:          () => void
   onOpenSync:           () => void
   onOpenIndicadores:    () => void
+  /** Listado maestro: lo ven todos, también el líder (solo lectura) */
+  onOpenListado:        () => void
   onCargar:             () => void
   onSelectProcedure:    (id: number, info: ProcedureOpenInfo, tab?: TabSolicitada) => void
 }) {
@@ -341,6 +365,14 @@ function TitleBar({
             {soloVersiones ? "Cargar nueva versión" : "Cargar procedimiento"}
           </button>
         )}
+        <button
+          type="button"
+          onClick={onOpenListado}
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-zinc-300 text-zinc-700 hover:border-zinc-400 hover:text-zinc-700 transition-colors font-mono"
+        >
+          <ListChecks className="h-3 w-3" />
+          Listado maestro
+        </button>
         {!esLider && (
           <>
         <button
@@ -384,6 +416,7 @@ const TAB_ICON: Record<TabIcon, React.ReactNode> = {
   sync:    <History        className="h-3.5 w-3.5 text-zinc-600" />,
   kpi:     <Gauge          className="h-3.5 w-3.5 text-zinc-600" />,
   area:    <Paperclip      className="h-3.5 w-3.5 text-zinc-600" />,
+  listado: <ListChecks     className="h-3.5 w-3.5 text-zinc-600" />,
 }
 
 function TabBar({
@@ -1202,6 +1235,7 @@ function ArchivoOriginalView({
   const [arrayBuffer, setArrayBuffer] = useState<ArrayBuffer | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const sinDescarga = useSinDescarga() // líder de área: ve el documento, no lo descarga
 
   const isPdf  = tipoMime === "application/pdf"
   const isDocx = tipoMime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -1308,10 +1342,10 @@ function ArchivoOriginalView({
       <div className="text-center">
         <p className="text-sm font-mono text-zinc-700">{nombreArchivo ?? "Archivo"}</p>
         <p className="text-xs text-zinc-600 mt-1">
-          Este formato no puede mostrarse en el navegador.
+          Este formato no puede mostrarse en el navegador.{sinDescarga && " Tu acceso es solo de consulta: pídele al equipo del SIG que te lo muestre."}
         </p>
       </div>
-      {objectUrl && (
+      {objectUrl && !sinDescarga && (
         <EnlaceDescarga
           href={objectUrl}
           download={nombreArchivo ?? "archivo"}
@@ -1454,6 +1488,9 @@ function CommitHistoryRow({
 }) {
   const [downloading, setDownloading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
+  // El líder de área abre la versión para verla; el PDF descargable es del equipo del SIG, gerente y admin
+  const sinDescarga = useSinDescarga()
+  const conPdf = commit.estado === "APROBADO" && !sinDescarga
 
   async function handleDownloadPdf(e: React.MouseEvent) {
     e.stopPropagation()
@@ -1509,11 +1546,11 @@ function CommitHistoryRow({
             </div>
           </div>
           {/* Spacer so text doesn't overlap PDF button */}
-          {commit.estado === "APROBADO" && <div className="w-6 shrink-0" />}
+          {conPdf && <div className="w-6 shrink-0" />}
         </div>
 
         {/* PDF button — inside the row div so top-1/2 is relative to row height only */}
-        {commit.estado === "APROBADO" && (
+        {conPdf && (
           <button
             onClick={(e) => { e.stopPropagation(); handleDownloadPdf(e) }}
             disabled={downloading}
@@ -1651,6 +1688,14 @@ function SigMobileEntry() {
     setOpenCommitId(null)
     setOpenProcId(id)
   }
+
+  // Enlace directo a un procedimiento (?proc=ID), igual que en escritorio: así llega quien toca un aviso en el teléfono
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const id = Number(searchParams.get("proc"))
+    if (id) abrirProcedimiento(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="sig-root h-dvh flex flex-col bg-white">
@@ -2130,6 +2175,7 @@ function StatusBar({
     : activeView.kind === "queue"      ? "queue"
     : activeView.kind === "analisis-sync" ? "auditorías"
     : activeView.kind === "indicadores" ? "indicadores"
+    : activeView.kind === "listado"    ? "listado maestro"
     : ""
 
   return (
