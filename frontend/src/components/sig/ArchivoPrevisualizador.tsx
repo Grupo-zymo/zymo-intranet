@@ -6,6 +6,8 @@ import remarkGfm from "remark-gfm"
 import { Download, FileQuestion, Loader } from "lucide-react"
 import { sigApi } from "@/lib/sigApi"
 import { DocxViewer } from "@/components/sig/SigFileViewer"
+import { useSinDescarga } from "@/components/sig/sinDescarga"
+import { PdfLectura } from "@/components/sig/PdfLectura"
 
 /**
  * Vista previa desplegable de CUALQUIER archivo del SIG. `base` es la ruta del recurso (p. ej. «/api/formatos/12»);
@@ -78,6 +80,7 @@ export function ArchivoPrevisualizador({ base, nombre, mime, tamano, altura = "7
 }) {
   const [vista, setVista] = useState<Vista>({ t: "cargando" })
   const ext = extension(nombre)
+  const sinDescarga = useSinDescarga() // líder de área: ve el documento, no lo descarga
 
   useEffect(() => {
     let cancelado = false
@@ -153,20 +156,26 @@ export function ArchivoPrevisualizador({ base, nombre, mime, tamano, altura = "7
       <div className={`${marco} flex flex-col items-center gap-2 px-4 py-8 text-center`}>
         <FileQuestion className="h-6 w-6 text-zinc-500" aria-hidden />
         <p className="text-xs font-mono text-zinc-700">{nombre}</p>
-        <p className="max-w-sm text-xs text-zinc-600" role="alert">{vista.motivo}</p>
-        <button type="button" onClick={() => void descargar()} className="mt-1 inline-flex items-center gap-1.5 rounded border border-zinc-300 bg-white px-3 py-1 text-xs font-mono text-zinc-700 hover:border-helix-accent/40 hover:text-helix-accent-ink">
-          <Download className="h-3 w-3" aria-hidden /> Descargar
-        </button>
+        <p className="max-w-sm text-xs text-zinc-600" role="alert">
+          {sinDescarga ? "Este archivo no se puede ver aquí y tu acceso es solo de consulta. Pídele al equipo del SIG que te lo muestre." : vista.motivo}
+        </p>
+        {!sinDescarga && (
+          <button type="button" onClick={() => void descargar()} className="mt-1 inline-flex items-center gap-1.5 rounded border border-zinc-300 bg-white px-3 py-1 text-xs font-mono text-zinc-700 hover:border-helix-accent/40 hover:text-helix-accent-ink">
+            <Download className="h-3 w-3" aria-hidden /> Descargar
+          </button>
+        )}
       </div>
     )
   }
   if (vista.t === "url") {
     return (
       <div className={`${marco} flex items-center justify-center bg-zinc-200`} style={{ height: altura }}>
-        {vista.tipo === "pdf" && <iframe src={`${vista.url}#${embebido ? (EXT.excel.includes(ext) ? "navpanes=0&" : "toolbar=0&navpanes=0&") : ""}view=FitH`} title={nombre} className="h-full w-full border-0 bg-zinc-200" />}
-        {vista.tipo === "imagen" && <img src={vista.url} alt={nombre} className="max-h-full max-w-full object-contain" />}
-        {vista.tipo === "audio" && <audio src={vista.url} controls className="w-full max-w-md px-4" />}
-        {vista.tipo === "video" && <video src={vista.url} controls className="max-h-full max-w-full" />}
+        {vista.tipo === "pdf" && (sinDescarga
+          ? <div className="h-full w-full"><PdfLectura src={vista.url} title={nombre} /></div>
+          : <iframe src={`${vista.url}#${embebido ? (EXT.excel.includes(ext) ? "navpanes=0&" : "toolbar=0&navpanes=0&") : ""}view=FitH`} title={nombre} className="h-full w-full border-0 bg-zinc-200" />)}
+        {vista.tipo === "imagen" && <img src={vista.url} alt={nombre} draggable={!sinDescarga} className="max-h-full max-w-full object-contain" />}
+        {vista.tipo === "audio" && <audio src={vista.url} controls controlsList={sinDescarga ? "nodownload" : undefined} className="w-full max-w-md px-4" />}
+        {vista.tipo === "video" && <video src={vista.url} controls controlsList={sinDescarga ? "nodownload" : undefined} className="max-h-full max-w-full" />}
       </div>
     )
   }

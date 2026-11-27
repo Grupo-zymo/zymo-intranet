@@ -5,6 +5,7 @@ import { sigApi } from "@/lib/sigApi"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { DocxViewer, PdfFrame } from "@/components/sig/SigFileViewer"
+import { useSinDescarga } from "@/components/sig/sinDescarga"
 import { Search, Users, Check, AlertTriangle, Loader, BookOpen, X, FileText, Paperclip } from "lucide-react"
 import { urlRecurso } from "@/lib/entorno"
 
@@ -332,6 +333,7 @@ function CargoManualModal({ cargo, onClose }: { cargo: TcCargo; onClose: () => v
   const isExcel = ext === "xlsx" || ext === "xls" || ext === "xlsm"
 
   const [docTab, setDocTab] = useState<"original" | "funciones">("original")
+  const sinDescarga = useSinDescarga() // líder de área: ve el manual, no lo descarga
 
   const [loading, setLoading] = useState(isDocx || isExcel)
   const [error, setError] = useState<string | null>(null)
@@ -494,18 +496,22 @@ function CargoManualModal({ cargo, onClose }: { cargo: TcCargo; onClose: () => v
                   <div className="text-center">
                     <p className="text-sm text-zinc-700">{cargo.manual_filename ?? "Documento"}</p>
                     <p className="text-xs text-zinc-600 mt-1">
-                      {isDocOld
-                        ? "Formato .doc antiguo — el navegador no puede mostrarlo. Descárgalo para abrirlo en Word."
-                        : "Este formato no puede mostrarse acá — descárgalo para verlo."}
+                      {sinDescarga
+                        ? "Este formato no puede mostrarse acá y tu acceso es solo de consulta. Pídele al equipo del SIG que te lo muestre."
+                        : isDocOld
+                          ? "Formato .doc antiguo — el navegador no puede mostrarlo. Descárgalo para abrirlo en Word."
+                          : "Este formato no puede mostrarse acá — descárgalo para verlo."}
                     </p>
                   </div>
-                  <EnlaceDescarga
-                    href={url}
-                    download={cargo.manual_filename ?? "manual"}
-                    className="flex items-center gap-1.5 text-xs px-3 py-2 rounded border border-zinc-300 text-zinc-700 hover:border-zinc-400 hover:text-zinc-900 transition-colors"
-                  >
-                    Descargar documento original
-                  </EnlaceDescarga>
+                  {!sinDescarga && (
+                    <EnlaceDescarga
+                      href={url}
+                      download={cargo.manual_filename ?? "manual"}
+                      className="flex items-center gap-1.5 text-xs px-3 py-2 rounded border border-zinc-300 text-zinc-700 hover:border-zinc-400 hover:text-zinc-900 transition-colors"
+                    >
+                      Descargar documento original
+                    </EnlaceDescarga>
+                  )}
                 </div>
               )}
             </>

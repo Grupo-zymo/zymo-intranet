@@ -3,6 +3,7 @@ import { useRef, useState } from "react"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { sigApi } from "@/lib/sigApi"
 import { EstadoRevision } from "./EstadoRevision"
+import { useSinDescarga } from "./sinDescarga"
 import { VisorArchivoDialog } from "./VisorArchivoDialog"
 import {
   Paperclip, Plus, FileText, Trash2, Loader, AlertCircle, AlertTriangle,
@@ -55,6 +56,7 @@ export function SigAnexoPanel({
   queryKey, canEdit = false, soloSubir = false, extraField, instructivoOptions, enMarco = false,
 }: Props) {
   const qc = useQueryClient()
+  const sinDescarga = useSinDescarga() // líder de área: ve los archivos, no los descarga
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [file, setFile] = useState<File | null>(null)
@@ -427,18 +429,20 @@ export function SigAnexoPanel({
                 <Eye className="h-3.5 w-3.5" />
                 Ver
               </button>
-              <button
-                onClick={() => void handleDownload(item)}
-                disabled={downloading === item.id}
-                className="shrink-0 p-1.5 rounded text-zinc-600 hover:text-helix-accent-ink hover:bg-helix-accent/5 transition-colors disabled:opacity-40"
-                title="Descargar"
-                aria-label={`Descargar ${item.nombre}`}
-              >
-                {downloading === item.id
-                  ? <Loader className="h-3.5 w-3.5 animate-spin" />
-                  : <Download className="h-3.5 w-3.5" />
-                }
-              </button>
+              {!sinDescarga && (
+                <button
+                  onClick={() => void handleDownload(item)}
+                  disabled={downloading === item.id}
+                  className="shrink-0 p-1.5 rounded text-zinc-600 hover:text-helix-accent-ink hover:bg-helix-accent/5 transition-colors disabled:opacity-40"
+                  title="Descargar"
+                  aria-label={`Descargar ${item.nombre}`}
+                >
+                  {downloading === item.id
+                    ? <Loader className="h-3.5 w-3.5 animate-spin" />
+                    : <Download className="h-3.5 w-3.5" />
+                  }
+                </button>
+              )}
               {canEdit && !soloSubir && (
                 confirmDeleteId === item.id ? (
                   <div className="flex items-center gap-1 shrink-0">

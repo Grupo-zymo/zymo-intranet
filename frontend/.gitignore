@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+# recursos de pdf.js que copia scripts/copiar-pdfjs.mjs antes de dev/build
+public/pdfjs
 
 # Editor directories and files
 .vscode/*

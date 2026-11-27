@@ -3,6 +3,8 @@ import { guardarArchivo } from "@/lib/archivos"
 import { esNativo } from "@/lib/entorno"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { sigApi } from "@/lib/sigApi"
+import { useSinDescarga } from "./sinDescarga"
+import { PdfLectura } from "./PdfLectura"
 
 /**
  * Marco de previsualización de archivos del SIG — mismo criterio que la vista
@@ -36,7 +38,10 @@ function SoloDescarga({ nombre, obtener }: { nombre: string; obtener: () => Prom
 }
 
 export function PdfFrame({ src, title }: { src: string; title: string }) {
+  const sinDescarga = useSinDescarga()
   if (esNativo) return <SoloDescarga nombre={title.toLowerCase().endsWith(".pdf") ? title : `${title}.pdf`} obtener={async () => (await fetch(src)).blob()} />
+  // Líder de área: visor propio sin «Guardar» ni «Imprimir» (el lector del navegador trae los suyos y no se pueden quitar)
+  if (sinDescarga) return <PreviewFrame><PdfLectura src={src} title={title} /></PreviewFrame>
   return (
     <PreviewFrame>
       {/* #view=FitH: el visor nativo del PDF ajusta la página al ancho del marco */}

@@ -91,7 +91,7 @@ export const INTERNAL_MODULE_GROUPS: ModulePermissionGroup[] = [
         category: "modulo",
         icon: "📁",
         name: "SIG — Procedimientos de mi área",
-        description: "Ver los procedimientos y archivos de su área y enviar versiones nuevas para que el SIG las verifique",
+        description: "Ver en pantalla los procedimientos y archivos de su área (sin descargarlos ni imprimirlos) y enviar versiones nuevas para que el SIG las verifique. Recibe en la campana el aviso cuando aprueban o rechazan algo de su área",
       },
       {
         id: "mod_sig_subir",

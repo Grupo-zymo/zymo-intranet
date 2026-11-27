@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Download, FileQuestion, X } from "lucide-react"
 import { ArchivoPrevisualizador, descargarArchivo } from "../ArchivoPrevisualizador"
+import { useSinDescarga } from "../sinDescarga"
 import { ESTILO_TIPO, extensionDe, type DocAuditoria } from "./tipos"
 
 const BOTON = "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-helix-accent"
@@ -12,6 +13,7 @@ export function VisorDocumento({ doc, onCerrar, style }: { doc: DocAuditoria; on
   const t = ESTILO_TIPO[doc.tipo]
   const ext = extensionDe(doc.nombreArchivo)
   const Icono = t.icono
+  const sinDescarga = useSinDescarga() // líder de área: lee el documento, no lo descarga
   return (
     <section
       style={style}
@@ -30,7 +32,7 @@ export function VisorDocumento({ doc, onCerrar, style }: { doc: DocAuditoria; on
           </p>
           <h2 className="truncate text-[15px] font-semibold tracking-tight text-zinc-900" title={doc.titulo}>{doc.titulo}</h2>
         </div>
-        {doc.base && doc.nombreArchivo && (
+        {doc.base && doc.nombreArchivo && !sinDescarga && (
           <button type="button" onClick={() => void descargarArchivo(doc.base!, doc.nombreArchivo!).catch(() => undefined)} aria-label={`Descargar ${doc.nombreArchivo}`} title="Descargar el archivo" className={BOTON}>
             <Download className="h-4 w-4" aria-hidden />
           </button>
